@@ -1,0 +1,31 @@
+modules:
+  jira:issuePanel:
+    - key: epictree-panel
+      resource: main
+      resolver:
+        function: resolver
+      viewportSize: medium
+      title: epictree
+      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/epictree/build
+    tunnel:
+      port: 3000
+permissions:
+  content:
+    styles:
+      - 'unsafe-inline'
+    scripts:
+      - 'unsafe-inline'
+      - 'unsafe-hashes'
+  scopes:
+    - read:jira-work
+    - write:jira-work
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/c4527b2b-0fad-415f-b301-d8963c4ca66b
