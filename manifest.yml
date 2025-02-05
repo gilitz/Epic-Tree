@@ -12,7 +12,7 @@ modules:
       handler: index.handler
 resources:
   - key: main
-    path: static/epictree/build
+    path: static/frontend/build
     tunnel:
       port: 3000
 permissions:

@@ -15,14 +15,14 @@ See [Set up Forge](https://developer.atlassian.com/platform/forge/set-up-forge/)
 npm install
 ```
 
-- Install dependencies inside of the `static/epictree` directory:
+- Install dependencies inside of the `static/frontend` directory:
 ```
 npm install
 ```
 
-- Modify your app by editing the files in `static/epictree/src/`.
+- Modify your app by editing the files in `static/frontend/src/`.
 
-- Build your app (inside of the `static/epictree` directory):
+- Build your app (inside of the `static/frontend` directory):
 ```
 npm run build
 ```
