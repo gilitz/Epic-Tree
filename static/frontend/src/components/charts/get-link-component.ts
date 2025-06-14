@@ -14,12 +14,20 @@ import {
   LinkRadialLine,
 } from '@visx/shape';
 
+interface GetLinkComponentProps {
+  layout: 'polar' | 'cartesian';
+  linkType: 'diagonal' | 'step' | 'curve' | 'line';
+  orientation: 'vertical' | 'horizontal';
+}
+
+type LinkComponent = ComponentType<any>;
+
 export default function getLinkComponent({
   layout,
   linkType,
   orientation,
-}) {
-  let LinkComponent;
+}: GetLinkComponentProps): LinkComponent {
+  let LinkComponent: LinkComponent;
 
   if (layout === 'polar') {
     if (linkType === 'step') {
@@ -51,4 +59,4 @@ export default function getLinkComponent({
     LinkComponent = LinkHorizontal;
   }
   return LinkComponent;
-}
+} 

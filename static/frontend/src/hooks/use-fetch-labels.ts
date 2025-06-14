@@ -1,22 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { events, invoke } from '@forge/bridge';
 
-function App() {
-  const [data, setData] = useState(null);
+interface Label {
+  id: string;
+  name: string;
+}
 
-  const handleFetchSuccess = (data) => {
-    setData(data);
+interface UseFetchLabelsReturn {
+  labels: Label[];
+}
+
+export const useFetchLabels = (): UseFetchLabelsReturn => {
+  const [labels, setLabels] = useState<Label[]>([]);
+
+  const handleFetchSuccess = (data: Label[]): void => {
+    setLabels(data);
     if (data.length === 0) {
       throw new Error('No labels returned');
     }
   };
-  const handleFetchError = () => {
-    console.error('Failed to get label2');
+
+  const handleFetchError = (error: Error): void => {
+    console.error('Failed to get label11', error);
   };
 
   useEffect(() => {
-    const fetchLabels = async () => invoke('fetchLabels');
+    const fetchLabels = async (): Promise<Label[]> => invoke('fetchLabels');
     fetchLabels().then(handleFetchSuccess).catch(handleFetchError);
+
     const subscribeForIssueChangedEvent = () =>
       events.on('JIRA_ISSUE_CHANGED', () => {
         fetchLabels().then(handleFetchSuccess).catch(handleFetchError);
@@ -27,16 +38,6 @@ function App() {
       subscription.then((subscription) => subscription.unsubscribe());
     };
   }, []);
-  if (!data) {
-    return <div>Loading...</div>;
-  }
-  const labels = data.map((label) => <div>{label}</div>);
-  return (
-    <div>
-      <span>Issue labels3222:</span>
-      <div>{labels}</div>
-    </div>
-  );
-}
 
-export default App;
+  return { labels };
+}; 

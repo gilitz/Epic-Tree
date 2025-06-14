@@ -4,7 +4,7 @@ import { Tree, hierarchy } from '@visx/hierarchy';
 import { HierarchyPointNode } from '@visx/hierarchy/lib/types';
 import { LinkHorizontal, LinkVertical } from '@visx/shape';
 import { LinearGradient } from '@visx/gradient';
-import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic'
+import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
 import { Provider } from '@atlaskit/smart-card';
 
@@ -17,8 +17,46 @@ const lightpurple = '#374469';
 const white = '#ffffff';
 export const background = '#272b4d';
 
+interface TreeData {
+  name: string;
+  children?: TreeData[];
+}
 
-const rawTree = {
+interface Issue {
+  id: string;
+  key: string;
+  fields: {
+    summary: string;
+    subtasks: Array<{ key: string }>;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+interface Epic {
+  fields: {
+    summary: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+interface NodeProps {
+  node: HierarchyPointNode<TreeData>;
+}
+
+interface TreeChartProps {
+  width: number;
+  height: number;
+  margin?: {
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
+  };
+}
+
+const rawTree: TreeData = {
   name: 'T',
   children: [
     {
@@ -59,7 +97,7 @@ const rawTree = {
   ],
 };
 
-function RootNode({ node }) {
+function RootNode({ node }: NodeProps): JSX.Element {
   return (
     <Group top={node.x} left={node.y}>
       <circle r={40} fill="url('#lg')" />
@@ -77,7 +115,7 @@ function RootNode({ node }) {
   );
 }
 
-function ParentNode({ node }) {
+function ParentNode({ node }: NodeProps): JSX.Element {
   const width = 80;
   const height = 30;
   const centerX = -width / 2;
@@ -112,7 +150,7 @@ function ParentNode({ node }) {
 }
 
 /** Handles rendering Root, Parent, and other Nodes. */
-function Node({ node }) {
+function Node({ node }: NodeProps): JSX.Element {
   const width = 80;
   const height = 30;
   const centerX = -width / 2;
@@ -124,61 +162,63 @@ function Node({ node }) {
   if (isParent) return <ParentNode node={node} />;
 
   return (
-	<a href="https://gilitzz.atlassian.net/browse/SCRUM-3" style={{position: 'relative', zIndex: '99999' }}>
-		<Group top={node.x} left={node.y}>
-			<rect
-				height={height}
-				width={width}
-				y={centerY}
-				x={centerX}
-				fill={background}
-				stroke={green}
-				strokeWidth={1}
-				strokeDasharray="2,2"
-				strokeOpacity={0.6}
-				rx={10}
-				onClick={() => {
-				alert(`clicked: ${JSON.stringify(node.data.name)}`);
-				}}
-			/>
-			<text
-				dy=".33em"
-				fontSize={9}
-				fontFamily="Arial"
-				textAnchor="middle"
-				fill={green}
-				style={{ pointerEvents: 'none' }}>
-					{node.data.name}
-			</text>
-		</Group>
-	</a>
+    <a href="https://gilitzz.atlassian.net/browse/SCRUM-3" style={{position: 'relative', zIndex: '99999' }}>
+      <Group top={node.x} left={node.y}>
+        <rect
+          height={height}
+          width={width}
+          y={centerY}
+          x={centerX}
+          fill={background}
+          stroke={green}
+          strokeWidth={1}
+          strokeDasharray="2,2"
+          strokeOpacity={0.6}
+          rx={10}
+          onClick={() => {
+            alert(`clicked: ${JSON.stringify(node.data.name)}`);
+          }}
+        />
+        <text
+          dy=".33em"
+          fontSize={9}
+          fontFamily="Arial"
+          textAnchor="middle"
+          fill={green}
+          style={{ pointerEvents: 'none' }}>
+            {node.data.name}
+        </text>
+      </Group>
+    </a>
   );
 }
 
 const defaultMargin = { top: 10, left: 80, right: 80, bottom: 10 };
 
-export const TreeChart = ({ width, height, margin = defaultMargin }) => {
-	const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
-	const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
-	console.log("issues:",issues)
-	const transformDataToTree = ({ epic, issues }) => {
-		if (!issues || issues?.length === 0)  {
-			return [];
-		}
-		return {
-			name: epic?.fields?.summary,
-			children: issues?.map(issue => ({ name: issue.key, children: issue.fields.subtasks.map(subtask => ({ name: subtask.key, children: [] })) }))
-		}
-	}
+export const TreeChart: React.FC<TreeChartProps> = ({ width, height, margin = defaultMargin }) => {
+  const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
+  const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
+  
+  
+  const transformDataToTree = ({ epic, issues }: { epic: Epic | null; issues: Issue[] }): TreeData => {
+    if (!issues || issues?.length === 0)  {
+      return { name: 'No data' };
+    }
+    return {
+      name: epic?.fields?.summary || 'Unknown Epic',
+      children: issues?.map(issue => ({ 
+        name: issue.key, 
+        children: issue.fields.subtasks.map(subtask => ({ name: subtask.key })) 
+      }))
+    };
+  };
 
-	const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic });
+  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic });
 
-	console.log("transformedTreeData:", transformedTreeData)
 
   const data = useMemo(() => hierarchy(transformedTreeData), [issuesByEpic, rootEpicIssue]);
   const yMax = height - margin.top - margin.bottom;
   const xMax = width - margin.left - margin.right;
-
 
   return width < 10 ? null : (
     <svg width={width} height={height}>
@@ -204,4 +244,4 @@ export const TreeChart = ({ width, height, margin = defaultMargin }) => {
       </Tree>
     </svg>
   );
-};
+}; 

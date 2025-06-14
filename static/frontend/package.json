@@ -20,7 +20,12 @@
     "styled-components": "^6.1.13"
   },
   "devDependencies": {
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "typescript": "^5.0.0",
+    "@types/react": "^16.14.0",
+    "@types/react-dom": "^16.9.0",
+    "@types/styled-components": "^5.1.0",
+    "@types/d3-shape": "^3.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
