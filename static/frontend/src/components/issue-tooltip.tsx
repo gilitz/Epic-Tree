@@ -90,7 +90,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
         
         <DetailRow>
           <Label>Status:</Label>
-          <StatusValue statusColor={status?.statusCategory?.colorName}>
+          <StatusValue $statusColor={status?.statusCategory?.colorName}>
             {status?.name || 'Unknown'}
           </StatusValue>
         </DetailRow>
@@ -180,13 +180,13 @@ const Value = styled.span`
   gap: 4px;
 `;
 
-const StatusValue = styled.span<{ statusColor?: string }>`
+const StatusValue = styled.span<{ $statusColor?: string }>`
   font-size: 12px;
   color: #172b4d;
   padding: 2px 6px;
   border-radius: 3px;
   background-color: ${props => {
-    switch (props.statusColor) {
+    switch (props.$statusColor) {
       case 'blue-gray': return '#ddd';
       case 'yellow': return '#fff2b8';
       case 'green': return '#d3f5d3';
@@ -195,7 +195,7 @@ const StatusValue = styled.span<{ statusColor?: string }>`
     }
   }};
   border: 1px solid ${props => {
-    switch (props.statusColor) {
+    switch (props.$statusColor) {
       case 'blue-gray': return '#ccc';
       case 'yellow': return '#ffc400';
       case 'green': return '#36b37e';
