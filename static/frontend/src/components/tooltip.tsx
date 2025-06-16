@@ -1,4 +1,5 @@
 import React, { ReactNode, ReactElement } from 'react';
+import { createPortal } from 'react-dom';
 import TippyImport from "@tippyjs/react";
 import styled from "styled-components";
 
@@ -12,15 +13,19 @@ interface TooltipProps {
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled, children }) => {
+  const rootElement = document.getElementById('root');
+  
   return (
     <Tippy 
       delay={[300, 100]}
-      appendTo={document.body}
+      appendTo={() => rootElement || document.body}
       animation={false}
       disabled={disabled}
       interactive={interactive}
       zIndex={999999}
       content={<TooltipBox>{content}</TooltipBox>}
+      boundary="viewport"
+      placement="auto"
     >
       {children}
     </Tippy>
@@ -31,8 +36,8 @@ const TooltipBox = styled.div`
   min-width: fit-content;
   display: flex;
   flex-wrap: wrap;
-  background-color: red;
-  padding: 4px 8px;
+  background-color: #ffffff;
+  border: 1px solid grey;
   border-radius: 8px;
   color: blue;
 `; 

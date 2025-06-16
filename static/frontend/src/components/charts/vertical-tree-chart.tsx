@@ -9,12 +9,32 @@ import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
 import getLinkComponent from './get-link-component';
 import { Tooltip } from '../tooltip';
+import { IssueTooltip } from '../issue-tooltip';
 
 interface TreeData {
   name: string;
+  key?: string;
+  summary?: string;
+  priority?: {
+    name: string;
+    iconUrl?: string;
+  };
+  assignee?: {
+    displayName: string;
+    avatarUrls?: {
+      '16x16': string;
+    };
+  };
+  status?: {
+    name: string;
+    statusCategory?: {
+      colorName: string;
+    };
+  };
   issuelinks?: any[];
   children?: TreeData[];
   isExpanded?: boolean;
+  isEpic?: boolean;
   data?: TreeData;
 }
 
@@ -145,20 +165,38 @@ export function VerticalTreeChart({
     try {
       return {
         name: epic?.fields?.summary || 'Unknown Epic',
+        key: epic?.key,
+        summary: epic?.fields?.summary,
+        priority: epic?.fields?.priority,
+        assignee: epic?.fields?.assignee,
+        status: epic?.fields?.status,
         issuelinks: epic?.fields?.issuelinks || [],
+        isEpic: true,
         children: issues.map(issue => {
           // Safely handle issue structure
           const issueFields = issue?.fields;
           const subtasks = issueFields?.subtasks || [];
           
           return {
-            name: issueFields?.summary || issue?.key || 'Unknown Issue', 
-            issuelinks: issueFields?.issuelinks || [], 
+            name: issueFields?.summary || issue?.key || 'Unknown Issue',
+            key: issue?.key,
+            summary: issueFields?.summary,
+            priority: issueFields?.priority,
+            assignee: issueFields?.assignee,
+            status: issueFields?.status,
+            issuelinks: issueFields?.issuelinks || [],
+            isEpic: false,
             children: subtasks.map(subtask => {
               return { 
-                name: subtask?.key || 'Unknown Subtask', 
+                name: subtask?.key || 'Unknown Subtask',
+                key: subtask?.key,
+                summary: subtask?.key, // Subtasks only have key, not full fields
+                priority: undefined,
+                assignee: undefined,
+                status: undefined,
                 children: [], 
-                issuelinks: [] 
+                issuelinks: [],
+                isEpic: false
               };
             }) 
           };
@@ -243,12 +281,25 @@ export function VerticalTreeChart({
                     top = node.x;
                     left = node.y;
                   }
-                  const nodeName = (node.data as any).name || 'Unknown';
+                  const nodeData = node.data as TreeData;
+                  const nodeName = nodeData.name || 'Unknown';
                   const truncatedName = nodeName && typeof nodeName === 'string' && nodeName.length > 12 
                     ? nodeName.substring(0, 12) + '...' 
                     : nodeName || 'Unknown';
+                  
+                  const tooltipContent = (
+                    <IssueTooltip
+                      issueKey={nodeData.key}
+                      summary={nodeData.summary}
+                      priority={nodeData.priority}
+                      assignee={nodeData.assignee}
+                      status={nodeData.status}
+                      isEpic={nodeData.isEpic}
+                    />
+                  );
+                  
                   return (
-                    <Tooltip content={nodeName} interactive key={index}>
+                    <Tooltip content={tooltipContent} interactive key={index}>
                       <a 
                         key={index} 
                         data-testid="issue-field-summary.ui.inline-read.link-item" 
