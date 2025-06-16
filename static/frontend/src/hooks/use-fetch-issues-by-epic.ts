@@ -30,14 +30,17 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   const [issues, setIssues] = useState<Issue[]>([]);
   
   const handleFetchSuccess = (data: IssuesResponse): void => {
-    setIssues(data.issues);
-    if (data.length === 0) {
-      throw new Error('No issues for this epic returned');
+    if (data && data.issues && Array.isArray(data.issues)) {
+      setIssues(data.issues);
+    } else {
+      console.warn('No issues found for epic:', epicId);
+      setIssues([]);
     }
   };
 
   const handleFetchError = (error: Error): void => {
-    console.error('Failed to get issue by epic', error);
+    console.error('Failed to get issues for epic:', epicId, error);
+    setIssues([]); // Set empty array on error to prevent crashes
   };
 
   useEffect(() => {

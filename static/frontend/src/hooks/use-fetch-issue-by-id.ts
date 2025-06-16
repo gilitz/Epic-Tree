@@ -25,14 +25,17 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
   const [issue, setIssue] = useState<Issue | null>(null);
   
   const handleFetchSuccess = (data: Issue): void => {
-    setIssue(data);
-    if (!data) {
-      throw new Error('No issue returned');
+    if (data && data.id) {
+      setIssue(data);
+    } else {
+      console.warn('No issue found for ID:', issueId);
+      setIssue(null);
     }
   };
 
   const handleFetchError = (error: Error): void => {
-    console.error('Failed to get issue by id', error);
+    console.error('Failed to get issue by ID:', issueId, error);
+    setIssue(null); // Set null on error to prevent crashes
   };
 
   useEffect(() => {
