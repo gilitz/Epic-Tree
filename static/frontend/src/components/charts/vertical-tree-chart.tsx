@@ -11,6 +11,14 @@ import getLinkComponent from './get-link-component';
 import { Tooltip } from '../tooltip';
 import { IssueTooltip } from '../issue-tooltip';
 
+interface BlockingIssue {
+  key: string;
+  summary: string;
+  status?: {
+    name: string;
+  };
+}
+
 interface TreeData {
   name: string;
   key?: string;
@@ -31,7 +39,9 @@ interface TreeData {
       colorName: string;
     };
   };
+  labels?: string[];
   issuelinks?: any[];
+  blockingIssues?: BlockingIssue[];
   children?: TreeData[];
   isExpanded?: boolean;
   isEpic?: boolean;
@@ -155,6 +165,19 @@ export function VerticalTreeChart({
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
   const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
   
+  // Helper function to extract blocking issues from issuelinks
+  const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
+    if (!issuelinks || !Array.isArray(issuelinks)) return [];
+    
+    return issuelinks
+      .filter(link => link.type?.name === 'Blocks' && link.inwardIssue)
+      .map(link => ({
+        key: link.inwardIssue.key,
+        summary: link.inwardIssue.fields?.summary || link.inwardIssue.key,
+        status: link.inwardIssue.fields?.status
+      }));
+  };
+  
   
   const transformDataToTree = ({ epic, issues }: { epic: Epic | null; issues: Issue[] }): TreeData => {
     
@@ -170,7 +193,9 @@ export function VerticalTreeChart({
         priority: epic?.fields?.priority,
         assignee: epic?.fields?.assignee,
         status: epic?.fields?.status,
+        labels: epic?.fields?.labels || [],
         issuelinks: epic?.fields?.issuelinks || [],
+        blockingIssues: extractBlockingIssues(epic?.fields?.issuelinks || []),
         isEpic: true,
         children: issues.map(issue => {
           // Safely handle issue structure
@@ -184,7 +209,9 @@ export function VerticalTreeChart({
             priority: issueFields?.priority,
             assignee: issueFields?.assignee,
             status: issueFields?.status,
+            labels: issueFields?.labels || [],
             issuelinks: issueFields?.issuelinks || [],
+            blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
             isEpic: false,
             children: subtasks.map(subtask => {
               return { 
@@ -194,8 +221,10 @@ export function VerticalTreeChart({
                 priority: undefined,
                 assignee: undefined,
                 status: undefined,
+                labels: [], // Subtasks don't have full fields data
                 children: [], 
                 issuelinks: [],
+                blockingIssues: [], // Subtasks don't have full issuelinks data
                 isEpic: false
               };
             }) 
@@ -294,6 +323,8 @@ export function VerticalTreeChart({
                       priority={nodeData.priority}
                       assignee={nodeData.assignee}
                       status={nodeData.status}
+                      labels={nodeData.labels}
+                      blockingIssues={nodeData.blockingIssues}
                       isEpic={nodeData.isEpic}
                     />
                   );
