@@ -40,6 +40,25 @@ interface TreeData {
     };
   };
   labels?: string[];
+  storyPoints?: number;
+  issueType?: {
+    name: string;
+    iconUrl?: string;
+  };
+  reporter?: {
+    displayName: string;
+    avatarUrls?: {
+      '16x16': string;
+    };
+  };
+  created?: string;
+  updated?: string;
+  dueDate?: string;
+  resolution?: {
+    name: string;
+  };
+  components?: Array<{ name: string }>;
+  fixVersions?: Array<{ name: string }>;
   issuelinks?: any[];
   blockingIssues?: BlockingIssue[];
   children?: TreeData[];
@@ -194,6 +213,15 @@ export function VerticalTreeChart({
         assignee: epic?.fields?.assignee,
         status: epic?.fields?.status,
         labels: epic?.fields?.labels || [],
+        storyPoints: epic?.fields?.customfield_10016 || epic?.fields?.storyPoints,
+        issueType: epic?.fields?.issuetype,
+        reporter: epic?.fields?.reporter,
+        created: epic?.fields?.created,
+        updated: epic?.fields?.updated,
+        dueDate: epic?.fields?.duedate,
+        resolution: epic?.fields?.resolution,
+        components: epic?.fields?.components || [],
+        fixVersions: epic?.fields?.fixVersions || [],
         issuelinks: epic?.fields?.issuelinks || [],
         blockingIssues: extractBlockingIssues(epic?.fields?.issuelinks || []),
         isEpic: true,
@@ -210,6 +238,15 @@ export function VerticalTreeChart({
             assignee: issueFields?.assignee,
             status: issueFields?.status,
             labels: issueFields?.labels || [],
+            storyPoints: issueFields?.customfield_10016 || issueFields?.storyPoints,
+            issueType: issueFields?.issuetype,
+            reporter: issueFields?.reporter,
+            created: issueFields?.created,
+            updated: issueFields?.updated,
+            dueDate: issueFields?.duedate,
+            resolution: issueFields?.resolution,
+            components: issueFields?.components || [],
+            fixVersions: issueFields?.fixVersions || [],
             issuelinks: issueFields?.issuelinks || [],
             blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
             isEpic: false,
@@ -222,6 +259,15 @@ export function VerticalTreeChart({
                 assignee: undefined,
                 status: undefined,
                 labels: [], // Subtasks don't have full fields data
+                storyPoints: undefined,
+                issueType: undefined,
+                reporter: undefined,
+                created: undefined,
+                updated: undefined,
+                dueDate: undefined,
+                resolution: undefined,
+                components: [],
+                fixVersions: [],
                 children: [], 
                 issuelinks: [],
                 blockingIssues: [], // Subtasks don't have full issuelinks data
@@ -248,14 +294,44 @@ export function VerticalTreeChart({
     }
   }, [issuesByEpic, rootEpicIssue]);
   
-  // Don't render the chart until we have real data or there's an error
+  // Handle error states and loading
   if (!issuesByEpic && !rootEpicIssue) {
-    return <div>Loading Epic Tree...</div>;
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <div>Loading Epic Tree...</div>
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+          Fetching epic and issue data...
+        </div>
+      </div>
+    );
+  }
+
+  // Handle network error states
+  if (rootEpicIssue?.fields?.summary?.includes('Network Error') || 
+      rootEpicIssue?.fields?.summary?.includes('Error loading')) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <div style={{ color: '#d32f2f', fontWeight: 'bold' }}>⚠️ Network Error</div>
+        <div style={{ fontSize: '14px', marginTop: '8px' }}>
+          Unable to load epic data. Please check your connection and try refreshing the page.
+        </div>
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+          Epic ID: ET-2
+        </div>
+      </div>
+    );
   }
 
   // Don't render if we only have loading state
   if (transformedTreeData.name === 'Loading...' && transformedTreeData.children?.length === 0) {
-    return <div>Loading Epic Tree...</div>;
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <div>Loading Epic Tree...</div>
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+          Loading issues for epic...
+        </div>
+      </div>
+    );
   }
 
   return totalWidth < 10 ? null : (
@@ -324,6 +400,15 @@ export function VerticalTreeChart({
                       assignee={nodeData.assignee}
                       status={nodeData.status}
                       labels={nodeData.labels}
+                      storyPoints={nodeData.storyPoints}
+                      issueType={nodeData.issueType}
+                      reporter={nodeData.reporter}
+                      created={nodeData.created}
+                      updated={nodeData.updated}
+                      dueDate={nodeData.dueDate}
+                      resolution={nodeData.resolution}
+                      components={nodeData.components}
+                      fixVersions={nodeData.fixVersions}
                       blockingIssues={nodeData.blockingIssues}
                       isEpic={nodeData.isEpic}
                     />

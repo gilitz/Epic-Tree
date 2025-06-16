@@ -31,6 +31,25 @@ interface IssueTooltipProps {
     };
   };
   labels?: string[];
+  storyPoints?: number;
+  issueType?: {
+    name: string;
+    iconUrl?: string;
+  };
+  reporter?: {
+    displayName: string;
+    avatarUrls?: {
+      '16x16': string;
+    };
+  };
+  created?: string;
+  updated?: string;
+  dueDate?: string;
+  resolution?: {
+    name: string;
+  };
+  components?: Array<{ name: string }>;
+  fixVersions?: Array<{ name: string }>;
   blockingIssues?: BlockingIssue[];
   isEpic?: boolean;
   baseUrl?: string;
@@ -43,6 +62,15 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
   assignee,
   status,
   labels = [],
+  storyPoints,
+  issueType,
+  reporter,
+  created,
+  updated,
+  dueDate,
+  resolution,
+  components = [],
+  fixVersions = [],
   blockingIssues = [],
   isEpic = false,
   baseUrl = 'https://gilitz.atlassian.net'
@@ -66,6 +94,34 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
       hash = label.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Format date for display
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Check if date is overdue
+  const isOverdue = (dateString?: string) => {
+    if (!dateString) return false;
+    try {
+      const dueDate = new Date(dateString);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return dueDate < today;
+    } catch {
+      return false;
+    }
   };
   const handleIssueKeyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -116,7 +172,10 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
         >
           {issueKey || 'Unknown'}
         </IssueKeyLink>
-        <IssueType>{isEpic ? 'Epic' : 'Issue'}</IssueType>
+        <IssueType>
+          {issueType?.iconUrl && <TypeIcon src={issueType.iconUrl} alt={issueType.name} />}
+          {issueType?.name || (isEpic ? 'Epic' : 'Issue')}
+        </IssueType>
       </TooltipHeader>
       
       <Summary>{summary || 'No summary available'}</Summary>
@@ -189,6 +248,78 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
           </DetailRow>
         )}
         
+        {storyPoints && (
+          <DetailRow>
+            <Label>Story Points:</Label>
+            <StoryPointsBadge>{storyPoints}</StoryPointsBadge>
+          </DetailRow>
+        )}
+        
+        {reporter && (
+          <DetailRow>
+            <Label>Reporter:</Label>
+            <Value>
+              {reporter.avatarUrls?.['16x16'] && (
+                <Avatar src={reporter.avatarUrls['16x16']} alt={reporter.displayName} />
+              )}
+              {reporter.displayName}
+            </Value>
+          </DetailRow>
+        )}
+        
+        {created && (
+          <DetailRow>
+            <Label>Created:</Label>
+            <Value>{formatDate(created)}</Value>
+          </DetailRow>
+        )}
+        
+        {updated && (
+          <DetailRow>
+            <Label>Updated:</Label>
+            <Value>{formatDate(updated)}</Value>
+          </DetailRow>
+        )}
+        
+        {dueDate && (
+          <DetailRow>
+            <Label>Due Date:</Label>
+            <DueDateValue $isOverdue={isOverdue(dueDate)}>
+              {formatDate(dueDate)}
+              {isOverdue(dueDate) && ' ⚠️'}
+            </DueDateValue>
+          </DetailRow>
+        )}
+        
+        {resolution && (
+          <DetailRow>
+            <Label>Resolution:</Label>
+            <Value>{resolution.name}</Value>
+          </DetailRow>
+        )}
+        
+        {components && components.length > 0 && (
+          <DetailRow>
+            <Label>Components:</Label>
+            <ComponentsContainer>
+              {components.map((component, index) => (
+                <ComponentTag key={index}>{component.name}</ComponentTag>
+              ))}
+            </ComponentsContainer>
+          </DetailRow>
+        )}
+        
+        {fixVersions && fixVersions.length > 0 && (
+          <DetailRow>
+            <Label>Fix Versions:</Label>
+            <VersionsContainer>
+              {fixVersions.map((version, index) => (
+                <VersionTag key={index}>{version.name}</VersionTag>
+              ))}
+            </VersionsContainer>
+          </DetailRow>
+        )}
+        
         {blockingIssues && blockingIssues.length > 0 && (
           <DetailRow>
             <Label>🚫 Blocked by:</Label>
@@ -256,6 +387,14 @@ const IssueType = styled.span`
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const TypeIcon = styled.img`
+  width: 14px;
+  height: 14px;
 `;
 
 const Summary = styled.div`
@@ -415,4 +554,56 @@ const TooltipLabelTag = styled.span<{ $bgColor?: string; $borderColor?: string; 
   &:hover {
     opacity: 0.8;
   }
+`;
+
+const StoryPointsBadge = styled.span`
+  background-color: #1976d2;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const DueDateValue = styled.span<{ $isOverdue?: boolean }>`
+  font-size: 12px;
+  color: ${props => props.$isOverdue ? '#d32f2f' : '#172b4d'};
+  font-weight: ${props => props.$isOverdue ? '600' : '400'};
+`;
+
+const ComponentsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+`;
+
+const ComponentTag = styled.span`
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+`;
+
+const VersionsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+`;
+
+const VersionTag = styled.span`
+  background-color: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffcc02;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
 `; 
