@@ -89,15 +89,24 @@ export const useFetchSubtasks = ({ parentKeys }: UseFetchSubtasksProps): UseFetc
         console.log('Fetching subtasks for parent keys:', parentKeys);
         const response: SubtasksResponse = await invoke('fetchSubtasksByParentKeys', { parentKeys });
         
+        console.log('SUBTASKS API RESPONSE:', response);
+        
         if (response && response.issues) {
           setSubtasks(response.issues);
-          console.log(`Successfully fetched ${response.issues.length} subtasks`);
+          console.log(`🎯 SUBTASKS API SUCCESS: fetched ${response.issues.length} subtasks`);
+          if (response.issues.length > 0) {
+            console.log('Subtask details:', response.issues.map(st => ({
+              key: st.key,
+              summary: st.fields?.summary,
+              parent: st.fields?.parent?.key
+            })));
+          }
         } else {
-          console.warn('No subtasks found in response');
+          console.warn('SUBTASKS API: No subtasks found in response, response structure:', response);
           setSubtasks([]);
         }
       } catch (err) {
-        console.error('Failed to fetch subtasks:', err);
+        console.error('SUBTASKS API ERROR:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch subtasks');
         setSubtasks([]);
       } finally {

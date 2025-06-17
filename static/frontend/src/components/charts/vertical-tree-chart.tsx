@@ -196,53 +196,16 @@ export function VerticalTreeChart({
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
   const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
   
-  // Get all parent keys from issues to fetch their subtasks
-  const parentKeys = useMemo(() => {
-    console.log('=== PARENT KEYS GENERATION ===');
-    console.log('Issues by epic:', issuesByEpic);
-    
-    if (!issuesByEpic || !Array.isArray(issuesByEpic)) {
-      console.log('No issues or not an array');
-      return [];
-    }
-    
-         const keys = issuesByEpic
-       .filter(issue => {
-         const hasSubtasks = issue?.fields?.subtasks && issue.fields.subtasks.length > 0;
-         console.log(`Issue ${issue?.key}: has ${issue?.fields?.subtasks?.length || 0} subtasks (${hasSubtasks ? 'YES' : 'NO'})`);
-         console.log(`  Issue ${issue?.key} subtasks field:`, issue?.fields?.subtasks);
-         return hasSubtasks;
-       })
-      .map(issue => {
-        console.log(`Adding parent key: ${issue.key}`);
-        return issue.key;
-      });
-    
-    console.log('Final parent keys:', keys);
-    return keys;
-  }, [issuesByEpic]);
-  
-  const { subtasks } = useFetchSubtasks({ parentKeys });
-  
-  // Debug the subtasks hook results
-  console.log('=== SUBTASKS HOOK DEBUG ===');
-  console.log('Parent keys for subtasks fetch:', parentKeys);
-  console.log('Subtasks hook result:', subtasks);
-  console.log('Subtasks count:', subtasks?.length || 0);
-  console.log('Subtasks details:', subtasks?.map(st => ({ 
-    key: st.key, 
-    summary: st.fields?.summary, 
-    parent: st.fields?.parent?.key 
-  })) || []);
+  // Log subtasks found in issues
+  if (issuesByEpic && issuesByEpic.length > 0) {
+    issuesByEpic.forEach(issue => {
+      if (issue.fields?.subtasks && issue.fields.subtasks.length > 0) {
+        console.log('🎯 REAL JIRA SUBTASKS FOUND in', issue.key, ':', issue.fields.subtasks.map(st => st.key));
+      }
+    });
+  }
 
-  // Add more detailed debugging about the data flow
-  console.log('=== DATA FLOW DEBUG ===');
-  console.log('Issues by epic loaded:', !!issuesByEpic);
-  console.log('Issues by epic count:', issuesByEpic?.length || 0);
-  console.log('Root epic loaded:', !!rootEpicIssue);
-  console.log('Root epic key:', rootEpicIssue?.key);
-  console.log('Subtasks loaded:', !!subtasks);
-  console.log('Transform input - epic:', rootEpicIssue?.key, 'issues:', issuesByEpic?.length || 0, 'subtasks:', subtasks?.length || 0);
+
   
   // Helper function to extract blocking issues from issuelinks (issues that block this issue)
   const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
@@ -271,38 +234,9 @@ export function VerticalTreeChart({
   };
   
   
-  const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic | null; issues: Issue[]; subtasksData: any[] }): TreeData => {
-    
-    console.log('=== TRANSFORM DATA DEBUG ===');
-    console.log('Epic:', epic?.key, epic?.fields?.summary);
-    console.log('Issues count:', issues?.length || 0);
-    console.log('Subtasks data count:', subtasksData?.length || 0);
-    console.log('Raw subtasks data:', subtasksData);
+  const transformDataToTree = ({ epic, issues }: { epic: Epic | null; issues: Issue[] }): TreeData => {
 
     try {
-      // Create a map of subtasks by parent key for quick lookup
-      const subtasksByParent = new Map<string, any[]>();
-      if (subtasksData && Array.isArray(subtasksData)) {
-        console.log('Processing subtasks data:', subtasksData.length, 'subtasks found');
-        subtasksData.forEach((subtask, index) => {
-          console.log(`Subtask ${index}:`, subtask);
-          const parentKey = subtask?.fields?.parent?.key;
-          console.log(`Subtask ${subtask?.key} parent key:`, parentKey);
-          if (parentKey) {
-            if (!subtasksByParent.has(parentKey)) {
-              subtasksByParent.set(parentKey, []);
-            }
-            subtasksByParent.get(parentKey)!.push(subtask);
-            console.log(`Added subtask ${subtask.key} to parent ${parentKey}`);
-          } else {
-            console.log(`Subtask ${subtask?.key} has no parent key!`);
-          }
-        });
-      } else {
-        console.log('No subtasks data or not an array');
-      }
-      
-      console.log('Subtasks by parent map:', subtasksByParent);
 
       const treeData = {
         name: epic?.fields?.summary || epic?.key || 'Epic Tree',
@@ -325,17 +259,15 @@ export function VerticalTreeChart({
         blockingIssues: extractBlockingIssues(epic?.fields?.issuelinks || []),
         blockedIssues: extractBlockedIssues(epic?.fields?.issuelinks || []),
         isEpic: true,
-        children: (!issues || !Array.isArray(issues) || issues.length === 0) ? [] : issues.map((issue, issueIndex) => {
+        children: (!issues || !Array.isArray(issues) || issues.length === 0) ? [] : issues.map((issue) => {
           // Safely handle issue structure
           const issueFields = issue?.fields;
-          const issueSubtasks = subtasksByParent.get(issue?.key) || [];
+          const issueSubtasks = issueFields?.subtasks || [];
           
-          console.log(`\nIssue ${issueIndex} (${issue?.key}):`, {
-            key: issue?.key,
-            summary: issueFields?.summary,
-            subtasksCount: issueSubtasks.length,
-            subtasks: issueSubtasks.map(st => ({ key: st.key, summary: st.fields?.summary }))
-          });
+          if (issueSubtasks.length > 0) {
+            console.log(`🎯 REAL SUBTASKS for ${issue?.key}:`, 
+              issueSubtasks.map(st => `${st.key}`));
+          }
           
           const issueNode = {
             name: issueFields?.summary || issue?.key || 'Unknown Issue',
@@ -358,49 +290,36 @@ export function VerticalTreeChart({
             blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
             blockedIssues: extractBlockedIssues(issueFields?.issuelinks || []),
             isEpic: false,
-            children: issueSubtasks.map((subtask, subtaskIndex) => {
-              const subtaskFields = subtask?.fields;
-              console.log(`  Subtask ${subtaskIndex} (${subtask?.key}):`, {
-                key: subtask?.key,
-                summary: subtaskFields?.summary,
-                parent: subtaskFields?.parent?.key
-              });
+            children: issueSubtasks.map((subtask) => {
               return { 
-                name: subtaskFields?.summary || subtask?.key || 'Unknown Subtask',
+                name: subtask?.key || 'Unknown Subtask',
                 key: subtask?.key,
-                summary: subtaskFields?.summary,
-                priority: subtaskFields?.priority,
-                assignee: subtaskFields?.assignee,
-                status: subtaskFields?.status,
-                labels: subtaskFields?.labels || [],
-                storyPoints: subtaskFields?.customfield_10016 || subtaskFields?.storyPoints,
-                issueType: subtaskFields?.issuetype,
-                reporter: subtaskFields?.reporter,
-                created: subtaskFields?.created,
-                updated: subtaskFields?.updated,
-                dueDate: subtaskFields?.duedate,
-                resolution: subtaskFields?.resolution,
-                components: subtaskFields?.components || [],
-                fixVersions: subtaskFields?.fixVersions || [],
+                summary: subtask?.key,
+                priority: undefined,
+                assignee: undefined,
+                status: undefined,
+                labels: [],
+                storyPoints: undefined,
+                issueType: undefined,
+                reporter: undefined,
+                created: undefined,
+                updated: undefined,
+                dueDate: undefined,
+                resolution: undefined,
+                components: [],
+                fixVersions: [],
                 children: [], 
-                issuelinks: subtaskFields?.issuelinks || [],
-                blockingIssues: extractBlockingIssues(subtaskFields?.issuelinks || []),
-                blockedIssues: extractBlockedIssues(subtaskFields?.issuelinks || []),
+                issuelinks: [],
+                blockingIssues: [],
+                blockedIssues: [],
                 isEpic: false
               };
             }) 
           };
           
-          console.log(`Issue ${issue?.key} final children count:`, issueNode.children.length);
           return issueNode;
         })
       };
-      
-      console.log('=== FINAL TREE STRUCTURE ===');
-      console.log('Epic children count:', treeData.children.length);
-      treeData.children.forEach((child, index) => {
-        console.log(`Child ${index} (${child.key}): ${child.children.length} subtasks`);
-      });
       
       return treeData;
     } catch (error) {
@@ -415,71 +334,16 @@ export function VerticalTreeChart({
     }
   };
 
-  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic, subtasksData: subtasks });
+  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic });
 
-  // Add a simple test data structure to ensure we always have something to render
-  const testTreeData = {
-    name: 'Test Epic',
-    key: 'TEST-1',
-    summary: 'Test Epic Node',
-    isEpic: true,
-    children: [
-      {
-        name: 'Test Story 1',
-        key: 'TEST-2',
-        summary: 'Test Story Node 1',
-        isEpic: false,
-        children: [
-          {
-            name: 'Test Subtask 1',
-            key: 'TEST-3',
-            summary: 'Test Subtask Node 1',
-            isEpic: false,
-            children: []
-          }
-        ]
-      },
-      {
-        name: 'Test Story 2',
-        key: 'TEST-4',
-        summary: 'Test Story Node 2',
-        isEpic: false,
-        children: []
-      }
-    ]
-  };
-
-  // Use real data if we have issues, otherwise use test data
-  const finalTreeData = (issuesByEpic && issuesByEpic.length > 0) || (rootEpicIssue && rootEpicIssue.key)
-    ? transformedTreeData 
-    : testTreeData;
-
-  console.log('=== FINAL DATA CHOICE ===');
-  console.log('Using data:', finalTreeData === testTreeData ? 'TEST DATA' : 'REAL DATA');
-  console.log('Final tree data:', finalTreeData);
-  console.log('Real data children count:', transformedTreeData.children?.length || 0);
-  if (transformedTreeData.children) {
-    transformedTreeData.children.forEach((child, index) => {
-      console.log(`Child ${index}: ${child.key} has ${child.children?.length || 0} subtasks`);
-    });
-  }
+  // Use real data only
+  const finalTreeData = transformedTreeData;
   
   
 
   const data = useMemo(() => {
     try {
       const hierarchy_data = hierarchy(finalTreeData);
-      console.log('=== HIERARCHY DEBUG ===');
-      console.log('Root node:', hierarchy_data);
-      console.log('Descendants count:', hierarchy_data.descendants().length);
-      hierarchy_data.descendants().forEach((node, index) => {
-        console.log(`Hierarchy node ${index}:`, {
-          depth: node.depth,
-          data: node.data,
-          hasChildren: !!node.children,
-          childrenCount: node.children?.length || 0
-        });
-      });
       return hierarchy_data;
     } catch (error) {
       console.error("Error creating hierarchy:", error);
@@ -487,14 +351,7 @@ export function VerticalTreeChart({
     }
   }, [finalTreeData]);
   
-  // Add debug logging for layout calculations
-  console.log('=== LAYOUT DEBUG ===');
-  console.log('Total dimensions:', { totalWidth, totalHeight });
-  console.log('Margins:', margin);
-  console.log('Inner dimensions:', { innerWidth, innerHeight });
-  console.log('Size:', { sizeWidth, sizeHeight });
-  console.log('Origin:', origin);
-  console.log('Layout:', layout, 'Orientation:', orientation);
+
   
   // Handle error states and loading
   if (!issuesByEpic && !rootEpicIssue) {
@@ -569,11 +426,6 @@ export function VerticalTreeChart({
           >
             {(tree) => (
               <Group top={origin.y} left={origin.x}>
-                {console.log('=== TREE RENDER DEBUG ===')}
-                {console.log('Tree object:', tree)}
-                {console.log('Tree links count:', (tree.links() || []).length)}
-                {console.log('Tree descendants count:', (tree.descendants() || []).length)}
-                {console.log('Origin:', origin)}
                 
                 {(tree.links() || []).map((link, index) => (
                   <LinkComponent
@@ -605,9 +457,6 @@ export function VerticalTreeChart({
                   }
                   const nodeData = node.data as TreeData;
                   const nodeName = nodeData.name || 'Unknown';
-                  
-                  // Debug logging for node structure and positions
-                  console.log(`Node ${index}: depth=${node.depth}, key=${nodeData.key}, name=${nodeName}, position=(${left}, ${top}), raw=(${node.x}, ${node.y})`);
                   
                   // Helper function to truncate text for node display
                   const truncateForNode = (text: string, maxLength: number = 10): string => {
@@ -650,10 +499,8 @@ export function VerticalTreeChart({
                     
                     if (nodeData.key) {
                       try {
-                        console.log(`Attempting to open issue: ${nodeData.key}`);
                         await router.open(`/browse/${nodeData.key}`);
                       } catch (error) {
-                        console.error('Failed to open issue via router:', error);
                         window.location.href = `https://gilitz.atlassian.net/browse/${nodeData.key}`;
                       }
                     }
