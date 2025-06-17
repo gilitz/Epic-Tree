@@ -12,6 +12,7 @@ import { useFetchSubtasks } from '../../hooks/use-fetch-subtasks';
 import getLinkComponent from './get-link-component';
 import { Tooltip } from '../tooltip';
 import { IssueTooltip } from '../issue-tooltip';
+import { router } from '@forge/bridge';
 
 interface BlockingIssue {
   key: string;
@@ -152,7 +153,7 @@ const datamock: TreeData = {
   ],
 };
 
-const defaultMargin = { top: 30, left: 30, right: 30, bottom: 70 };
+const defaultMargin = { top: 50, left: 80, right: 80, bottom: 50 };
 
 export function VerticalTreeChart({
   width: totalWidth,
@@ -197,13 +198,51 @@ export function VerticalTreeChart({
   
   // Get all parent keys from issues to fetch their subtasks
   const parentKeys = useMemo(() => {
-    if (!issuesByEpic || !Array.isArray(issuesByEpic)) return [];
-    return issuesByEpic
-      .filter(issue => issue?.fields?.subtasks && issue.fields.subtasks.length > 0)
-      .map(issue => issue.key);
+    console.log('=== PARENT KEYS GENERATION ===');
+    console.log('Issues by epic:', issuesByEpic);
+    
+    if (!issuesByEpic || !Array.isArray(issuesByEpic)) {
+      console.log('No issues or not an array');
+      return [];
+    }
+    
+         const keys = issuesByEpic
+       .filter(issue => {
+         const hasSubtasks = issue?.fields?.subtasks && issue.fields.subtasks.length > 0;
+         console.log(`Issue ${issue?.key}: has ${issue?.fields?.subtasks?.length || 0} subtasks (${hasSubtasks ? 'YES' : 'NO'})`);
+         console.log(`  Issue ${issue?.key} subtasks field:`, issue?.fields?.subtasks);
+         return hasSubtasks;
+       })
+      .map(issue => {
+        console.log(`Adding parent key: ${issue.key}`);
+        return issue.key;
+      });
+    
+    console.log('Final parent keys:', keys);
+    return keys;
   }, [issuesByEpic]);
   
   const { subtasks } = useFetchSubtasks({ parentKeys });
+  
+  // Debug the subtasks hook results
+  console.log('=== SUBTASKS HOOK DEBUG ===');
+  console.log('Parent keys for subtasks fetch:', parentKeys);
+  console.log('Subtasks hook result:', subtasks);
+  console.log('Subtasks count:', subtasks?.length || 0);
+  console.log('Subtasks details:', subtasks?.map(st => ({ 
+    key: st.key, 
+    summary: st.fields?.summary, 
+    parent: st.fields?.parent?.key 
+  })) || []);
+
+  // Add more detailed debugging about the data flow
+  console.log('=== DATA FLOW DEBUG ===');
+  console.log('Issues by epic loaded:', !!issuesByEpic);
+  console.log('Issues by epic count:', issuesByEpic?.length || 0);
+  console.log('Root epic loaded:', !!rootEpicIssue);
+  console.log('Root epic key:', rootEpicIssue?.key);
+  console.log('Subtasks loaded:', !!subtasks);
+  console.log('Transform input - epic:', rootEpicIssue?.key, 'issues:', issuesByEpic?.length || 0, 'subtasks:', subtasks?.length || 0);
   
   // Helper function to extract blocking issues from issuelinks (issues that block this issue)
   const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
@@ -234,29 +273,41 @@ export function VerticalTreeChart({
   
   const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic | null; issues: Issue[]; subtasksData: any[] }): TreeData => {
     
-    if (!issues || !Array.isArray(issues) || issues.length === 0) {
-      return { name: 'Loading...', children: [] }; // Return minimal structure while loading
-    }
+    console.log('=== TRANSFORM DATA DEBUG ===');
+    console.log('Epic:', epic?.key, epic?.fields?.summary);
+    console.log('Issues count:', issues?.length || 0);
+    console.log('Subtasks data count:', subtasksData?.length || 0);
+    console.log('Raw subtasks data:', subtasksData);
 
     try {
       // Create a map of subtasks by parent key for quick lookup
       const subtasksByParent = new Map<string, any[]>();
       if (subtasksData && Array.isArray(subtasksData)) {
-        subtasksData.forEach(subtask => {
+        console.log('Processing subtasks data:', subtasksData.length, 'subtasks found');
+        subtasksData.forEach((subtask, index) => {
+          console.log(`Subtask ${index}:`, subtask);
           const parentKey = subtask?.fields?.parent?.key;
+          console.log(`Subtask ${subtask?.key} parent key:`, parentKey);
           if (parentKey) {
             if (!subtasksByParent.has(parentKey)) {
               subtasksByParent.set(parentKey, []);
             }
             subtasksByParent.get(parentKey)!.push(subtask);
+            console.log(`Added subtask ${subtask.key} to parent ${parentKey}`);
+          } else {
+            console.log(`Subtask ${subtask?.key} has no parent key!`);
           }
         });
+      } else {
+        console.log('No subtasks data or not an array');
       }
+      
+      console.log('Subtasks by parent map:', subtasksByParent);
 
-      return {
-        name: epic?.fields?.summary || 'Unknown Epic',
-        key: epic?.key,
-        summary: epic?.fields?.summary,
+      const treeData = {
+        name: epic?.fields?.summary || epic?.key || 'Epic Tree',
+        key: epic?.key || 'ET-2',
+        summary: epic?.fields?.summary || 'Loading epic...',
         priority: epic?.fields?.priority,
         assignee: epic?.fields?.assignee,
         status: epic?.fields?.status,
@@ -274,12 +325,19 @@ export function VerticalTreeChart({
         blockingIssues: extractBlockingIssues(epic?.fields?.issuelinks || []),
         blockedIssues: extractBlockedIssues(epic?.fields?.issuelinks || []),
         isEpic: true,
-        children: issues.map(issue => {
+        children: (!issues || !Array.isArray(issues) || issues.length === 0) ? [] : issues.map((issue, issueIndex) => {
           // Safely handle issue structure
           const issueFields = issue?.fields;
           const issueSubtasks = subtasksByParent.get(issue?.key) || [];
           
-          return {
+          console.log(`\nIssue ${issueIndex} (${issue?.key}):`, {
+            key: issue?.key,
+            summary: issueFields?.summary,
+            subtasksCount: issueSubtasks.length,
+            subtasks: issueSubtasks.map(st => ({ key: st.key, summary: st.fields?.summary }))
+          });
+          
+          const issueNode = {
             name: issueFields?.summary || issue?.key || 'Unknown Issue',
             key: issue?.key,
             summary: issueFields?.summary,
@@ -300,8 +358,13 @@ export function VerticalTreeChart({
             blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
             blockedIssues: extractBlockedIssues(issueFields?.issuelinks || []),
             isEpic: false,
-            children: issueSubtasks.map(subtask => {
+            children: issueSubtasks.map((subtask, subtaskIndex) => {
               const subtaskFields = subtask?.fields;
+              console.log(`  Subtask ${subtaskIndex} (${subtask?.key}):`, {
+                key: subtask?.key,
+                summary: subtaskFields?.summary,
+                parent: subtaskFields?.parent?.key
+              });
               return { 
                 name: subtaskFields?.summary || subtask?.key || 'Unknown Subtask',
                 key: subtask?.key,
@@ -327,24 +390,111 @@ export function VerticalTreeChart({
               };
             }) 
           };
+          
+          console.log(`Issue ${issue?.key} final children count:`, issueNode.children.length);
+          return issueNode;
         })
       };
+      
+      console.log('=== FINAL TREE STRUCTURE ===');
+      console.log('Epic children count:', treeData.children.length);
+      treeData.children.forEach((child, index) => {
+        console.log(`Child ${index} (${child.key}): ${child.children.length} subtasks`);
+      });
+      
+      return treeData;
     } catch (error) {
       console.error("Error transforming data:", error);
-      return { name: 'Error loading data', children: [] };
+      return { 
+        name: 'Error loading data', 
+        key: 'error',
+        summary: 'Error occurred',
+        isEpic: true,
+        children: [] 
+      };
     }
   };
 
   const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic, subtasksData: subtasks });
 
+  // Add a simple test data structure to ensure we always have something to render
+  const testTreeData = {
+    name: 'Test Epic',
+    key: 'TEST-1',
+    summary: 'Test Epic Node',
+    isEpic: true,
+    children: [
+      {
+        name: 'Test Story 1',
+        key: 'TEST-2',
+        summary: 'Test Story Node 1',
+        isEpic: false,
+        children: [
+          {
+            name: 'Test Subtask 1',
+            key: 'TEST-3',
+            summary: 'Test Subtask Node 1',
+            isEpic: false,
+            children: []
+          }
+        ]
+      },
+      {
+        name: 'Test Story 2',
+        key: 'TEST-4',
+        summary: 'Test Story Node 2',
+        isEpic: false,
+        children: []
+      }
+    ]
+  };
+
+  // Use real data if we have issues, otherwise use test data
+  const finalTreeData = (issuesByEpic && issuesByEpic.length > 0) || (rootEpicIssue && rootEpicIssue.key)
+    ? transformedTreeData 
+    : testTreeData;
+
+  console.log('=== FINAL DATA CHOICE ===');
+  console.log('Using data:', finalTreeData === testTreeData ? 'TEST DATA' : 'REAL DATA');
+  console.log('Final tree data:', finalTreeData);
+  console.log('Real data children count:', transformedTreeData.children?.length || 0);
+  if (transformedTreeData.children) {
+    transformedTreeData.children.forEach((child, index) => {
+      console.log(`Child ${index}: ${child.key} has ${child.children?.length || 0} subtasks`);
+    });
+  }
+  
+  
+
   const data = useMemo(() => {
     try {
-      return hierarchy(transformedTreeData);
+      const hierarchy_data = hierarchy(finalTreeData);
+      console.log('=== HIERARCHY DEBUG ===');
+      console.log('Root node:', hierarchy_data);
+      console.log('Descendants count:', hierarchy_data.descendants().length);
+      hierarchy_data.descendants().forEach((node, index) => {
+        console.log(`Hierarchy node ${index}:`, {
+          depth: node.depth,
+          data: node.data,
+          hasChildren: !!node.children,
+          childrenCount: node.children?.length || 0
+        });
+      });
+      return hierarchy_data;
     } catch (error) {
       console.error("Error creating hierarchy:", error);
       return hierarchy({ name: 'Error', children: [] });
     }
-  }, [issuesByEpic, rootEpicIssue, subtasks]);
+  }, [finalTreeData]);
+  
+  // Add debug logging for layout calculations
+  console.log('=== LAYOUT DEBUG ===');
+  console.log('Total dimensions:', { totalWidth, totalHeight });
+  console.log('Margins:', margin);
+  console.log('Inner dimensions:', { innerWidth, innerHeight });
+  console.log('Size:', { sizeWidth, sizeHeight });
+  console.log('Origin:', origin);
+  console.log('Layout:', layout, 'Orientation:', orientation);
   
   // Handle error states and loading
   if (!issuesByEpic && !rootEpicIssue) {
@@ -406,10 +556,25 @@ export function VerticalTreeChart({
           <Tree
             root={data}
             size={[sizeWidth, sizeHeight]}
-            separation={(a: any, b: any) => (a?.parent === b?.parent ? 1 : 0.5) / (a?.depth || 1)}
+            separation={(a: any, b: any) => {
+              // Much more reasonable separation values
+              if (a?.parent === b?.parent) {
+                // Siblings - moderate spacing
+                return 1;
+              } else {
+                // Non-siblings - slightly more spacing
+                return 1.5;
+              }
+            }}
           >
             {(tree) => (
               <Group top={origin.y} left={origin.x}>
+                {console.log('=== TREE RENDER DEBUG ===')}
+                {console.log('Tree object:', tree)}
+                {console.log('Tree links count:', (tree.links() || []).length)}
+                {console.log('Tree descendants count:', (tree.descendants() || []).length)}
+                {console.log('Origin:', origin)}
+                
                 {(tree.links() || []).map((link, index) => (
                   <LinkComponent
                     key={index}
@@ -422,8 +587,8 @@ export function VerticalTreeChart({
                 ))}
 
                 {(tree.descendants() || []).map((node, index) => {
-                  const width = 80;
-                  const height = 40;
+                  const width = 60;
+                  const height = 30;
 
                   let top: number;
                   let left: number;
@@ -441,14 +606,58 @@ export function VerticalTreeChart({
                   const nodeData = node.data as TreeData;
                   const nodeName = nodeData.name || 'Unknown';
                   
+                  // Debug logging for node structure and positions
+                  console.log(`Node ${index}: depth=${node.depth}, key=${nodeData.key}, name=${nodeName}, position=(${left}, ${top}), raw=(${node.x}, ${node.y})`);
+                  
                   // Helper function to truncate text for node display
-                  const truncateForNode = (text: string, maxLength: number = 12): string => {
+                  const truncateForNode = (text: string, maxLength: number = 10): string => {
                     if (!text || typeof text !== 'string') return 'Unknown';
                     if (text.length <= maxLength) return text;
                     return text.substring(0, maxLength) + '...';
                   };
                   
                   const truncatedName = truncateForNode(nodeName);
+                  
+                  // Different colors for different node types
+                  const getNodeColors = (depth: number, hasChildren: boolean) => {
+                    if (depth === 0) {
+                      return {
+                        stroke: '#fd9b93',
+                        fill: '#272b4d',
+                        strokeWidth: 3
+                      };
+                    } else if (depth === 1) {
+                      return {
+                        stroke: hasChildren ? '#03c0dc' : '#26deb0',
+                        fill: '#272b4d',
+                        strokeWidth: 2
+                      };
+                    } else {
+                      return {
+                        stroke: '#ffc400',
+                        fill: '#272b4d',
+                        strokeWidth: 1
+                      };
+                    }
+                  };
+                  
+                  const nodeColors = getNodeColors(node.depth, (node.children?.length || 0) > 0);
+                  
+                  // Handle node click
+                  const handleNodeClick = async (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (nodeData.key) {
+                      try {
+                        console.log(`Attempting to open issue: ${nodeData.key}`);
+                        await router.open(`/browse/${nodeData.key}`);
+                      } catch (error) {
+                        console.error('Failed to open issue via router:', error);
+                        window.location.href = `https://gilitz.atlassian.net/browse/${nodeData.key}`;
+                      }
+                    }
+                  };
                   
                   const tooltipContent = (
                     <IssueTooltip
@@ -475,61 +684,54 @@ export function VerticalTreeChart({
                   
                   return (
                     <Tooltip content={tooltipContent} interactive key={index}>
-                      <IssueLink 
-                        key={index} 
-                        data-testid="issue-field-summary.ui.inline-read.link-item" 
-                        data-is-router-link="true" 
-                        data-vc="link-item"  
-                        aria-disabled="false" 
-                        href="https://gilitz.atlassian.net/browse/ET-2" 
-                        target='_parent'
-                      >
-                        <Group top={top} left={left} key={index}>
-                          {node.depth === 0 && (
-                            <circle
-                              r={20}
-                              fill="url('#links-gradient')"
-                            //   onClick={() => {
-                            //     node.data.isExpanded = !node.data.isExpanded;
-                            //     forceUpdate();
-                            //   }}
-                            />
-                          )}
-                          {node.depth !== 0 && (
-                            <rect
-                              height={height}
-                              width={width}
-                              y={-height / 2}
-                              x={-width / 2}
-                              fill="#272b4d"
-                              stroke={node.data.children ? '#03c0dc' : '#26deb0'}
-                              strokeWidth={1}
-                              strokeDasharray={node.data.children ? '0' : '2,2'}
-                              strokeOpacity={node.data.children ? 1 : 0.6}
-                              rx={node.data.children ? 0 : 10}
-                            //   onClick={() => {
-                            //     node.data.isExpanded = !node.data.isExpanded;
-                            //     forceUpdate();
-                            //   }}
-                            />
-                          )}
+                      <g transform={`translate(${left}, ${top})`}>
+                        {/* Direct SVG rect - no styled components */}
+                        <rect
+                          height={height}
+                          width={width}
+                          y={-height / 2}
+                          x={-width / 2}
+                          fill={nodeColors.fill}
+                          stroke={nodeColors.stroke}
+                          strokeWidth={nodeColors.strokeWidth}
+                          strokeDasharray={
+                            node.depth === 0 
+                              ? '0' 
+                              : node.depth === 1 && (node.children?.length || 0) > 0
+                                ? '0' 
+                                : '2,2'
+                          }
+                          strokeOpacity={1}
+                          rx={node.depth === 0 ? 5 : node.depth === 2 ? 8 : 3}
+                          style={{ cursor: 'pointer' }}
+                          onClick={handleNodeClick}
+                        />
 
-                          <text
-                            dy=".33em"
-                            fontSize={node.depth === 0 ? 10 : 11}
-                            fontFamily="Arial"
-                            textAnchor="middle"
-                            style={{ pointerEvents: 'none' }}
-                            fill={node.depth === 0 ? '#ffffff' : '#ffffff'}
-                          >
-                            {node.depth === 0 ? (
-                              <tspan x="0" dy="0">{truncateForNode(nodeName, 8)}</tspan>
-                            ) : (
-                              <tspan x="0" dy="0">{truncatedName}</tspan>
-                            )}
-                          </text>
-                        </Group>
-                      </IssueLink>
+                        <text
+                          dy=".33em"
+                          fontSize={node.depth === 0 ? 9 : node.depth === 2 ? 8 : 10}
+                          fontFamily="Arial"
+                          textAnchor="middle"
+                          style={{ pointerEvents: 'none' }}
+                          fill="#ffffff"
+                        >
+                          <tspan x="0" dy="0">
+                            {node.depth === 0 ? truncateForNode(nodeName, 6) : truncatedName} 
+                          </tspan>
+                        </text>
+                        
+                        {/* Debug: Show node depth */}
+                        <text
+                          dy="1.2em"
+                          fontSize="7"
+                          fontFamily="Arial"
+                          textAnchor="middle"
+                          style={{ pointerEvents: 'none' }}
+                          fill="#888"
+                        >
+                          <tspan x="0" dy="0">d:{node.depth} k:{nodeData.key}</tspan>
+                        </text>
+                      </g>
                     </Tooltip>
                   );
                 })}
@@ -584,6 +786,11 @@ const ChartContainer = styled.div`
 `;
 
 const IssueLink = styled.a`
+  position: relative;
+  z-index: 99999;
+`;
+
+const NodeGroup = styled.div`
   position: relative;
   z-index: 99999;
 `; 
