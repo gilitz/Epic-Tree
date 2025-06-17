@@ -19,6 +19,14 @@ interface BlockingIssue {
   };
 }
 
+interface BlockedIssue {
+  key: string;
+  summary: string;
+  status?: {
+    name: string;
+  };
+}
+
 interface TreeData {
   name: string;
   key?: string;
@@ -61,6 +69,7 @@ interface TreeData {
   fixVersions?: Array<{ name: string }>;
   issuelinks?: any[];
   blockingIssues?: BlockingIssue[];
+  blockedIssues?: BlockedIssue[];
   children?: TreeData[];
   isExpanded?: boolean;
   isEpic?: boolean;
@@ -184,7 +193,7 @@ export function VerticalTreeChart({
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
   const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
   
-  // Helper function to extract blocking issues from issuelinks
+  // Helper function to extract blocking issues from issuelinks (issues that block this issue)
   const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
     if (!issuelinks || !Array.isArray(issuelinks)) return [];
     
@@ -194,6 +203,19 @@ export function VerticalTreeChart({
         key: link.inwardIssue.key,
         summary: link.inwardIssue.fields?.summary || link.inwardIssue.key,
         status: link.inwardIssue.fields?.status
+      }));
+  };
+
+  // Helper function to extract blocked issues from issuelinks (issues that this issue blocks)
+  const extractBlockedIssues = (issuelinks: any[]): BlockedIssue[] => {
+    if (!issuelinks || !Array.isArray(issuelinks)) return [];
+    
+    return issuelinks
+      .filter(link => link.type?.name === 'Blocks' && link.outwardIssue)
+      .map(link => ({
+        key: link.outwardIssue.key,
+        summary: link.outwardIssue.fields?.summary || link.outwardIssue.key,
+        status: link.outwardIssue.fields?.status
       }));
   };
   
@@ -224,6 +246,7 @@ export function VerticalTreeChart({
         fixVersions: epic?.fields?.fixVersions || [],
         issuelinks: epic?.fields?.issuelinks || [],
         blockingIssues: extractBlockingIssues(epic?.fields?.issuelinks || []),
+        blockedIssues: extractBlockedIssues(epic?.fields?.issuelinks || []),
         isEpic: true,
         children: issues.map(issue => {
           // Safely handle issue structure
@@ -249,6 +272,7 @@ export function VerticalTreeChart({
             fixVersions: issueFields?.fixVersions || [],
             issuelinks: issueFields?.issuelinks || [],
             blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
+            blockedIssues: extractBlockedIssues(issueFields?.issuelinks || []),
             isEpic: false,
             children: subtasks.map(subtask => {
               return { 
@@ -271,6 +295,7 @@ export function VerticalTreeChart({
                 children: [], 
                 issuelinks: [],
                 blockingIssues: [], // Subtasks don't have full issuelinks data
+                blockedIssues: [], // Subtasks don't have full issuelinks data
                 isEpic: false
               };
             }) 
@@ -410,6 +435,7 @@ export function VerticalTreeChart({
                       components={nodeData.components}
                       fixVersions={nodeData.fixVersions}
                       blockingIssues={nodeData.blockingIssues}
+                      blockedIssues={nodeData.blockedIssues}
                       isEpic={nodeData.isEpic}
                     />
                   );

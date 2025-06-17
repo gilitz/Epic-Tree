@@ -1,9 +1,18 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { router } from '@forge/bridge';
 import { Tooltip } from './tooltip';
+import { Tag } from './tag';
 
 interface BlockingIssue {
+  key: string;
+  summary: string;
+  status?: {
+    name: string;
+  };
+}
+
+interface BlockedIssue {
   key: string;
   summary: string;
   status?: {
@@ -51,6 +60,7 @@ interface IssueTooltipProps {
   components?: Array<{ name: string }>;
   fixVersions?: Array<{ name: string }>;
   blockingIssues?: BlockingIssue[];
+  blockedIssues?: BlockedIssue[];
   isEpic?: boolean;
   baseUrl?: string;
 }
@@ -72,6 +82,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
   components = [],
   fixVersions = [],
   blockingIssues = [],
+  blockedIssues = [],
   isEpic = false,
   baseUrl = 'https://gilitz.atlassian.net'
 }) => {
@@ -163,98 +174,128 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
     }
   };
 
+  const handleBlockedIssueClick = async (e: React.MouseEvent, blockedIssueKey: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      await router.open(`/browse/${blockedIssueKey}`);
+    } catch (error) {
+      console.error('Failed to open blocked issue in new tab:', error);
+      // Fallback: try using window.open with Forge's allowed method
+      try {
+        window.open(`${baseUrl}/browse/${blockedIssueKey}`, '_blank');
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        // Last resort: navigate in same tab
+        window.location.href = `${baseUrl}/browse/${blockedIssueKey}`;
+      }
+    }
+  };
+
   return (
-    <TooltipContainer>
+    <TooltipContent>
       <TooltipHeader>
         <IssueKeyLink 
           href="#"
           onClick={handleIssueKeyClick}
         >
-          {issueKey || 'Unknown'}
+          {issueKey}
         </IssueKeyLink>
-        <IssueType>
-          {issueType?.iconUrl && <TypeIcon src={issueType.iconUrl} alt={issueType.name} />}
-          {issueType?.name || (isEpic ? 'Epic' : 'Issue')}
-        </IssueType>
+        {issueType && (
+          <IssueType>
+            {issueType.iconUrl && <TypeIcon src={issueType.iconUrl} alt={issueType.name} />}
+            {issueType.name}
+          </IssueType>
+        )}
       </TooltipHeader>
-      
-      <Summary>{summary || 'No summary available'}</Summary>
-      
+
+      {summary && <Summary>{summary}</Summary>}
+
       <DetailsGrid>
-        <DetailRow>
-          <Label>Priority:</Label>
-          <Value>
-            {priority?.iconUrl && <PriorityIcon src={priority.iconUrl} alt={priority.name} />}
-            {priority?.name || 'None'}
-          </Value>
-        </DetailRow>
-        
-        <DetailRow>
-          <Label>Assignee:</Label>
-          <Value>
-            {assignee?.avatarUrls?.['16x16'] && (
-              <Avatar src={assignee.avatarUrls['16x16']} alt={assignee.displayName} />
-            )}
-            {assignee?.displayName || 'Unassigned'}
-          </Value>
-        </DetailRow>
-        
-        <DetailRow>
-          <Label>Status:</Label>
-          <StatusValue $statusColor={status?.statusCategory?.colorName}>
-            {status?.name || 'Unknown'}
-          </StatusValue>
-        </DetailRow>
-        
+        {priority && (
+          <DetailRow>
+            <Label>Priority:</Label>
+            <Value>
+              {priority.iconUrl && <PriorityIcon src={priority.iconUrl} alt={priority.name} />}
+              {priority.name}
+            </Value>
+          </DetailRow>
+        )}
+
+        {assignee && (
+          <DetailRow>
+            <Label>Assignee:</Label>
+            <Value>
+              {assignee.avatarUrls?.['16x16'] && (
+                <Avatar src={assignee.avatarUrls['16x16']} alt={assignee.displayName} />
+              )}
+              {assignee.displayName}
+            </Value>
+          </DetailRow>
+        )}
+
+        {status && (
+          <DetailRow>
+            <Label>Status:</Label>
+            <StatusValue $statusColor={status.statusCategory?.colorName}>
+              {status.name}
+            </StatusValue>
+          </DetailRow>
+        )}
+
         {labels && labels.length > 0 && (
           <DetailRow>
             <Label>Labels:</Label>
             <LabelsContainer>
               {labels.slice(0, 3).map((label, index) => {
-                const colors = getLabelColor(label);
+                const labelColor = getLabelColor(label);
                 return (
-                  <LabelTag 
+                  <Tag
                     key={index}
-                    $bgColor={colors.bg}
-                    $borderColor={colors.border}
-                    $textColor={colors.text}
+                    bgColor={labelColor.bg}
+                    borderColor={labelColor.border}
+                    textColor={labelColor.text}
                   >
                     {label}
-                  </LabelTag>
+                  </Tag>
                 );
               })}
               {labels.length > 3 && (
-                <Tooltip content={
-                  <TooltipLabelsContainer>
-                    {labels.slice(3).map((label, index) => {
-                      const colors = getLabelColor(label);
-                      return (
-                        <TooltipLabelTag 
-                          key={index}
-                          $bgColor={colors.bg}
-                          $borderColor={colors.border}
-                          $textColor={colors.text}
-                        >
-                          {label}
-                        </TooltipLabelTag>
-                      );
-                    })}
-                  </TooltipLabelsContainer>
-                } interactive>
+                <Tooltip
+                  content={
+                    <TooltipLabelsContainer>
+                      {labels.slice(3).map((label, index) => {
+                        const labelColor = getLabelColor(label);
+                        return (
+                          <Tag
+                            key={index}
+                            bgColor={labelColor.bg}
+                            borderColor={labelColor.border}
+                            textColor={labelColor.text}
+                          >
+                            {label}
+                          </Tag>
+                        );
+                      })}
+                    </TooltipLabelsContainer>
+                  }
+                  interactive={false}
+                >
                   <MoreLabelsCircle>+{labels.length - 3}</MoreLabelsCircle>
                 </Tooltip>
               )}
             </LabelsContainer>
           </DetailRow>
         )}
-        
+
         {storyPoints && (
           <DetailRow>
             <Label>Story Points:</Label>
             <StoryPointsBadge>{storyPoints}</StoryPointsBadge>
           </DetailRow>
         )}
-        
+
         {reporter && (
           <DetailRow>
             <Label>Reporter:</Label>
@@ -266,21 +307,21 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
             </Value>
           </DetailRow>
         )}
-        
+
         {created && (
           <DetailRow>
             <Label>Created:</Label>
             <Value>{formatDate(created)}</Value>
           </DetailRow>
         )}
-        
+
         {updated && (
           <DetailRow>
             <Label>Updated:</Label>
             <Value>{formatDate(updated)}</Value>
           </DetailRow>
         )}
-        
+
         {dueDate && (
           <DetailRow>
             <Label>Due Date:</Label>
@@ -290,47 +331,63 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
             </DueDateValue>
           </DetailRow>
         )}
-        
+
         {resolution && (
           <DetailRow>
             <Label>Resolution:</Label>
             <Value>{resolution.name}</Value>
           </DetailRow>
         )}
-        
+
         {components && components.length > 0 && (
           <DetailRow>
             <Label>Components:</Label>
             <ComponentsContainer>
               {components.map((component, index) => (
-                <ComponentTag key={index}>{component.name}</ComponentTag>
+                <Tag 
+                  key={index}
+                  bgColor="#e8f5e8"
+                  borderColor="#a5d6a7"
+                  textColor="#2e7d32"
+                  size="small"
+                >
+                  {component.name}
+                </Tag>
               ))}
             </ComponentsContainer>
           </DetailRow>
         )}
-        
+
         {fixVersions && fixVersions.length > 0 && (
           <DetailRow>
             <Label>Fix Versions:</Label>
             <VersionsContainer>
               {fixVersions.map((version, index) => (
-                <VersionTag key={index}>{version.name}</VersionTag>
+                <Tag 
+                  key={index}
+                  bgColor="#fff3e0"
+                  borderColor="#ffcc02"
+                  textColor="#f57c00"
+                  size="small"
+                >
+                  {version.name}
+                </Tag>
               ))}
             </VersionsContainer>
           </DetailRow>
         )}
-        
+
         {blockingIssues && blockingIssues.length > 0 && (
           <DetailRow>
             <Label>🚫 Blocked by:</Label>
             <BlockingIssuesContainer>
-              {blockingIssues.map((blockingIssue, index) => (
-                <span key={index}>
+              {blockingIssues.map((issue, index) => (
+                <span key={issue.key}>
                   <BlockingIssueLink
                     href="#"
-                    onClick={(e) => handleBlockingIssueClick(e, blockingIssue.key)}
+                    onClick={(e) => handleBlockingIssueClick(e, issue.key)}
                   >
-                    {blockingIssue.key}
+                    {issue.key}
                   </BlockingIssueLink>
                   {index < blockingIssues.length - 1 && ', '}
                 </span>
@@ -338,21 +395,33 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
             </BlockingIssuesContainer>
           </DetailRow>
         )}
+
+        {blockedIssues && blockedIssues.length > 0 && (
+          <DetailRow>
+            <Label>🔒 Blocking:</Label>
+            <BlockingIssuesContainer>
+              {blockedIssues.map((issue, index) => (
+                <span key={issue.key}>
+                  <BlockingIssueLink
+                    href="#"
+                    onClick={(e) => handleBlockedIssueClick(e, issue.key)}
+                  >
+                    {issue.key}
+                  </BlockingIssueLink>
+                  {index < blockedIssues.length - 1 && ', '}
+                </span>
+              ))}
+            </BlockingIssuesContainer>
+          </DetailRow>
+        )}
       </DetailsGrid>
-    </TooltipContainer>
+    </TooltipContent>
   );
 };
 
-const TooltipContainer = styled.div`
-  min-width: 280px;
-  max-width: 400px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #333;
+// Simple content wrapper without any styling - the unified tooltip container handles all styling
+const TooltipContent = styled.div`
+  display: block;
 `;
 
 const TooltipHeader = styled.div`
@@ -476,21 +545,7 @@ const LabelsContainer = styled.div`
   padding: 2px 0;
 `;
 
-const LabelTag = styled.span<{ $bgColor?: string; $borderColor?: string; $textColor?: string }>`
-  background-color: ${props => props.$bgColor || '#f0f9ff'};
-  color: ${props => props.$textColor || '#0369a1'};
-  border: 1px solid ${props => props.$borderColor || '#bae6fd'};
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  
-  &:hover {
-    opacity: 0.8;
-  }
-`;
+
 
 const MoreLabelsCircle = styled.div`
   background-color: #6b7280;
@@ -537,24 +592,9 @@ const TooltipLabelsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 4px;
 `;
 
-const TooltipLabelTag = styled.span<{ $bgColor?: string; $borderColor?: string; $textColor?: string }>`
-  background-color: ${props => props.$bgColor || '#f0f9ff'};
-  color: ${props => props.$textColor || '#0369a1'};
-  border: 1px solid ${props => props.$borderColor || '#bae6fd'};
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  
-  &:hover {
-    opacity: 0.8;
-  }
-`;
+
 
 const StoryPointsBadge = styled.span`
   background-color: #1976d2;
@@ -582,15 +622,7 @@ const ComponentsContainer = styled.div`
   gap: 4px;
 `;
 
-const ComponentTag = styled.span`
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  border: 1px solid #a5d6a7;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 500;
-`;
+
 
 const VersionsContainer = styled.div`
   display: flex;
@@ -598,12 +630,4 @@ const VersionsContainer = styled.div`
   gap: 4px;
 `;
 
-const VersionTag = styled.span`
-  background-color: #fff3e0;
-  color: #f57c00;
-  border: 1px solid #ffcc02;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 500;
-`; 
+ 

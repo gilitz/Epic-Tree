@@ -18,7 +18,7 @@ interface Issue {
 }
 
 interface IssuesResponse {
-  issues: Issue[];
+  issues?: Issue[];
   [key: string]: any;
 }
 
@@ -26,11 +26,25 @@ interface UseFetchIssuesByEpicIdReturn {
   issuesByEpic: Issue[];
 }
 
+// Helper function to detect network/proxy errors
+const isNetworkError = (error: any): boolean => {
+  if (!error) return false;
+  const errorString = error.toString().toLowerCase();
+  return errorString.includes('squid') || 
+         errorString.includes('proxy') || 
+         errorString.includes('network') ||
+         errorString.includes('cannot forward') ||
+         errorString.includes('tunnel.atlassian-dev.net') ||
+         errorString.includes('unable to forward') ||
+         errorString.includes('there was an error invoking the function');
+};
+
 export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps): UseFetchIssuesByEpicIdReturn => {
   const [issues, setIssues] = useState<Issue[]>([]);
   
   const handleFetchSuccess = (data: IssuesResponse): void => {
     if (data && data.issues && Array.isArray(data.issues)) {
+      console.log(`Successfully loaded ${data.issues.length} issues for epic: ${epicId}`);
       setIssues(data.issues);
     } else {
       console.warn('No issues found for epic:', epicId);
@@ -40,15 +54,33 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
 
   const handleFetchError = (error: Error): void => {
     console.error('Failed to get issues for epic:', epicId, error);
-    setIssues([]); // Set empty array on error to prevent crashes
+    
+    if (isNetworkError(error)) {
+      console.error('Network/proxy error detected. This may be a temporary connectivity issue.');
+      console.error('If this persists, there may be infrastructure issues with the Forge platform.');
+    }
+    
+    // Set empty array on error to prevent crashes
+    setIssues([]);
   };
 
   useEffect(() => {
-    const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => invoke('fetchIssuesByEpicId', { epicId });
+    const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => {
+      try {
+        console.log(`Fetching issues for epic: ${epicId}`);
+        const result = await invoke('fetchIssuesByEpicId', { epicId });
+        return result;
+      } catch (error) {
+        // Re-throw to be caught by the .catch() handler
+        throw error;
+      }
+    };
+    
     fetchIssuesByEpicId().then(handleFetchSuccess).catch(handleFetchError);
 
     const subscribeForIssueChangedEvent = () =>
       events.on('JIRA_ISSUE_CHANGED', () => {
+        console.log(`Issue changed event received, refetching issues for epic: ${epicId}`);
         fetchIssuesByEpicId().then(handleFetchSuccess).catch(handleFetchError);
       });
     const subscription = subscribeForIssueChangedEvent();
