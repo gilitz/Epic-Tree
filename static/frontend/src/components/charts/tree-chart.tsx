@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import styled from 'styled-components';
 import { Group } from '@visx/group';
 import { Tree, hierarchy } from '@visx/hierarchy';
 import { HierarchyPointNode } from '@visx/hierarchy/lib/types';
@@ -162,7 +163,7 @@ function Node({ node }: NodeProps): JSX.Element {
   if (isParent) return <ParentNode node={node} />;
 
   return (
-    <a href="https://gilitzz.atlassian.net/browse/SCRUM-3" style={{position: 'relative', zIndex: '99999' }}>
+    <IssueNodeLink href="https://gilitzz.atlassian.net/browse/SCRUM-3">
       <Group top={node.x} left={node.y}>
         <rect
           height={height}
@@ -189,7 +190,7 @@ function Node({ node }: NodeProps): JSX.Element {
             {node.data.name}
         </text>
       </Group>
-    </a>
+    </IssueNodeLink>
   );
 }
 
@@ -244,4 +245,10 @@ export const TreeChart: React.FC<TreeChartProps> = ({ width, height, margin = de
       </Tree>
     </svg>
   );
-}; 
+};
+
+// Styled Components
+const IssueNodeLink = styled.a`
+  position: relative;
+  z-index: 99999;
+`; 

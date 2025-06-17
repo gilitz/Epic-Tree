@@ -210,7 +210,17 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
         )}
       </TooltipHeader>
 
-      {summary && <Summary>{summary}</Summary>}
+      {summary && (
+        <SummaryContainer>
+          {summary.length > 100 ? (
+            <Tooltip content={<SummaryTooltipContent>{summary}</SummaryTooltipContent>} interactive={false}>
+              <Summary>{summary}</Summary>
+            </Tooltip>
+          ) : (
+            <Summary>{summary}</Summary>
+          )}
+        </SummaryContainer>
+      )}
 
       <DetailsGrid>
         {priority && (
@@ -382,7 +392,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
             <Label>🚫 Blocked by:</Label>
             <BlockingIssuesContainer>
               {blockingIssues.map((issue, index) => (
-                <span key={issue.key}>
+                <IssueSpan key={issue.key}>
                   <BlockingIssueLink
                     href="#"
                     onClick={(e) => handleBlockingIssueClick(e, issue.key)}
@@ -390,7 +400,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
                     {issue.key}
                   </BlockingIssueLink>
                   {index < blockingIssues.length - 1 && ', '}
-                </span>
+                </IssueSpan>
               ))}
             </BlockingIssuesContainer>
           </DetailRow>
@@ -401,7 +411,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
             <Label>🔒 Blocking:</Label>
             <BlockingIssuesContainer>
               {blockedIssues.map((issue, index) => (
-                <span key={issue.key}>
+                <IssueSpan key={issue.key}>
                   <BlockingIssueLink
                     href="#"
                     onClick={(e) => handleBlockedIssueClick(e, issue.key)}
@@ -409,7 +419,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
                     {issue.key}
                   </BlockingIssueLink>
                   {index < blockedIssues.length - 1 && ', '}
-                </span>
+                </IssueSpan>
               ))}
             </BlockingIssuesContainer>
           </DetailRow>
@@ -466,12 +476,22 @@ const TypeIcon = styled.img`
   height: 14px;
 `;
 
+const SummaryContainer = styled.div`
+  margin-bottom: 12px;
+`;
+
 const Summary = styled.div`
   font-size: 13px;
   line-height: 1.4;
-  margin-bottom: 12px;
   color: #172b4d;
   font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.8em; /* Approximately 2 lines */
+  cursor: ${props => props.onClick ? 'pointer' : 'default'};
 `;
 
 const DetailsGrid = styled.div`
@@ -599,12 +619,14 @@ const TooltipLabelsContainer = styled.div`
 const StoryPointsBadge = styled.span`
   background-color: #1976d2;
   color: white;
-  padding: 4px 8px;
   border-radius: 50%;
   font-size: 12px;
   font-weight: 600;
-  min-width: 24px;
-  height: 24px;
+  width: fit-content;
+  height: fit-content;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -628,6 +650,15 @@ const VersionsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+`;
+
+const SummaryTooltipContent = styled.div`
+  max-width: 300px;
+  white-space: pre-wrap;
+`;
+
+const IssueSpan = styled.span`
+  display: inline;
 `;
 
  

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import styled from 'styled-components';
 import { Group } from '@visx/group';
 import { hierarchy, Tree } from '@visx/hierarchy';
 import { LinearGradient } from '@visx/gradient';
@@ -7,6 +8,7 @@ import { useForceUpdate } from './use-force-update';
 import { LinkControls } from './link-controls';
 import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
+import { useFetchSubtasks } from '../../hooks/use-fetch-subtasks';
 import getLinkComponent from './get-link-component';
 import { Tooltip } from '../tooltip';
 import { IssueTooltip } from '../issue-tooltip';
@@ -193,6 +195,16 @@ export function VerticalTreeChart({
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
   const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
   
+  // Get all parent keys from issues to fetch their subtasks
+  const parentKeys = useMemo(() => {
+    if (!issuesByEpic || !Array.isArray(issuesByEpic)) return [];
+    return issuesByEpic
+      .filter(issue => issue?.fields?.subtasks && issue.fields.subtasks.length > 0)
+      .map(issue => issue.key);
+  }, [issuesByEpic]);
+  
+  const { subtasks } = useFetchSubtasks({ parentKeys });
+  
   // Helper function to extract blocking issues from issuelinks (issues that block this issue)
   const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
     if (!issuelinks || !Array.isArray(issuelinks)) return [];
@@ -220,13 +232,27 @@ export function VerticalTreeChart({
   };
   
   
-  const transformDataToTree = ({ epic, issues }: { epic: Epic | null; issues: Issue[] }): TreeData => {
+  const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic | null; issues: Issue[]; subtasksData: any[] }): TreeData => {
     
     if (!issues || !Array.isArray(issues) || issues.length === 0) {
       return { name: 'Loading...', children: [] }; // Return minimal structure while loading
     }
 
     try {
+      // Create a map of subtasks by parent key for quick lookup
+      const subtasksByParent = new Map<string, any[]>();
+      if (subtasksData && Array.isArray(subtasksData)) {
+        subtasksData.forEach(subtask => {
+          const parentKey = subtask?.fields?.parent?.key;
+          if (parentKey) {
+            if (!subtasksByParent.has(parentKey)) {
+              subtasksByParent.set(parentKey, []);
+            }
+            subtasksByParent.get(parentKey)!.push(subtask);
+          }
+        });
+      }
+
       return {
         name: epic?.fields?.summary || 'Unknown Epic',
         key: epic?.key,
@@ -251,7 +277,7 @@ export function VerticalTreeChart({
         children: issues.map(issue => {
           // Safely handle issue structure
           const issueFields = issue?.fields;
-          const subtasks = issueFields?.subtasks || [];
+          const issueSubtasks = subtasksByParent.get(issue?.key) || [];
           
           return {
             name: issueFields?.summary || issue?.key || 'Unknown Issue',
@@ -274,28 +300,29 @@ export function VerticalTreeChart({
             blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
             blockedIssues: extractBlockedIssues(issueFields?.issuelinks || []),
             isEpic: false,
-            children: subtasks.map(subtask => {
+            children: issueSubtasks.map(subtask => {
+              const subtaskFields = subtask?.fields;
               return { 
-                name: subtask?.key || 'Unknown Subtask',
+                name: subtaskFields?.summary || subtask?.key || 'Unknown Subtask',
                 key: subtask?.key,
-                summary: subtask?.key, // Subtasks only have key, not full fields
-                priority: undefined,
-                assignee: undefined,
-                status: undefined,
-                labels: [], // Subtasks don't have full fields data
-                storyPoints: undefined,
-                issueType: undefined,
-                reporter: undefined,
-                created: undefined,
-                updated: undefined,
-                dueDate: undefined,
-                resolution: undefined,
-                components: [],
-                fixVersions: [],
+                summary: subtaskFields?.summary,
+                priority: subtaskFields?.priority,
+                assignee: subtaskFields?.assignee,
+                status: subtaskFields?.status,
+                labels: subtaskFields?.labels || [],
+                storyPoints: subtaskFields?.customfield_10016 || subtaskFields?.storyPoints,
+                issueType: subtaskFields?.issuetype,
+                reporter: subtaskFields?.reporter,
+                created: subtaskFields?.created,
+                updated: subtaskFields?.updated,
+                dueDate: subtaskFields?.duedate,
+                resolution: subtaskFields?.resolution,
+                components: subtaskFields?.components || [],
+                fixVersions: subtaskFields?.fixVersions || [],
                 children: [], 
-                issuelinks: [],
-                blockingIssues: [], // Subtasks don't have full issuelinks data
-                blockedIssues: [], // Subtasks don't have full issuelinks data
+                issuelinks: subtaskFields?.issuelinks || [],
+                blockingIssues: extractBlockingIssues(subtaskFields?.issuelinks || []),
+                blockedIssues: extractBlockedIssues(subtaskFields?.issuelinks || []),
                 isEpic: false
               };
             }) 
@@ -308,7 +335,7 @@ export function VerticalTreeChart({
     }
   };
 
-  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic });
+  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic, subtasksData: subtasks });
 
   const data = useMemo(() => {
     try {
@@ -317,17 +344,17 @@ export function VerticalTreeChart({
       console.error("Error creating hierarchy:", error);
       return hierarchy({ name: 'Error', children: [] });
     }
-  }, [issuesByEpic, rootEpicIssue]);
+  }, [issuesByEpic, rootEpicIssue, subtasks]);
   
   // Handle error states and loading
   if (!issuesByEpic && !rootEpicIssue) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div>Loading Epic Tree...</div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+      <LoadingContainer>
+        <LoadingTitle>Loading Epic Tree...</LoadingTitle>
+        <LoadingSubtitle>
           Fetching epic and issue data...
-        </div>
-      </div>
+        </LoadingSubtitle>
+      </LoadingContainer>
     );
   }
 
@@ -335,32 +362,32 @@ export function VerticalTreeChart({
   if (rootEpicIssue?.fields?.summary?.includes('Network Error') || 
       rootEpicIssue?.fields?.summary?.includes('Error loading')) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div style={{ color: '#d32f2f', fontWeight: 'bold' }}>⚠️ Network Error</div>
-        <div style={{ fontSize: '14px', marginTop: '8px' }}>
+      <ErrorContainer>
+        <ErrorTitle>⚠️ Network Error</ErrorTitle>
+        <ErrorMessage>
           Unable to load epic data. Please check your connection and try refreshing the page.
-        </div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+        </ErrorMessage>
+        <ErrorSubtitle>
           Epic ID: ET-2
-        </div>
-      </div>
+        </ErrorSubtitle>
+      </ErrorContainer>
     );
   }
 
   // Don't render if we only have loading state
   if (transformedTreeData.name === 'Loading...' && transformedTreeData.children?.length === 0) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div>Loading Epic Tree...</div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+      <LoadingContainer>
+        <LoadingTitle>Loading Epic Tree...</LoadingTitle>
+        <LoadingSubtitle>
           Loading issues for epic...
-        </div>
-      </div>
+        </LoadingSubtitle>
+      </LoadingContainer>
     );
   }
 
   return totalWidth < 10 ? null : (
-    <div>
+    <ChartContainer>
       <LinkControls
         layout={layout}
         orientation={orientation}
@@ -413,9 +440,15 @@ export function VerticalTreeChart({
                   }
                   const nodeData = node.data as TreeData;
                   const nodeName = nodeData.name || 'Unknown';
-                  const truncatedName = nodeName && typeof nodeName === 'string' && nodeName.length > 12 
-                    ? nodeName.substring(0, 12) + '...' 
-                    : nodeName || 'Unknown';
+                  
+                  // Helper function to truncate text for node display
+                  const truncateForNode = (text: string, maxLength: number = 12): string => {
+                    if (!text || typeof text !== 'string') return 'Unknown';
+                    if (text.length <= maxLength) return text;
+                    return text.substring(0, maxLength) + '...';
+                  };
+                  
+                  const truncatedName = truncateForNode(nodeName);
                   
                   const tooltipContent = (
                     <IssueTooltip
@@ -442,7 +475,7 @@ export function VerticalTreeChart({
                   
                   return (
                     <Tooltip content={tooltipContent} interactive key={index}>
-                      <a 
+                      <IssueLink 
                         key={index} 
                         data-testid="issue-field-summary.ui.inline-read.link-item" 
                         data-is-router-link="true" 
@@ -483,16 +516,20 @@ export function VerticalTreeChart({
 
                           <text
                             dy=".33em"
-                            fontSize={12}
+                            fontSize={node.depth === 0 ? 10 : 11}
                             fontFamily="Arial"
                             textAnchor="middle"
                             style={{ pointerEvents: 'none' }}
                             fill={node.depth === 0 ? '#ffffff' : '#ffffff'}
                           >
-                            {truncatedName}
+                            {node.depth === 0 ? (
+                              <tspan x="0" dy="0">{truncateForNode(nodeName, 8)}</tspan>
+                            ) : (
+                              <tspan x="0" dy="0">{truncatedName}</tspan>
+                            )}
                           </text>
                         </Group>
-                      </a>
+                      </IssueLink>
                     </Tooltip>
                   );
                 })}
@@ -501,6 +538,52 @@ export function VerticalTreeChart({
           </Tree>
         </Group>
       </svg>
-    </div>
+    </ChartContainer>
   );
-} 
+}
+
+// Styled Components
+const LoadingContainer = styled.div`
+  padding: 20px;
+  text-align: center;
+`;
+
+const LoadingTitle = styled.div`
+  display: block;
+`;
+
+const LoadingSubtitle = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+`;
+
+const ErrorContainer = styled.div`
+  padding: 20px;
+  text-align: center;
+`;
+
+const ErrorTitle = styled.div`
+  color: #d32f2f;
+  font-weight: bold;
+`;
+
+const ErrorMessage = styled.div`
+  font-size: 14px;
+  margin-top: 8px;
+`;
+
+const ErrorSubtitle = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+`;
+
+const ChartContainer = styled.div`
+  display: block;
+`;
+
+const IssueLink = styled.a`
+  position: relative;
+  z-index: 99999;
+`; 

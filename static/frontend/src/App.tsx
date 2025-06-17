@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from 'styled-components';
 import { useFetchLabels } from './hooks/use-fetch-labels';
 import { VerticalTreeChart } from './components/charts/vertical-tree-chart';
 import { ParentSize } from "@visx/responsive";
@@ -18,15 +19,15 @@ const App: React.FC = () => {
   // const { labels } = useFetchLabels();
 
   // if (!labels) {
-  //   return <div>Loading...</div>;
+  //   return <AppContainer>Loading...</AppContainer>;
   // }
 
   return (
-    <div>
+    <AppContainer>
       <Tooltip content="This is a tooltip">
         <Button>Hello world</Button>
       </Tooltip>
-      {/* <div>{labels.map(label => <div key={label}>{label}</div>)}</div> */}
+      {/* <AppContainer>{labels.map(label => <AppContainer key={label}>{label}</AppContainer>)}</AppContainer> */}
       {/* <Tree /> */}
       {/* <TreeChart width={400} height={400} /> */}
       <ParentSize>
@@ -34,8 +35,13 @@ const App: React.FC = () => {
           <VerticalTreeChart width={parent.width} height={250} />
         )}	
       </ParentSize>
-    </div>
+    </AppContainer>
   );
 };
 
-export default App; 
+export default App;
+
+// Styled Components
+const AppContainer = styled.div`
+  display: block;
+`; 

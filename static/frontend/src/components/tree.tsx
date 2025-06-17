@@ -32,16 +32,16 @@ export const Tree: React.FC<TreeProps> = ({ epicId = 'ET-2' }) => {
   
   
   return (
-    <div>
+    <TreeContainer>
       {rootEpicIssue && (
         <EpicNode {...rootEpicIssue} epicKey={rootEpicIssue.key} />
       )}
-      <div>
+      <IssuesContainer>
         {issuesByEpic.map(issue => (
           <TaskNode {...issue} key={issue.id} issueKey={issue.key} />
         ))}
-      </div>
-    </div>
+      </IssuesContainer>
+    </TreeContainer>
   );
 };
 
@@ -65,6 +65,15 @@ export const NODE_TYPES = {
   EPIC: 'Epic',
   TASK: 'Task'
 } as const;
+
+// Styled Components
+const TreeContainer = styled.div`
+  display: block;
+`;
+
+const IssuesContainer = styled.div`
+  display: block;
+`;
 
 const Node = styled.div`
   width: 80px;

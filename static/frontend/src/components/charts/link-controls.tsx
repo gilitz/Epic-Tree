@@ -1,4 +1,5 @@
 import React, { ChangeEvent } from 'react';
+import styled from 'styled-components';
 
 interface LinkControlsProps {
   layout: 'polar' | 'cartesian';
@@ -10,8 +11,6 @@ interface LinkControlsProps {
   setLinkType: (linkType: 'diagonal' | 'step' | 'curve' | 'line') => void;
   setStepPercent: (stepPercent: number) => void;
 }
-
-const controlStyles: React.CSSProperties = { fontSize: 10 };
 
 export const LinkControls: React.FC<LinkControlsProps> = ({
   layout,
@@ -27,28 +26,28 @@ export const LinkControls: React.FC<LinkControlsProps> = ({
   const isStepType = linkType === 'step';
   
   return (
-    <div style={controlStyles}>
-      <label>layout:</label>&nbsp;
-      <select
+    <ControlsContainer>
+      <ControlLabel>layout:</ControlLabel>&nbsp;
+      <ControlSelect
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
         onChange={(e: ChangeEvent<HTMLSelectElement>) => setLayout(e.target.value as 'polar' | 'cartesian')}
         value={layout}>
         <option value="cartesian">cartesian</option>
         <option value="polar">polar</option>
-      </select>
+      </ControlSelect>
       &nbsp;&nbsp;
-      <label>orientation:</label>&nbsp;
-      <select
+      <ControlLabel>orientation:</ControlLabel>&nbsp;
+      <ControlSelect
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
         onChange={(e: ChangeEvent<HTMLSelectElement>) => setOrientation(e.target.value as 'vertical' | 'horizontal')}
         value={orientation}
         disabled={isPolar}>
         <option value="vertical">vertical</option>
         <option value="horizontal">horizontal</option>
-      </select>
+      </ControlSelect>
       &nbsp;&nbsp;
-      <label>link:</label>&nbsp;
-      <select
+      <ControlLabel>link:</ControlLabel>&nbsp;
+      <ControlSelect
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
         onChange={(e: ChangeEvent<HTMLSelectElement>) => setLinkType(e.target.value as 'diagonal' | 'step' | 'curve' | 'line')}
         value={linkType}>
@@ -56,12 +55,12 @@ export const LinkControls: React.FC<LinkControlsProps> = ({
         <option value="step">step</option>
         <option value="curve">curve</option>
         <option value="line">line</option>
-      </select>
+      </ControlSelect>
       {isStepType && !isPolar && (
         <>
           &nbsp;&nbsp;
-          <label>step:</label>&nbsp;
-          <input
+          <ControlLabel>step:</ControlLabel>&nbsp;
+          <ControlInput
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
             type="range"
             min={0}
@@ -72,6 +71,23 @@ export const LinkControls: React.FC<LinkControlsProps> = ({
             disabled={!isStepType || isPolar} />
         </>
       )}
-    </div>
+    </ControlsContainer>
   );
-}; 
+};
+
+// Styled Components
+const ControlsContainer = styled.div`
+  font-size: 10px;
+`;
+
+const ControlLabel = styled.label`
+  display: inline;
+`;
+
+const ControlSelect = styled.select`
+  display: inline;
+`;
+
+const ControlInput = styled.input`
+  display: inline;
+`; 

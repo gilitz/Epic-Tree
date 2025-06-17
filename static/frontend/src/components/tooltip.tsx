@@ -63,7 +63,8 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled
 
 // Unified container style for ALL tooltips
 const UnifiedTooltipContainer = styled.div`
-  min-width: fit-content;
+  width: 400px;
+  min-width: 400px;
   max-width: 400px;
   max-height: 80vh;
   background-color: #ffffff;
