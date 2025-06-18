@@ -9,9 +9,11 @@ interface TooltipProps {
   interactive?: boolean;
   disabled?: boolean;
   children: ReactElement;
+  onShow?: () => void;
+  onHide?: () => void;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled, children }) => {
+export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled, children, onShow, onHide }) => {
   // Always append to document.body to ensure it's above everything
   return (
     <Tippy 
@@ -24,6 +26,8 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled
       content={<UnifiedTooltipContainer>{content}</UnifiedTooltipContainer>}
       boundary="viewport"
       placement="auto"
+      onShow={onShow}
+      onHide={onHide}
       popperOptions={{
         strategy: 'fixed',
         modifiers: [

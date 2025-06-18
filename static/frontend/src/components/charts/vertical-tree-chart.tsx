@@ -125,6 +125,8 @@ export function VerticalTreeChart({
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal');
   const [linkType, setLinkType] = useState<'diagonal' | 'step' | 'curve' | 'line'>('step');
   const [stepPercent, setStepPercent] = useState<number>(0.5);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
@@ -389,8 +391,19 @@ export function VerticalTreeChart({
         setLinkType={setLinkType}
         setStepPercent={setStepPercent}
       />
-      <svg width={totalWidth} height={totalHeight}>
-        <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
+              <svg width={totalWidth} height={totalHeight}>
+        <defs>
+          <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
+          <filter id="hover-shadow-blue" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4a5568" floodOpacity="0.8"/>
+          </filter>
+          <filter id="hover-shadow-red" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#dc2626" floodOpacity="0.8"/>
+          </filter>
+          <filter id="hover-shadow-green" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#22c55e" floodOpacity="0.8"/>
+          </filter>
+        </defs>
         <rect width={totalWidth} height={totalHeight} rx={14} fill="#272b4d" />
         
         <Group top={margin.top} left={margin.left}>
@@ -454,30 +467,56 @@ export function VerticalTreeChart({
                   
                   const truncatedName = truncateForNode(nodeName, node.depth === 0 ? 10 : 12);
                   
-                  // Different colors for different node types
-                  const getNodeColors = (depth: number, hasChildren: boolean) => {
-                    if (depth === 0) {
-                      return {
-                        stroke: '#fd9b93',
-                        fill: '#272b4d',
-                        strokeWidth: 3
-                      };
-                    } else if (depth === 1) {
-                      return {
-                        stroke: hasChildren ? '#03c0dc' : '#26deb0',
-                        fill: '#272b4d',
-                        strokeWidth: 2
-                      };
-                    } else {
-                      return {
-                        stroke: '#ffc400',
-                        fill: '#272b4d',
-                        strokeWidth: 1
-                      };
+                  // Unified node styling based on status and blocking state
+                  const getNodeStyling = (nodeData: TreeData, isHovered: boolean) => {
+                    const isDone = nodeData.status?.statusCategory?.colorName === 'green' || 
+                                  nodeData.status?.name?.toLowerCase().includes('done') ||
+                                  nodeData.status?.name?.toLowerCase().includes('closed') ||
+                                  nodeData.resolution?.name;
+                    
+                    const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
+                    
+                    // Base styling - all nodes look the same
+                    let fill = '#272b4d';
+                    let stroke = '#4a5568';
+                    let strokeWidth = 2;
+                    
+                    // Status-based modifications
+                    if (isDone) {
+                      fill = '#22c55e'; // Green background for done items
                     }
+                    
+                    if (isBlocked) {
+                      stroke = '#dc2626'; // Red border for blocked items
+                      strokeWidth = 3;
+                    }
+                    
+                                                              // Choose shadow color based on node state
+                     let shadowFilter = '';
+                     if (isHovered) {
+                       if (isBlocked) {
+                         shadowFilter = 'url(#hover-shadow-red)';
+                       } else if (isDone) {
+                         shadowFilter = 'url(#hover-shadow-green)';
+                       } else {
+                         shadowFilter = 'url(#hover-shadow-blue)';
+                       }
+                     }
+                     
+                     return {
+                       fill,
+                       stroke,
+                       strokeWidth,
+                       strokeOpacity: 1,
+                       rx: 4, // Consistent border radius
+                       filter: shadowFilter || undefined
+                     };
                   };
                   
-                  const nodeColors = getNodeColors(node.depth, (node.children?.length || 0) > 0);
+                  const isHovered = hoveredNodeId === nodeData.key;
+                  const isTooltipOpen = tooltipOpenNodeId === nodeData.key;
+                  const shouldShowHoverEffect = isHovered || isTooltipOpen;
+                  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect);
                   
                   // Handle node click
                   const handleNodeClick = async (e: React.MouseEvent) => {
@@ -517,7 +556,13 @@ export function VerticalTreeChart({
                   );
                   
                   return (
-                    <Tooltip content={tooltipContent} interactive key={index}>
+                    <Tooltip 
+                      content={tooltipContent} 
+                      interactive={true}
+                      key={index}
+                      onShow={() => setTooltipOpenNodeId(nodeData.key || null)}
+                      onHide={() => setTooltipOpenNodeId(null)}
+                    >
                       <g transform={`translate(${left}, ${top})`}>
                         {/* Direct SVG rect - no styled components */}
                         <rect
@@ -525,20 +570,19 @@ export function VerticalTreeChart({
                           width={width}
                           y={-height / 2}
                           x={-width / 2}
-                          fill={nodeColors.fill}
-                          stroke={nodeColors.stroke}
-                          strokeWidth={nodeColors.strokeWidth}
-                          strokeDasharray={
-                            node.depth === 0 
-                              ? '0' 
-                              : node.depth === 1 && (node.children?.length || 0) > 0
-                                ? '0' 
-                                : '2,2'
-                          }
-                          strokeOpacity={1}
-                          rx={node.depth === 0 ? 5 : node.depth === 2 ? 8 : 3}
-                          style={{ cursor: 'pointer' }}
+                          fill={nodeStyling.fill}
+                          stroke={nodeStyling.stroke}
+                          strokeWidth={nodeStyling.strokeWidth}
+                          strokeOpacity={nodeStyling.strokeOpacity}
+                          rx={nodeStyling.rx}
+                          filter={nodeStyling.filter}
+                          style={{ 
+                            cursor: 'pointer',
+                            transition: 'filter 0.2s ease-in-out'
+                          }}
                           onClick={handleNodeClick}
+                          onMouseEnter={() => setHoveredNodeId(nodeData.key || null)}
+                          onMouseLeave={() => setHoveredNodeId(null)}
                         />
 
                         {/* Priority Icon */}
@@ -557,11 +601,14 @@ export function VerticalTreeChart({
                         <text
                           x={-width / 2 + (priorityIconUrl ? 20 : 8)}
                           dy=".33em"
-                          fontSize={node.depth === 0 ? 9 : node.depth === 2 ? 8 : 9}
+                          fontSize={10}
                           fontFamily="Arial"
                           textAnchor="start"
-                          style={{ pointerEvents: 'none' }}
-                          fill="#ffffff"
+                          style={{ 
+                            pointerEvents: 'none',
+                            transition: 'all 0.2s ease-in-out'
+                          }}
+                          fill={nodeStyling.fill === '#22c55e' ? '#000000' : '#ffffff'}
                         >
                           <tspan>
                             {truncatedName}
