@@ -423,8 +423,8 @@ export function VerticalTreeChart({
                 ))}
 
                 {(tree.descendants() || []).map((node, index) => {
-                  const width = 60;
-                  const height = 30;
+                  const width = 90; // Increased width to accommodate icon + text
+                  const height = 32; // Slightly increased height
 
                   let top: number;
                   let left: number;
@@ -442,14 +442,17 @@ export function VerticalTreeChart({
                   const nodeData = node.data as TreeData;
                   const nodeName = nodeData.name || 'Unknown';
                   
-                  // Helper function to truncate text for node display
-                  const truncateForNode = (text: string, maxLength: number = 10): string => {
+                  // Get the actual Jira priority icon URL
+                  const priorityIconUrl = nodeData.priority?.iconUrl;
+                  
+                  // Helper function to truncate text for node display with proper ellipsis
+                  const truncateForNode = (text: string, maxLength: number = 12): string => {
                     if (!text || typeof text !== 'string') return 'Unknown';
                     if (text.length <= maxLength) return text;
-                    return `${text.substring(0, maxLength)}...`;
+                    return `${text.substring(0, maxLength - 1)}…`;
                   };
                   
-                  const truncatedName = truncateForNode(nodeName);
+                  const truncatedName = truncateForNode(nodeName, node.depth === 0 ? 10 : 12);
                   
                   // Different colors for different node types
                   const getNodeColors = (depth: number, hasChildren: boolean) => {
@@ -538,16 +541,30 @@ export function VerticalTreeChart({
                           onClick={handleNodeClick}
                         />
 
+                        {/* Priority Icon */}
+                        {priorityIconUrl && (
+                          <image
+                            x={-width / 2 + 2}
+                            y={-8}
+                            width={16}
+                            height={16}
+                            href={priorityIconUrl}
+                            style={{ pointerEvents: 'none' }}
+                          />
+                        )}
+                        
+                        {/* Node Text with ellipsis */}
                         <text
+                          x={-width / 2 + (priorityIconUrl ? 20 : 8)}
                           dy=".33em"
-                          fontSize={node.depth === 0 ? 9 : node.depth === 2 ? 8 : 10}
+                          fontSize={node.depth === 0 ? 9 : node.depth === 2 ? 8 : 9}
                           fontFamily="Arial"
-                          textAnchor="middle"
+                          textAnchor="start"
                           style={{ pointerEvents: 'none' }}
                           fill="#ffffff"
                         >
-                          <tspan x="0" dy="0">
-                            {node.depth === 0 ? truncateForNode(nodeName, 6) : truncatedName} 
+                          <tspan>
+                            {truncatedName}
                           </tspan>
                         </text>
                         
