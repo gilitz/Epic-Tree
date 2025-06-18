@@ -74,11 +74,11 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
   labels = [],
   storyPoints,
   issueType,
-  reporter,
+  reporter: _reporter,
   created,
   updated,
   dueDate,
-  resolution,
+  resolution: _resolution,
   components = [],
   fixVersions = [],
   blockingIssues = [],
@@ -300,17 +300,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
           </DetailRow>
         )}
 
-        {reporter && (
-          <DetailRow>
-            <Label>Reporter:</Label>
-            <Value>
-              {reporter.avatarUrls?.['16x16'] && (
-                <Avatar src={reporter.avatarUrls['16x16']} alt={reporter.displayName} />
-              )}
-              {reporter.displayName}
-            </Value>
-          </DetailRow>
-        )}
+
 
         {created && (
           <DetailRow>
@@ -336,12 +326,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
           </DetailRow>
         )}
 
-        {resolution && (
-          <DetailRow>
-            <Label>Resolution:</Label>
-            <Value>{resolution.name}</Value>
-          </DetailRow>
-        )}
+
 
         {components && components.length > 0 && (
           <DetailRow>

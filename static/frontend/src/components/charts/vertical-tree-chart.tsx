@@ -394,14 +394,20 @@ export function VerticalTreeChart({
               <svg width={totalWidth} height={totalHeight}>
         <defs>
           <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
-          <filter id="hover-shadow-blue" x="-50%" y="-50%" width="200%" height="200%">
+          <filter id="hover-shadow-gray" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4a5568" floodOpacity="0.8"/>
+          </filter>
+          <filter id="hover-shadow-blue" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.8"/>
           </filter>
           <filter id="hover-shadow-red" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#dc2626" floodOpacity="0.8"/>
           </filter>
           <filter id="hover-shadow-green" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#22c55e" floodOpacity="0.8"/>
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4ade80" floodOpacity="0.8"/>
+          </filter>
+          <filter id="hover-shadow-yellow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#fbbf24" floodOpacity="0.8"/>
           </filter>
         </defs>
         <rect width={totalWidth} height={totalHeight} rx={14} fill="#272b4d" />
@@ -436,7 +442,7 @@ export function VerticalTreeChart({
                 ))}
 
                 {(tree.descendants() || []).map((node, index) => {
-                  const width = 90; // Increased width to accommodate icon + text
+                  const width = 140; // Increased width to accommodate icon + text
                   const height = 32; // Slightly increased height
 
                   let top: number;
@@ -458,38 +464,40 @@ export function VerticalTreeChart({
                   // Get the actual Jira priority icon URL
                   const priorityIconUrl = nodeData.priority?.iconUrl;
                   
-                  // Helper function to truncate text for node display with proper ellipsis
-                  const truncateForNode = (text: string, maxLength: number = 12): string => {
-                    if (!text || typeof text !== 'string') return 'Unknown';
-                    if (text.length <= maxLength) return text;
-                    return `${text.substring(0, maxLength - 1)}…`;
-                  };
+                  // Use the full name - SVG will handle overflow with CSS
+                  const displayName = nodeName || 'Unknown';
                   
-                  const truncatedName = truncateForNode(nodeName, node.depth === 0 ? 10 : 12);
-                  
-                  // Unified node styling based on status and blocking state
-                  const getNodeStyling = (nodeData: TreeData, isHovered: boolean) => {
-                    const isDone = nodeData.status?.statusCategory?.colorName === 'green' || 
-                                  nodeData.status?.name?.toLowerCase().includes('done') ||
-                                  nodeData.status?.name?.toLowerCase().includes('closed') ||
-                                  nodeData.resolution?.name;
-                    
-                    const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
-                    
-                    // Base styling - all nodes look the same
-                    let fill = '#272b4d';
-                    let stroke = '#4a5568';
-                    let strokeWidth = 2;
-                    
-                    // Status-based modifications
-                    if (isDone) {
-                      fill = '#22c55e'; // Green background for done items
-                    }
-                    
-                    if (isBlocked) {
-                      stroke = '#dc2626'; // Red border for blocked items
-                      strokeWidth = 3;
-                    }
+                                     // Unified node styling based on status and blocking state
+                   const getNodeStyling = (nodeData: TreeData, isHovered: boolean) => {
+                     const isDone = nodeData.status?.statusCategory?.colorName === 'green' || 
+                                   nodeData.status?.name?.toLowerCase().includes('done') ||
+                                   nodeData.status?.name?.toLowerCase().includes('closed') ||
+                                   nodeData.resolution?.name;
+                     
+                     const isInProgress = nodeData.status?.statusCategory?.colorName === 'yellow' ||
+                                         nodeData.status?.name?.toLowerCase().includes('in progress') ||
+                                         nodeData.status?.name?.toLowerCase().includes('progress');
+                     
+                     const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
+                     
+                     // Base styling - all nodes look the same
+                     let fill = '#272b4d';
+                     let stroke = '#4a5568';
+                     let strokeWidth = 2;
+                     
+                     // Status-based modifications
+                     if (isDone) {
+                       fill = '#017d2d'; // Green background for done items (matching image)
+                     }
+                     
+                     if (isInProgress) {
+                       fill = '#baa625'; // Yellow background for in progress items
+                     }
+                     
+                     if (isBlocked) {
+                       stroke = '#dc2626'; // Red border for blocked items
+                       strokeWidth = 3;
+                     }
                     
                                                               // Choose shadow color based on node state
                      let shadowFilter = '';
@@ -498,8 +506,10 @@ export function VerticalTreeChart({
                          shadowFilter = 'url(#hover-shadow-red)';
                        } else if (isDone) {
                          shadowFilter = 'url(#hover-shadow-green)';
+                       } else if (isInProgress) {
+                         shadowFilter = 'url(#hover-shadow-yellow)';
                        } else {
-                         shadowFilter = 'url(#hover-shadow-blue)';
+                         shadowFilter = 'url(#hover-shadow-gray)';
                        }
                      }
                      
@@ -588,7 +598,7 @@ export function VerticalTreeChart({
                         {/* Priority Icon */}
                         {priorityIconUrl && (
                           <image
-                            x={-width / 2 + 2}
+                            x={-width / 2 + 4}
                             y={-8}
                             width={16}
                             height={16}
@@ -597,23 +607,29 @@ export function VerticalTreeChart({
                           />
                         )}
                         
-                        {/* Node Text with ellipsis */}
-                        <text
-                          x={-width / 2 + (priorityIconUrl ? 20 : 8)}
-                          dy=".33em"
-                          fontSize={10}
-                          fontFamily="Arial"
-                          textAnchor="start"
-                          style={{ 
-                            pointerEvents: 'none',
-                            transition: 'all 0.2s ease-in-out'
-                          }}
-                          fill={nodeStyling.fill === '#22c55e' ? '#000000' : '#ffffff'}
+                        {/* Node Text with automatic ellipsis */}
+                        <foreignObject
+                          x={-width / 2 + (priorityIconUrl ? 24 : 12)}
+                          y={-8}
+                          width={width - (priorityIconUrl ? 32 : 20)}
+                          height={16}
+                          style={{ pointerEvents: 'none' }}
                         >
-                          <tspan>
-                            {truncatedName}
-                          </tspan>
-                        </text>
+                          <div
+                            style={{
+                              fontSize: '10px',
+                              fontFamily: 'Arial',
+                              color: nodeStyling.fill === '#017d2d' || nodeStyling.fill === '#baa625' ? '#000000' : '#ffffff',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              lineHeight: '16px',
+                              transition: 'color 0.2s ease-in-out'
+                            }}
+                          >
+                            {displayName}
+                          </div>
+                        </foreignObject>
                         
 
                       </g>
