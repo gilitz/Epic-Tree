@@ -395,6 +395,31 @@ export function VerticalTreeChart({
     }
   };
 
+  // Toggle full screen
+  const toggleFullScreen = () => {
+    const element = document.documentElement;
+    
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if ((element as any).webkitRequestFullscreen) {
+        (element as any).webkitRequestFullscreen();
+      } else if ((element as any).msRequestFullscreen) {
+        (element as any).msRequestFullscreen();
+      }
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  };
+
   return totalWidth < 10 ? null : (
     <ChartContainer>
       <ToggleButtonsContainer>
@@ -403,6 +428,9 @@ export function VerticalTreeChart({
         </ToggleButton>
         <ToggleButton onClick={toggleLinkType}>
           {linkType === 'line' ? '─' : linkType === 'diagonal' ? '╱' : '└'}
+        </ToggleButton>
+        <ToggleButton onClick={toggleFullScreen}>
+          ⛶
         </ToggleButton>
       </ToggleButtonsContainer>
       <svg width="100%" height="100%" viewBox={`0 0 ${totalWidth} ${totalHeight}`}>
