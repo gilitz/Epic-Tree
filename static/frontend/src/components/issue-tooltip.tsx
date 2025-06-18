@@ -386,12 +386,14 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
             <BlockingIssuesContainer>
               {blockingIssues.map((issue, index) => (
                 <IssueSpan key={issue.key}>
-                  <BlockingIssueLink
-                    href="#"
-                    onClick={(e) => handleBlockingIssueClick(e, issue.key)}
-                  >
-                    {issue.key}
-                  </BlockingIssueLink>
+                  <Tooltip content={issue.summary || issue.key}>
+                    <BlockingIssueLink
+                      href="#"
+                      onClick={(e) => handleBlockingIssueClick(e, issue.key)}
+                    >
+                      {issue.key}
+                    </BlockingIssueLink>
+                  </Tooltip>
                   {index < blockingIssues.length - 1 && ', '}
                 </IssueSpan>
               ))}
@@ -405,12 +407,14 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
             <BlockingIssuesContainer>
               {blockedIssues.map((issue, index) => (
                 <IssueSpan key={issue.key}>
-                  <BlockingIssueLink
-                    href="#"
-                    onClick={(e) => handleBlockedIssueClick(e, issue.key)}
-                  >
-                    {issue.key}
-                  </BlockingIssueLink>
+                  <Tooltip content={issue.summary || issue.key}>
+                    <BlockingIssueLink
+                      href="#"
+                      onClick={(e) => handleBlockedIssueClick(e, issue.key)}
+                    >
+                      {issue.key}
+                    </BlockingIssueLink>
+                  </Tooltip>
                   {index < blockedIssues.length - 1 && ', '}
                 </IssueSpan>
               ))}

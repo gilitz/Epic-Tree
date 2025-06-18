@@ -496,7 +496,7 @@ export function VerticalTreeChart({
                      
                      if (isBlocked) {
                        stroke = '#dc2626'; // Red border for blocked items
-                       strokeWidth = 3;
+                       strokeWidth = 2;
                      }
                     
                                                               // Choose shadow color based on node state
