@@ -71,6 +71,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, d
 const UnifiedTooltipContainer = styled.div`
   width: fit-content;
   max-width: 400px;
+  max-height: 70vh;
   background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 8px;

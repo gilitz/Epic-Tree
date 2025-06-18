@@ -617,7 +617,7 @@ export function VerticalTreeChart({
                         >
                           <div
                             style={{
-                              fontSize: '10px',
+                              fontSize: '12px',
                               fontFamily: 'Arial',
                               color: nodeStyling.fill === '#017d2d' || nodeStyling.fill === '#baa625' ? '#000000' : '#ffffff',
                               whiteSpace: 'nowrap',
