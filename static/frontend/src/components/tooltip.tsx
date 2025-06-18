@@ -111,3 +111,62 @@ const UnifiedTooltipContainer = styled.div`
 export const NodeTooltip = styled(Tooltip)`
   min-width: 400px;
 `;
+
+// Secondary tooltip container with grayer background for nested tooltips
+const SecondaryTooltipContainer = styled(UnifiedTooltipContainer)`
+  background-color: #e9ecef;
+  border-color: #6c757d;
+  color: #495057;
+`;
+
+// Secondary tooltip component for tooltips that appear over other tooltips
+export const SecondaryTooltip: React.FC<TooltipProps> = ({ content, delay, interactive, disabled, children, onShow, onHide, className, ...props }) => {
+  return (
+    <Tippy 
+      {...props}
+      delay={delay ?? [300, 100]}
+      appendTo={() => document.body}
+      animation={false}
+      disabled={disabled}
+      interactive={interactive}
+      zIndex={99999}
+      content={<SecondaryTooltipContainer className={className}>{content}</SecondaryTooltipContainer>}
+      boundary="viewport"
+      placement="auto"
+      onShow={onShow}
+      onHide={onHide}
+      popperOptions={{
+        strategy: 'fixed',
+        modifiers: [
+          {
+            name: 'preventOverflow',
+            options: {
+              boundary: 'viewport',
+              padding: 16,
+              altAxis: true,
+              altBoundary: true,
+            },
+          },
+          {
+            name: 'flip',
+            options: {
+              fallbackPlacements: ['top', 'bottom', 'left', 'right', 'top-start', 'top-end', 'bottom-start', 'bottom-end'],
+              allowedAutoPlacements: ['top', 'bottom', 'left', 'right'],
+            },
+          },
+          {
+            name: 'offset',
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ],
+      }}
+      maxWidth="none"
+      hideOnClick={false}
+      trigger="mouseenter focus"
+    >
+      {children}
+    </Tippy>
+  );
+};

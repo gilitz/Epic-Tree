@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { router } from '@forge/bridge';
-import { Tooltip } from './tooltip';
+import { Tooltip, SecondaryTooltip } from './tooltip';
 import { Tag } from './tag';
 
 interface BlockingIssue {
@@ -276,7 +276,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
                 );
               })}
               {labels.length > 3 && (
-                <Tooltip
+                <SecondaryTooltip
                   content={
                     <TooltipLabelsContainer>
                       {labels.slice(3).map((label, index) => {
@@ -297,7 +297,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
                   interactive={false}
                 >
                   <MoreLabelsCircle>+{labels.length - 3}</MoreLabelsCircle>
-                </Tooltip>
+                </SecondaryTooltip>
               )}
             </LabelsContainer>
           </DetailRow>
@@ -386,14 +386,14 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
             <BlockingIssuesContainer>
               {blockingIssues.map((issue, index) => (
                 <IssueSpan key={issue.key}>
-                  <Tooltip content={issue.summary || issue.key}>
+                  <SecondaryTooltip content={issue.summary || issue.key}>
                     <BlockingIssueLink
                       href="#"
                       onClick={(e) => handleBlockingIssueClick(e, issue.key)}
                     >
                       {issue.key}
                     </BlockingIssueLink>
-                  </Tooltip>
+                  </SecondaryTooltip>
                   {index < blockingIssues.length - 1 && ', '}
                 </IssueSpan>
               ))}
@@ -407,14 +407,14 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
             <BlockingIssuesContainer>
               {blockedIssues.map((issue, index) => (
                 <IssueSpan key={issue.key}>
-                  <Tooltip content={issue.summary || issue.key}>
+                  <SecondaryTooltip content={issue.summary || issue.key}>
                     <BlockingIssueLink
                       href="#"
                       onClick={(e) => handleBlockedIssueClick(e, issue.key)}
                     >
                       {issue.key}
                     </BlockingIssueLink>
-                  </Tooltip>
+                  </SecondaryTooltip>
                   {index < blockedIssues.length - 1 && ', '}
                 </IssueSpan>
               ))}
