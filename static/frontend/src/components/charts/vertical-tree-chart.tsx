@@ -6,7 +6,7 @@ import { hierarchy, Tree } from '@visx/hierarchy';
 import { LinearGradient } from '@visx/gradient';
 import { pointRadial } from 'd3-shape';
 
-import { LinkControls } from './link-controls';
+// Removed LinkControls import
 import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
 import { useFetchSubtasksByKeys } from '../../hooks/use-fetch-subtasks-by-keys';
@@ -121,10 +121,10 @@ export function VerticalTreeChart({
   margin = defaultMargin,
 }: VerticalTreeChartProps): JSX.Element | null {
   
-  const [layout, setLayout] = useState<'polar' | 'cartesian'>('cartesian');
+  const [layout, _setLayout] = useState<'polar' | 'cartesian'>('cartesian');
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal');
   const [linkType, setLinkType] = useState<'diagonal' | 'step' | 'curve' | 'line'>('step');
-  const [stepPercent, setStepPercent] = useState<number>(0.5);
+  const [stepPercent, _setStepPercent] = useState<number>(0.5);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
 
@@ -379,19 +379,33 @@ export function VerticalTreeChart({
     );
   }
 
+  // Toggle orientation between vertical and horizontal
+  const toggleOrientation = () => {
+    setOrientation(orientation === 'vertical' ? 'horizontal' : 'vertical');
+  };
+
+  // Toggle link type between line, diagonal, and step
+  const toggleLinkType = () => {
+    if (linkType === 'line') {
+      setLinkType('diagonal');
+    } else if (linkType === 'diagonal') {
+      setLinkType('step');
+    } else {
+      setLinkType('line');
+    }
+  };
+
   return totalWidth < 10 ? null : (
     <ChartContainer>
-      <LinkControls
-        layout={layout}
-        orientation={orientation}
-        linkType={linkType}
-        stepPercent={stepPercent}
-        setLayout={setLayout}
-        setOrientation={setOrientation}
-        setLinkType={setLinkType}
-        setStepPercent={setStepPercent}
-      />
-              <svg width={totalWidth} height={totalHeight}>
+      <ToggleButtonsContainer>
+        <ToggleButton onClick={toggleOrientation}>
+          {orientation === 'vertical' ? '↕️' : '↔️'}
+        </ToggleButton>
+        <ToggleButton onClick={toggleLinkType}>
+          {linkType === 'line' ? '─' : linkType === 'diagonal' ? '╱' : '└'}
+        </ToggleButton>
+      </ToggleButtonsContainer>
+      <svg width="100%" height="100%" viewBox={`0 0 ${totalWidth} ${totalHeight}`}>
         <defs>
           <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
           <filter id="hover-shadow-gray" x="-50%" y="-50%" width="200%" height="200%">
@@ -410,7 +424,6 @@ export function VerticalTreeChart({
             <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#fbbf24" floodOpacity="0.8"/>
           </filter>
         </defs>
-        <rect width={totalWidth} height={totalHeight} rx={14} fill="#272b4d" />
         
         <Group top={margin.top} left={margin.left}>
           <Tree
@@ -683,7 +696,39 @@ const ErrorSubtitle = styled.div`
 `;
 
 const ChartContainer = styled.div`
-  display: block;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  background: transparent;
+`;
+
+const ToggleButtonsContainer = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+`;
+
+const ToggleButton = styled.button`
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  &:active {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
 `;
 
  
