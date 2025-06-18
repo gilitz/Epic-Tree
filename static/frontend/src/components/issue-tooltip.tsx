@@ -142,12 +142,10 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
       try {
         await router.open(`/browse/${issueKey}`);
       } catch (error) {
-        console.error('Failed to open issue in new tab:', error);
         // Fallback: try using window.open with Forge's allowed method
         try {
           window.open(`${baseUrl}/browse/${issueKey}`, '_blank');
         } catch (fallbackError) {
-          console.error('Fallback also failed:', fallbackError);
           // Last resort: navigate in same tab
           window.location.href = `${baseUrl}/browse/${issueKey}`;
         }
@@ -162,12 +160,10 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
     try {
       await router.open(`/browse/${blockingIssueKey}`);
     } catch (error) {
-      console.error('Failed to open blocking issue in new tab:', error);
       // Fallback: try using window.open with Forge's allowed method
       try {
         window.open(`${baseUrl}/browse/${blockingIssueKey}`, '_blank');
       } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
         // Last resort: navigate in same tab
         window.location.href = `${baseUrl}/browse/${blockingIssueKey}`;
       }
@@ -181,12 +177,10 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
     try {
       await router.open(`/browse/${blockedIssueKey}`);
     } catch (error) {
-      console.error('Failed to open blocked issue in new tab:', error);
       // Fallback: try using window.open with Forge's allowed method
       try {
         window.open(`${baseUrl}/browse/${blockedIssueKey}`, '_blank');
       } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
         // Last resort: navigate in same tab
         window.location.href = `${baseUrl}/browse/${blockedIssueKey}`;
       }
@@ -462,6 +456,7 @@ const IssueType = styled.span`
   background-color: #f4f5f7;
   color: #5e6c84;
   padding: 2px 6px;
+  border: 1px solidrgb(35, 45, 63);
   border-radius: 4px;
   font-size: 11px;
   text-transform: uppercase;

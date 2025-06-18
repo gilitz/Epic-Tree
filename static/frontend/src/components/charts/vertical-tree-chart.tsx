@@ -4,7 +4,7 @@ import { Group } from '@visx/group';
 import { hierarchy, Tree } from '@visx/hierarchy';
 import { LinearGradient } from '@visx/gradient';
 import { pointRadial } from 'd3-shape';
-import { useForceUpdate } from './use-force-update';
+
 import { LinkControls } from './link-controls';
 import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
@@ -74,9 +74,7 @@ interface TreeData {
   blockingIssues?: BlockingIssue[];
   blockedIssues?: BlockedIssue[];
   children?: TreeData[];
-  isExpanded?: boolean;
   isEpic?: boolean;
-  data?: TreeData;
 }
 
 interface Issue {
@@ -112,46 +110,7 @@ interface VerticalTreeChartProps {
   };
 }
 
-const datamock: TreeData = {
-  name: 'Epic Tree',
-  children: [
-    {
-      name: 'Feature A',
-      children: [
-        { name: 'Task A1' },
-        { name: 'Task A2' },
-        { name: 'Task A3' },
-        {
-          name: 'Story C',
-          children: [
-            {
-              name: 'Subtask C1',
-            },
-            {
-              name: 'Story D',
-              children: [
-                {
-                  name: 'Task D1',
-                },
-                {
-                  name: 'Task D2',
-                },
-                {
-                  name: 'Task D3',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    { name: 'Bug Fix Z' },
-    {
-      name: 'Feature B',
-      children: [{ name: 'Task B1' }, { name: 'Task B2' }, { name: 'Task B3' }],
-    },
-  ],
-};
+
 
 const defaultMargin = { top: 50, left: 80, right: 80, bottom: 50 };
 
@@ -214,9 +173,8 @@ export function VerticalTreeChart({
     
     return allSubtaskKeys;
   }, [issuesByEpic]);
-  console.log("subtaskKeys:",subtaskKeys)
+  
   const { subtasks } = useFetchSubtasksByKeys({ subtaskKeys });
-  console.log('SUBTASKS:', subtasks);
   // Helper function to extract blocking issues from issuelinks (issues that block this issue)
   const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
     if (!issuelinks || !Array.isArray(issuelinks)) return [];
@@ -341,7 +299,6 @@ export function VerticalTreeChart({
       
       return treeData;
     } catch (error) {
-      console.error("Error transforming data:", error);
       return { 
         name: 'Error loading data', 
         key: 'error',
@@ -365,7 +322,6 @@ export function VerticalTreeChart({
       const hierarchy_data = hierarchy(finalTreeData);
       return hierarchy_data;
     } catch (error) {
-      console.error("Error creating hierarchy:", error);
       return hierarchy({ name: 'Error', children: [] });
     }
   }, [finalTreeData]);
@@ -641,12 +597,4 @@ const ChartContainer = styled.div`
   display: block;
 `;
 
-const IssueLink = styled.a`
-  position: relative;
-  z-index: 99999;
-`;
-
-const NodeGroup = styled.div`
-  position: relative;
-  z-index: 99999;
-`; 
+ 

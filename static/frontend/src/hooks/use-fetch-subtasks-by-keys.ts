@@ -91,20 +91,10 @@ export const useFetchSubtasksByKeys = ({ subtaskKeys }: UseFetchSubtasksByKeysPr
         
         if (response && response.issues) {
           setSubtasks(response.issues);
-          if (response.issues.length > 0) {
-            console.log('🎯 REAL SUBTASK DETAILS:', response.issues.map(st => ({
-              key: st.key,
-              summary: st.fields?.summary,
-              assignee: st.fields?.assignee?.displayName,
-              status: st.fields?.status?.name
-            })));
-          }
         } else {
-          console.warn('🔍 FRONTEND: No subtasks found in response, response structure:', response);
           setSubtasks([]);
         }
       } catch (err) {
-        console.error('🔍 FRONTEND: Subtasks by keys API ERROR:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch subtasks');
         setSubtasks([]);
       } finally {
@@ -114,6 +104,6 @@ export const useFetchSubtasksByKeys = ({ subtaskKeys }: UseFetchSubtasksByKeysPr
 
     fetchSubtasks();
   }, [subtaskKeys.join(',')]); // Dependency on serialized subtask keys
-  console.log('🎯 SUBTASKS:', subtasks);
+  
   return { subtasks, loading, error };
 }; 

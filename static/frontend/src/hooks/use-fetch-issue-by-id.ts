@@ -28,13 +28,11 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
     if (data && data.id) {
       setIssue(data);
     } else {
-      console.warn('No issue found for ID:', issueId);
       setIssue(null);
     }
   };
 
   const handleFetchError = (error: Error): void => {
-    console.error('Failed to get issue by ID:', issueId, error);
     setIssue(null); // Set null on error to prevent crashes
   };
 

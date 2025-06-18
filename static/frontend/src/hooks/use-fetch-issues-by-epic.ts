@@ -51,13 +51,6 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   };
 
   const handleFetchError = (error: Error): void => {
-    console.error('Failed to get issues for epic:', epicId, error);
-    
-    if (isNetworkError(error)) {
-      console.error('Network/proxy error detected. This may be a temporary connectivity issue.');
-      console.error('If this persists, there may be infrastructure issues with the Forge platform.');
-    }
-    
     // Set empty array on error to prevent crashes
     setIssues([]);
   };
