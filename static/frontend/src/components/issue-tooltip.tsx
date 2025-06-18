@@ -65,7 +65,7 @@ interface IssueTooltipProps {
   baseUrl?: string;
 }
 
-export const IssueTooltip: React.FC<IssueTooltipProps> = ({
+export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
   issueKey,
   summary,
   priority,
@@ -196,12 +196,21 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
         >
           {issueKey}
         </IssueKeyLink>
-        {issueType && (
-          <IssueType>
-            {issueType.iconUrl && <TypeIcon src={issueType.iconUrl} alt={issueType.name} />}
-            {issueType.name}
-          </IssueType>
-        )}
+        <HeaderRight>
+          {status && (
+            <StatusContainer>
+              <StatusValue $statusColor={status.statusCategory?.colorName}>
+                {status.name}
+              </StatusValue>
+            </StatusContainer>
+          )}
+          {issueType && (
+            <IssueType>
+              {issueType.iconUrl && <TypeIcon src={issueType.iconUrl} alt={issueType.name} />}
+              {issueType.name}
+            </IssueType>
+          )}
+        </HeaderRight>
       </TooltipHeader>
 
       {summary && (
@@ -217,36 +226,37 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
       )}
 
       <DetailsGrid>
-        {priority && (
-          <DetailRow>
-            <Label>Priority:</Label>
-            <Value>
-              {priority.iconUrl && <PriorityIcon src={priority.iconUrl} alt={priority.name} />}
-              {priority.name}
-            </Value>
-          </DetailRow>
-        )}
+        <DetailRow>
+          <Label>Priority:</Label>
+          <Value>
+            {priority ? (
+              <>
+                {priority.iconUrl && <PriorityIcon src={priority.iconUrl} alt={priority.name} />}
+                {priority.name}
+              </>
+            ) : (
+              <EmptyValue>Not set</EmptyValue>
+            )}
+          </Value>
+        </DetailRow>
 
-        {assignee && (
-          <DetailRow>
-            <Label>Assignee:</Label>
-            <Value>
-              {assignee.avatarUrls?.['16x16'] && (
-                <Avatar src={assignee.avatarUrls['16x16']} alt={assignee.displayName} />
-              )}
-              {assignee.displayName}
-            </Value>
-          </DetailRow>
-        )}
+        <DetailRow>
+          <Label>Assignee:</Label>
+          <Value>
+            {assignee ? (
+              <>
+                {assignee.avatarUrls?.['16x16'] && (
+                  <Avatar src={assignee.avatarUrls['16x16']} alt={assignee.displayName} />
+                )}
+                {assignee.displayName}
+              </>
+            ) : (
+              <EmptyValue>Unassigned</EmptyValue>
+            )}
+          </Value>
+        </DetailRow>
 
-        {status && (
-          <DetailRow>
-            <Label>Status:</Label>
-            <StatusValue $statusColor={status.statusCategory?.colorName}>
-              {status.name}
-            </StatusValue>
-          </DetailRow>
-        )}
+
 
         {labels && labels.length > 0 && (
           <DetailRow>
@@ -293,12 +303,16 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
           </DetailRow>
         )}
 
-        {storyPoints && (
-          <DetailRow>
-            <Label>Story Points:</Label>
-            <StoryPointsBadge>{storyPoints}</StoryPointsBadge>
-          </DetailRow>
-        )}
+        <DetailRow>
+          <Label>Story Points:</Label>
+          <Value>
+            {storyPoints ? (
+              <StoryPointsBadge>{storyPoints}</StoryPointsBadge>
+            ) : (
+              <EmptyValue>Not estimated</EmptyValue>
+            )}
+          </Value>
+        </DetailRow>
 
 
 
@@ -545,8 +559,6 @@ const LabelsContainer = styled.div`
   padding: 2px 0;
 `;
 
-
-
 const MoreLabelsCircle = styled.div`
   background-color: #6b7280;
   color: white;
@@ -594,8 +606,6 @@ const TooltipLabelsContainer = styled.div`
   gap: 4px;
 `;
 
-
-
 const StoryPointsBadge = styled.span`
   background-color: #1976d2;
   color: white;
@@ -624,8 +634,6 @@ const ComponentsContainer = styled.div`
   gap: 4px;
 `;
 
-
-
 const VersionsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -639,6 +647,23 @@ const SummaryTooltipContent = styled.div`
 
 const IssueSpan = styled.span`
   display: inline;
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const StatusContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const EmptyValue = styled.span`
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
 `;
 
  

@@ -8,22 +8,25 @@ interface TooltipProps {
   content: ReactNode;
   interactive?: boolean;
   disabled?: boolean;
+  delay?: [number, number];
   children: ReactElement;
   onShow?: () => void;
   onHide?: () => void;
+  className?: string;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled, children, onShow, onHide }) => {
+export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, disabled, children, onShow, onHide, className, ...props }) => {
   // Always append to document.body to ensure it's above everything
   return (
     <Tippy 
-      delay={[300, 100]}
+      {...props}
+      delay={delay ?? [300, 100]}
       appendTo={() => document.body}
       animation={false}
       disabled={disabled}
       interactive={interactive}
-      zIndex={2147483647} // Maximum z-index value
-      content={<UnifiedTooltipContainer>{content}</UnifiedTooltipContainer>}
+      zIndex={99999}
+      content={<UnifiedTooltipContainer className={className}>{content}</UnifiedTooltipContainer>}
       boundary="viewport"
       placement="auto"
       onShow={onShow}
@@ -66,10 +69,8 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, interactive, disabled
 
 // Unified container style for ALL tooltips
 const UnifiedTooltipContainer = styled.div`
-  width: 400px;
-  min-width: 400px;
+  width: fit-content;
   max-width: 400px;
-  max-height: 80vh;
   background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -106,14 +107,6 @@ const UnifiedTooltipContainer = styled.div`
   scrollbar-color: #dee2e6 #f8f9fa;
 `;
 
-// Legacy TooltipBox for backward compatibility (now just passes through)
-const _TooltipBox = styled.div`
-  display: block;
-  background-color: transparent;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  color: inherit;
-  overflow: visible;
-  position: relative;
-`; 
+export const NodeTooltip = styled(Tooltip)`
+  min-width: 400px;
+`;

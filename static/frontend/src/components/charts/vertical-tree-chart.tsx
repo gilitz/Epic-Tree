@@ -11,8 +11,8 @@ import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
 import { useFetchSubtasksByKeys } from '../../hooks/use-fetch-subtasks-by-keys';
 import getLinkComponent from './get-link-component';
-import { Tooltip } from '../tooltip';
-import { IssueTooltip } from '../issue-tooltip';
+import { NodeTooltip } from '../tooltip';
+import { IssueTooltipContent } from '../issue-tooltip';
 import { router } from '@forge/bridge';
 
 interface BlockingIssue {
@@ -543,7 +543,7 @@ export function VerticalTreeChart({
                   };
                   
                   const tooltipContent = (
-                    <IssueTooltip
+                    <IssueTooltipContent
                       issueKey={nodeData.key}
                       summary={nodeData.summary}
                       priority={nodeData.priority}
@@ -566,10 +566,10 @@ export function VerticalTreeChart({
                   );
                   
                   return (
-                    <Tooltip 
+                    <NodeTooltip 
+                      key={index}
                       content={tooltipContent} 
                       interactive={true}
-                      key={index}
                       onShow={() => setTooltipOpenNodeId(nodeData.key || null)}
                       onHide={() => setTooltipOpenNodeId(null)}
                     >
@@ -633,7 +633,7 @@ export function VerticalTreeChart({
                         
 
                       </g>
-                    </Tooltip>
+                    </NodeTooltip>
                   );
                 })}
               </Group>
