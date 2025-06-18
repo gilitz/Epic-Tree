@@ -216,7 +216,6 @@ export const TreeChart: React.FC<TreeChartProps> = ({ width, height, margin = de
 
   const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic });
 
-
   const data = useMemo(() => hierarchy(transformedTreeData), [issuesByEpic, rootEpicIssue]);
   const yMax = height - margin.top - margin.bottom;
   const xMax = width - margin.left - margin.right;

@@ -44,10 +44,8 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   
   const handleFetchSuccess = (data: IssuesResponse): void => {
     if (data && data.issues && Array.isArray(data.issues)) {
-      console.log(`Successfully loaded ${data.issues.length} issues for epic: ${epicId}`);
       setIssues(data.issues);
     } else {
-      console.warn('No issues found for epic:', epicId);
       setIssues([]);
     }
   };
@@ -67,7 +65,6 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   useEffect(() => {
     const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => {
       try {
-        console.log(`Fetching issues for epic: ${epicId}`);
         const result = await invoke('fetchIssuesByEpicId', { epicId });
         return result;
       } catch (error) {
@@ -80,7 +77,6 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
 
     const subscribeForIssueChangedEvent = () =>
       events.on('JIRA_ISSUE_CHANGED', () => {
-        console.log(`Issue changed event received, refetching issues for epic: ${epicId}`);
         fetchIssuesByEpicId().then(handleFetchSuccess).catch(handleFetchError);
       });
     const subscription = subscribeForIssueChangedEvent();

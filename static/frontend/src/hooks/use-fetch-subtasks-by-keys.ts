@@ -58,23 +58,23 @@ interface SubtasksResponse {
   startAt: number;
 }
 
-interface UseFetchSubtasksProps {
-  parentKeys: string[];
+interface UseFetchSubtasksByKeysProps {
+  subtaskKeys: string[];
 }
 
-interface UseFetchSubtasksReturn {
+interface UseFetchSubtasksByKeysReturn {
   subtasks: Subtask[];
   loading: boolean;
   error: string | null;
 }
 
-export const useFetchSubtasks = ({ parentKeys }: UseFetchSubtasksProps): UseFetchSubtasksReturn => {
+export const useFetchSubtasksByKeys = ({ subtaskKeys }: UseFetchSubtasksByKeysProps): UseFetchSubtasksByKeysReturn => {
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!parentKeys || parentKeys.length === 0) {
+    if (!subtaskKeys || subtaskKeys.length === 0) {
       setSubtasks([]);
       setLoading(false);
       setError(null);
@@ -86,23 +86,25 @@ export const useFetchSubtasks = ({ parentKeys }: UseFetchSubtasksProps): UseFetc
       setError(null);
       
       try {
-        const response: SubtasksResponse = await invoke('fetchSubtasksByParentKeys', { parentKeys });
-                
+        const response: SubtasksResponse = await invoke('fetchSubtasksByKeys', { subtaskKeys });
+        
+        
         if (response && response.issues) {
           setSubtasks(response.issues);
           if (response.issues.length > 0) {
-            console.log('Subtask details:', response.issues.map(st => ({
+            console.log('🎯 REAL SUBTASK DETAILS:', response.issues.map(st => ({
               key: st.key,
               summary: st.fields?.summary,
-              parent: st.fields?.parent?.key
+              assignee: st.fields?.assignee?.displayName,
+              status: st.fields?.status?.name
             })));
           }
         } else {
-          console.warn('SUBTASKS API: No subtasks found in response, response structure:', response);
+          console.warn('🔍 FRONTEND: No subtasks found in response, response structure:', response);
           setSubtasks([]);
         }
       } catch (err) {
-        console.error('SUBTASKS API ERROR:', err);
+        console.error('🔍 FRONTEND: Subtasks by keys API ERROR:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch subtasks');
         setSubtasks([]);
       } finally {
@@ -111,7 +113,7 @@ export const useFetchSubtasks = ({ parentKeys }: UseFetchSubtasksProps): UseFetc
     };
 
     fetchSubtasks();
-  }, [parentKeys.join(',')]); // Dependency on serialized parent keys
-
+  }, [subtaskKeys.join(',')]); // Dependency on serialized subtask keys
+  console.log('🎯 SUBTASKS:', subtasks);
   return { subtasks, loading, error };
 }; 

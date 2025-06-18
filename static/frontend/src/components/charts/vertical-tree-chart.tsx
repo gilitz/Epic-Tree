@@ -8,7 +8,7 @@ import { useForceUpdate } from './use-force-update';
 import { LinkControls } from './link-controls';
 import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
-import { useFetchSubtasks } from '../../hooks/use-fetch-subtasks';
+import { useFetchSubtasksByKeys } from '../../hooks/use-fetch-subtasks-by-keys';
 import getLinkComponent from './get-link-component';
 import { Tooltip } from '../tooltip';
 import { IssueTooltip } from '../issue-tooltip';
@@ -165,7 +165,6 @@ export function VerticalTreeChart({
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal');
   const [linkType, setLinkType] = useState<'diagonal' | 'step' | 'curve' | 'line'>('step');
   const [stepPercent, setStepPercent] = useState<number>(0.5);
-  const forceUpdate = useForceUpdate();
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
@@ -196,17 +195,28 @@ export function VerticalTreeChart({
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
   const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
   
-  // Log subtasks found in issues
-  if (issuesByEpic && issuesByEpic.length > 0) {
+  // Get all subtask keys directly from the issues
+  const subtaskKeys = useMemo(() => {
+    if (!issuesByEpic || !Array.isArray(issuesByEpic)) {
+      return [];
+    }
+    
+    const allSubtaskKeys: string[] = [];
     issuesByEpic.forEach(issue => {
       if (issue.fields?.subtasks && issue.fields.subtasks.length > 0) {
-        console.log('🎯 REAL JIRA SUBTASKS FOUND in', issue.key, ':', issue.fields.subtasks.map(st => st.key));
+        issue.fields.subtasks.forEach(subtask => {
+          if (subtask.key) {
+            allSubtaskKeys.push(subtask.key);
+          }
+        });
       }
     });
-  }
-
-
-  
+    
+    return allSubtaskKeys;
+  }, [issuesByEpic]);
+  console.log("subtaskKeys:",subtaskKeys)
+  const { subtasks } = useFetchSubtasksByKeys({ subtaskKeys });
+  console.log('SUBTASKS:', subtasks);
   // Helper function to extract blocking issues from issuelinks (issues that block this issue)
   const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
     if (!issuelinks || !Array.isArray(issuelinks)) return [];
@@ -234,9 +244,18 @@ export function VerticalTreeChart({
   };
   
   
-  const transformDataToTree = ({ epic, issues }: { epic: Epic | null; issues: Issue[] }): TreeData => {
+  const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic | null; issues: Issue[]; subtasksData: any[] }): TreeData => {
 
     try {
+      // Create a map of detailed subtask data by key
+      const subtaskDetailMap = new Map<string, any>();
+      if (subtasksData && Array.isArray(subtasksData)) {
+        subtasksData.forEach((subtask) => {
+          if (subtask?.key) {
+            subtaskDetailMap.set(subtask.key, subtask);
+          }
+        });
+      }
 
       const treeData = {
         name: epic?.fields?.summary || epic?.key || 'Epic Tree',
@@ -264,11 +283,6 @@ export function VerticalTreeChart({
           const issueFields = issue?.fields;
           const issueSubtasks = issueFields?.subtasks || [];
           
-          if (issueSubtasks.length > 0) {
-            console.log(`🎯 REAL SUBTASKS for ${issue?.key}:`, 
-              issueSubtasks.map(st => `${st.key}`));
-          }
-          
           const issueNode = {
             name: issueFields?.summary || issue?.key || 'Unknown Issue',
             key: issue?.key,
@@ -291,27 +305,31 @@ export function VerticalTreeChart({
             blockedIssues: extractBlockedIssues(issueFields?.issuelinks || []),
             isEpic: false,
             children: issueSubtasks.map((subtask) => {
+              // Get detailed data for this subtask if available
+              const subtaskDetail = subtaskDetailMap.get(subtask?.key);
+              const subtaskFields = subtaskDetail?.fields;
+              
               return { 
-                name: subtask?.key || 'Unknown Subtask',
+                name: subtaskFields?.summary || subtask?.key || 'Unknown Subtask',
                 key: subtask?.key,
-                summary: subtask?.key,
-                priority: undefined,
-                assignee: undefined,
-                status: undefined,
-                labels: [],
-                storyPoints: undefined,
-                issueType: undefined,
-                reporter: undefined,
-                created: undefined,
-                updated: undefined,
-                dueDate: undefined,
-                resolution: undefined,
-                components: [],
-                fixVersions: [],
+                summary: subtaskFields?.summary || `Subtask: ${subtask?.key}`,
+                priority: subtaskFields?.priority || { name: 'Unknown', iconUrl: '' },
+                assignee: subtaskFields?.assignee || { displayName: 'Unassigned', avatarUrls: { '16x16': '' } },
+                status: subtaskFields?.status || { name: 'Unknown', statusCategory: { colorName: 'medium-gray' } },
+                labels: subtaskFields?.labels || [],
+                storyPoints: subtaskFields?.customfield_10016 || 0,
+                issueType: subtaskFields?.issuetype || { name: 'Sub-task', iconUrl: '' },
+                reporter: subtaskFields?.reporter || { displayName: 'Unknown', avatarUrls: { '16x16': '' } },
+                created: subtaskFields?.created || new Date().toISOString(),
+                updated: subtaskFields?.updated || new Date().toISOString(),
+                dueDate: subtaskFields?.duedate || null,
+                resolution: subtaskFields?.resolution || null,
+                components: subtaskFields?.components || [],
+                fixVersions: subtaskFields?.fixVersions || [],
                 children: [], 
-                issuelinks: [],
-                blockingIssues: [],
-                blockedIssues: [],
+                issuelinks: subtaskFields?.issuelinks || [],
+                blockingIssues: extractBlockingIssues(subtaskFields?.issuelinks || []),
+                blockedIssues: extractBlockedIssues(subtaskFields?.issuelinks || []),
                 isEpic: false
               };
             }) 
@@ -334,7 +352,8 @@ export function VerticalTreeChart({
     }
   };
 
-  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic });
+
+  const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic, subtasksData: subtasks });
 
   // Use real data only
   const finalTreeData = transformedTreeData;
@@ -567,17 +586,7 @@ export function VerticalTreeChart({
                           </tspan>
                         </text>
                         
-                        {/* Debug: Show node depth */}
-                        <text
-                          dy="1.2em"
-                          fontSize="7"
-                          fontFamily="Arial"
-                          textAnchor="middle"
-                          style={{ pointerEvents: 'none' }}
-                          fill="#888"
-                        >
-                          <tspan x="0" dy="0">d:{node.depth} k:{nodeData.key}</tspan>
-                        </text>
+
                       </g>
                     </Tooltip>
                   );
