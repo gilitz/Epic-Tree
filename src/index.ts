@@ -9,17 +9,17 @@ interface RequestContext {
   };
 }
 
-interface FetchLabelsRequest {
+interface _FetchLabelsRequest {
   context: RequestContext;
 }
 
-interface FetchIssueRequest {
+interface _FetchIssueRequest {
   payload: {
     issueId: string;
   };
 }
 
-interface FetchIssuesByEpicRequest {
+interface _FetchIssuesByEpicRequest {
   payload: {
     epicId: string;
   };
@@ -36,10 +36,70 @@ interface IssueResponse {
   };
 }
 
+// API Response types
+interface ApiResponse {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+}
+
+interface JiraIssue {
+  key: string;
+  fields: {
+    summary: string;
+    status: {
+      name: string;
+      statusCategory: {
+        colorName: string;
+      };
+    };
+    priority: {
+      name: string;
+      iconUrl: string;
+    };
+    assignee: {
+      displayName: string;
+      avatarUrls: Record<string, string>;
+    } | null;
+    reporter: {
+      displayName: string;
+      avatarUrls: Record<string, string>;
+    } | null;
+    labels: Label[];
+    issuelinks: unknown[];
+    issuetype: {
+      name: string;
+      iconUrl: string;
+    };
+    created: string;
+    updated: string;
+    duedate: string | null;
+    resolution: {
+      name: string;
+    } | null;
+    components: Array<{ name: string }>;
+    fixVersions: Array<{ name: string }>;
+    customfield_10016: number | null; // Story Points
+    subtasks?: Array<{ key: string }>;
+    parent?: {
+      key: string;
+    };
+  };
+}
+
+interface JiraSearchResponse {
+  issues: JiraIssue[];
+  total: number;
+  maxResults: number;
+  startAt: number;
+}
+
 const resolver = new Resolver();
 
 // Helper function to detect network/proxy errors
-const isNetworkError = (error: any): boolean => {
+const isNetworkError = (error: unknown): boolean => {
   if (!error) return false;
   const errorString = error.toString().toLowerCase();
   return errorString.includes('squid') || 
@@ -51,7 +111,7 @@ const isNetworkError = (error: any): boolean => {
 };
 
 // Helper function to safely make API requests with enhanced error handling
-const safeApiRequest = async (requestFn: () => Promise<any>, fallbackData: any, context: string) => {
+const safeApiRequest = async <T>(requestFn: () => Promise<ApiResponse>, fallbackData: T, context: string): Promise<T> => {
   try {
     const response = await requestFn();
     
@@ -62,7 +122,7 @@ const safeApiRequest = async (requestFn: () => Promise<any>, fallbackData: any, 
       return fallbackData;
     }
     
-    const data = await response.json();
+    const data = await response.json() as T;
     console.log(`API request successful for: ${context}`);
     return data;
   } catch (error) {
@@ -76,10 +136,10 @@ const safeApiRequest = async (requestFn: () => Promise<any>, fallbackData: any, 
   }
 };
 
-resolver.define('fetchLabels', async (req: any): Promise<Label[]> => {
-  const key = req.context.extension.issue.key;
+resolver.define('fetchLabels', async (req: unknown): Promise<Label[]> => {
+  const key = (req as { context: RequestContext }).context.extension.issue.key;
 
-  const fallbackData: Label[] = [];
+  const _fallbackData: Label[] = [];
   
   const requestFn = () => api.asUser().requestJira(route`/rest/api/3/issue/${key}?fields=labels`);
   
@@ -94,8 +154,8 @@ resolver.define('fetchLabels', async (req: any): Promise<Label[]> => {
   return labels;
 });
 
-resolver.define('fetchIssueById', async (data: any): Promise<any> => {
-  const issueId = data.payload.issueId;
+resolver.define('fetchIssueById', async (data: unknown): Promise<JiraIssue> => {
+  const issueId = (data as { payload: { issueId: string } }).payload.issueId;
   
   // Request all fields that might be needed for the tooltip
   const fields = [
@@ -104,8 +164,8 @@ resolver.define('fetchIssueById', async (data: any): Promise<any> => {
     'components', 'fixVersions', 'customfield_10016' // Story Points
   ].join(',');
   
-  const fallbackData = {
-    key: issueId,
+  const fallbackData: JiraIssue = {
+    key: issueId || 'UNKNOWN',
     fields: {
       summary: `Issue ${issueId} (Network Error)`,
       status: { name: 'Unknown', statusCategory: { colorName: 'medium-gray' } },
@@ -132,9 +192,9 @@ resolver.define('fetchIssueById', async (data: any): Promise<any> => {
   return result;
 });
 
-resolver.define('fetchIssuesByEpicId', async (data: any): Promise<any> => {
-  const epicId = data.payload.epicId;
-  (`Fetching issues for epic: ${epicId}`);
+resolver.define('fetchIssuesByEpicId', async (data: unknown): Promise<JiraSearchResponse> => {
+  const epicId = (data as { payload: { epicId: string } }).payload.epicId;
+  console.log(`Fetching issues for epic: ${epicId}`);
   
   // Request all fields that might be needed for the tooltip
   const fields = [
@@ -143,7 +203,7 @@ resolver.define('fetchIssuesByEpicId', async (data: any): Promise<any> => {
     'components', 'fixVersions', 'customfield_10016', 'subtasks' // Story Points and subtasks
   ].join(',');
   
-  const fallbackData = {
+  const fallbackData: JiraSearchResponse = {
     issues: [],
     total: 0,
     maxResults: 0,
@@ -161,13 +221,13 @@ resolver.define('fetchIssuesByEpicId', async (data: any): Promise<any> => {
   return result;
 });
 
-resolver.define('fetchSubtasksByParentKeys', async (data: any): Promise<any> => {
-  const parentKeys = data.payload.parentKeys;
+resolver.define('fetchSubtasksByParentKeys', async (data: unknown): Promise<JiraSearchResponse> => {
+  const parentKeys: string[] = (data as { payload: { parentKeys: string[] } }).payload.parentKeys;
   console.log(`🔍 BACKEND: Fetching subtasks for parent keys: ${parentKeys.join(', ')}`);
   
   if (!parentKeys || parentKeys.length === 0) {
     console.log('🔍 BACKEND: No parent keys provided, returning empty result');
-    return { issues: [] };
+    return { issues: [], total: 0, maxResults: 0, startAt: 0 };
   }
   
   // Request all fields that might be needed for the tooltip
@@ -177,7 +237,7 @@ resolver.define('fetchSubtasksByParentKeys', async (data: any): Promise<any> => 
     'components', 'fixVersions', 'customfield_10016', 'parent' // Story Points and parent
   ].join(',');
   
-  const fallbackData = {
+  const fallbackData: JiraSearchResponse = {
     issues: [],
     total: 0,
     maxResults: 0,
@@ -196,7 +256,7 @@ resolver.define('fetchSubtasksByParentKeys', async (data: any): Promise<any> => 
   const subtaskCount = result.issues?.length || 0;
   
   if (subtaskCount > 0) {
-    console.log('🔍 BACKEND: Found subtasks:', result.issues.map((issue: any) => ({
+    console.log('🔍 BACKEND: Found subtasks:', result.issues.map((issue: JiraIssue) => ({
       key: issue.key,
       summary: issue.fields?.summary,
       parent: issue.fields?.parent?.key,
@@ -207,11 +267,11 @@ resolver.define('fetchSubtasksByParentKeys', async (data: any): Promise<any> => 
   return result;
 });
 
-resolver.define('fetchSubtasksByKeys', async (data: any): Promise<any> => {
-  const subtaskKeys = data.payload.subtaskKeys;
+resolver.define('fetchSubtasksByKeys', async (data: unknown): Promise<JiraSearchResponse> => {
+  const subtaskKeys: string[] = (data as { payload: { subtaskKeys: string[] } }).payload.subtaskKeys;
   
   if (!subtaskKeys || subtaskKeys.length === 0) {
-    return { issues: [] };
+    return { issues: [], total: 0, maxResults: 0, startAt: 0 };
   }
   
   // Request all fields that might be needed for the tooltip
@@ -221,7 +281,7 @@ resolver.define('fetchSubtasksByKeys', async (data: any): Promise<any> => {
     'components', 'fixVersions', 'customfield_10016', 'parent' // Story Points and parent
   ].join(',');
   
-  const fallbackData = {
+  const fallbackData: JiraSearchResponse = {
     issues: [],
     total: 0,
     maxResults: 0,
@@ -241,4 +301,4 @@ resolver.define('fetchSubtasksByKeys', async (data: any): Promise<any> => {
   return result;
 });
 
-export const handler = resolver.getDefinitions() as any; 
+export const handler = resolver.getDefinitions() as unknown; 

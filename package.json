@@ -4,9 +4,17 @@
   "main": "src/index.ts",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "lint:all": "npm run lint && cd static/frontend && npm run lint",
+    "lint:fix:all": "npm run lint:fix && cd static/frontend && npm run lint:fix"
+  },
   "devDependencies": {
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0"
   },
