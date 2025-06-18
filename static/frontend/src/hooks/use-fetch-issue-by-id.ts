@@ -10,11 +10,11 @@ interface Issue {
   key: string;
   fields: {
     summary: string;
-    issuelinks: any[];
-    subtasks: any[];
-    [key: string]: any;
+    issuelinks: unknown[];
+    subtasks: unknown[];
+    [key: string]: unknown;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface UseFetchIssueByIdReturn {
@@ -32,7 +32,7 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
     }
   };
 
-  const handleFetchError = (error: Error): void => {
+  const handleFetchError = (_error: Error): void => {
     setIssue(null); // Set null on error to prevent crashes
   };
 

@@ -1,9 +1,8 @@
 import React, { ReactNode, ReactElement } from 'react';
-import { createPortal } from 'react-dom';
 import TippyImport from "@tippyjs/react";
 import styled from "styled-components";
 
-const Tippy = TippyImport as any;
+const Tippy = TippyImport as React.ComponentType<Record<string, unknown>>;
 
 interface TooltipProps {
   content: ReactNode;
@@ -104,7 +103,7 @@ const UnifiedTooltipContainer = styled.div`
 `;
 
 // Legacy TooltipBox for backward compatibility (now just passes through)
-const TooltipBox = styled.div`
+const _TooltipBox = styled.div`
   display: block;
   background-color: transparent;
   padding: 0;

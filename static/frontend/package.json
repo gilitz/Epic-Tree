@@ -30,7 +30,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "npx eslint src --ext .ts,.tsx",
+    "lint:fix": "npx eslint src --ext .ts,.tsx --fix"
   },
   "browserslist": {
     "production": [

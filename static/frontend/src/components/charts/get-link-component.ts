@@ -20,7 +20,7 @@ interface GetLinkComponentProps {
   orientation: 'vertical' | 'horizontal';
 }
 
-type LinkComponent = ComponentType<any>;
+type LinkComponent = ComponentType<unknown>;
 
 export default function getLinkComponent({
   layout,

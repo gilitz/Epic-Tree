@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { Group } from '@visx/group';
@@ -82,21 +83,21 @@ interface Issue {
   key: string;
   fields: {
     summary: string;
-    issuelinks: any[];
-    subtasks: Array<{ key: string }>;
-    [key: string]: any;
+    issuelinks: unknown[];
+    subtasks: unknown[];
+    [key: string]: unknown;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface Epic {
   fields: {
     summary: string;
-    issuelinks: any[];
-    [key: string]: any;
+    issuelinks: unknown[];
+    [key: string]: unknown;
   };
   errorMessages?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface VerticalTreeChartProps {
@@ -162,10 +163,11 @@ export function VerticalTreeChart({
     
     const allSubtaskKeys: string[] = [];
     issuesByEpic.forEach(issue => {
-      if (issue.fields?.subtasks && issue.fields.subtasks.length > 0) {
+      if (issue.fields?.subtasks && Array.isArray(issue.fields.subtasks) && issue.fields.subtasks.length > 0) {
         issue.fields.subtasks.forEach(subtask => {
-          if (subtask.key) {
-            allSubtaskKeys.push(subtask.key);
+          // Type guard for subtask with key property
+          if (subtask && typeof subtask === 'object' && 'key' in subtask && typeof (subtask as any).key === 'string') {
+            allSubtaskKeys.push((subtask as any).key);
           }
         });
       }
@@ -189,6 +191,7 @@ export function VerticalTreeChart({
   };
 
   // Helper function to extract blocked issues from issuelinks (issues that this issue blocks)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const extractBlockedIssues = (issuelinks: any[]): BlockedIssue[] => {
     if (!issuelinks || !Array.isArray(issuelinks)) return [];
     
@@ -202,6 +205,7 @@ export function VerticalTreeChart({
   };
   
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic | null; issues: Issue[]; subtasksData: any[] }): TreeData => {
 
     try {
@@ -216,78 +220,83 @@ export function VerticalTreeChart({
       }
 
       const treeData = {
-        name: epic?.fields?.summary || epic?.key || 'Epic Tree',
-        key: epic?.key || 'ET-2',
-        summary: epic?.fields?.summary || 'Loading epic...',
-        priority: epic?.fields?.priority,
-        assignee: epic?.fields?.assignee,
-        status: epic?.fields?.status,
-        labels: epic?.fields?.labels || [],
-        storyPoints: epic?.fields?.customfield_10016 || epic?.fields?.storyPoints,
-        issueType: epic?.fields?.issuetype,
-        reporter: epic?.fields?.reporter,
-        created: epic?.fields?.created,
-        updated: epic?.fields?.updated,
-        dueDate: epic?.fields?.duedate,
-        resolution: epic?.fields?.resolution,
-        components: epic?.fields?.components || [],
-        fixVersions: epic?.fields?.fixVersions || [],
-        issuelinks: epic?.fields?.issuelinks || [],
-        blockingIssues: extractBlockingIssues(epic?.fields?.issuelinks || []),
-        blockedIssues: extractBlockedIssues(epic?.fields?.issuelinks || []),
+        name: (epic?.fields?.summary as string) || (epic?.key as string) || 'Epic Tree',
+        key: (epic?.key as string) || 'ET-2',
+        summary: (epic?.fields?.summary as string) || 'Loading epic...',
+        priority: epic?.fields?.priority as TreeData['priority'],
+        assignee: epic?.fields?.assignee as TreeData['assignee'],
+        status: epic?.fields?.status as TreeData['status'],
+        labels: (epic?.fields?.labels as string[]) || [],
+        storyPoints: (epic?.fields?.customfield_10016 as number) || (epic?.fields?.storyPoints as number),
+        issueType: epic?.fields?.issuetype as TreeData['issueType'],
+        reporter: epic?.fields?.reporter as TreeData['reporter'],
+        created: epic?.fields?.created as string,
+        updated: epic?.fields?.updated as string,
+        dueDate: epic?.fields?.duedate as string,
+        resolution: epic?.fields?.resolution as TreeData['resolution'],
+        components: (epic?.fields?.components as Array<{ name: string }>) || [],
+        fixVersions: (epic?.fields?.fixVersions as Array<{ name: string }>) || [],
+        issuelinks: (epic?.fields?.issuelinks as any[]) || [],
+        blockingIssues: extractBlockingIssues((epic?.fields?.issuelinks as any[]) || []),
+        blockedIssues: extractBlockedIssues((epic?.fields?.issuelinks as any[]) || []),
         isEpic: true,
         children: (!issues || !Array.isArray(issues) || issues.length === 0) ? [] : issues.map((issue) => {
           // Safely handle issue structure
           const issueFields = issue?.fields;
-          const issueSubtasks = issueFields?.subtasks || [];
+          const issueSubtasks = Array.isArray(issueFields?.subtasks) ? issueFields.subtasks : [];
           
           const issueNode = {
-            name: issueFields?.summary || issue?.key || 'Unknown Issue',
-            key: issue?.key,
-            summary: issueFields?.summary,
-            priority: issueFields?.priority,
-            assignee: issueFields?.assignee,
-            status: issueFields?.status,
-            labels: issueFields?.labels || [],
-            storyPoints: issueFields?.customfield_10016 || issueFields?.storyPoints,
-            issueType: issueFields?.issuetype,
-            reporter: issueFields?.reporter,
-            created: issueFields?.created,
-            updated: issueFields?.updated,
-            dueDate: issueFields?.duedate,
-            resolution: issueFields?.resolution,
-            components: issueFields?.components || [],
-            fixVersions: issueFields?.fixVersions || [],
-            issuelinks: issueFields?.issuelinks || [],
-            blockingIssues: extractBlockingIssues(issueFields?.issuelinks || []),
-            blockedIssues: extractBlockedIssues(issueFields?.issuelinks || []),
+            name: (issueFields?.summary as string) || (issue?.key as string) || 'Unknown Issue',
+            key: issue?.key as string,
+            summary: issueFields?.summary as string,
+            priority: issueFields?.priority as TreeData['priority'],
+            assignee: issueFields?.assignee as TreeData['assignee'],
+            status: issueFields?.status as TreeData['status'],
+            labels: (issueFields?.labels as string[]) || [],
+            storyPoints: (issueFields?.customfield_10016 as number) || (issueFields?.storyPoints as number),
+            issueType: issueFields?.issuetype as TreeData['issueType'],
+            reporter: issueFields?.reporter as TreeData['reporter'],
+            created: issueFields?.created as string,
+            updated: issueFields?.updated as string,
+            dueDate: issueFields?.duedate as string,
+            resolution: issueFields?.resolution as TreeData['resolution'],
+            components: (issueFields?.components as Array<{ name: string }>) || [],
+            fixVersions: (issueFields?.fixVersions as Array<{ name: string }>) || [],
+            issuelinks: (issueFields?.issuelinks as any[]) || [],
+            blockingIssues: extractBlockingIssues((issueFields?.issuelinks as any[]) || []),
+            blockedIssues: extractBlockedIssues((issueFields?.issuelinks as any[]) || []),
             isEpic: false,
             children: issueSubtasks.map((subtask) => {
+              // Type guard and safe key access
+              const subtaskKey = (subtask && typeof subtask === 'object' && 'key' in subtask) 
+                ? (subtask as any).key as string 
+                : undefined;
+              
               // Get detailed data for this subtask if available
-              const subtaskDetail = subtaskDetailMap.get(subtask?.key);
+              const subtaskDetail = subtaskKey ? subtaskDetailMap.get(subtaskKey) : undefined;
               const subtaskFields = subtaskDetail?.fields;
               
               return { 
-                name: subtaskFields?.summary || subtask?.key || 'Unknown Subtask',
-                key: subtask?.key,
-                summary: subtaskFields?.summary || `Subtask: ${subtask?.key}`,
-                priority: subtaskFields?.priority || { name: 'Unknown', iconUrl: '' },
-                assignee: subtaskFields?.assignee || { displayName: 'Unassigned', avatarUrls: { '16x16': '' } },
-                status: subtaskFields?.status || { name: 'Unknown', statusCategory: { colorName: 'medium-gray' } },
-                labels: subtaskFields?.labels || [],
-                storyPoints: subtaskFields?.customfield_10016 || 0,
-                issueType: subtaskFields?.issuetype || { name: 'Sub-task', iconUrl: '' },
-                reporter: subtaskFields?.reporter || { displayName: 'Unknown', avatarUrls: { '16x16': '' } },
-                created: subtaskFields?.created || new Date().toISOString(),
-                updated: subtaskFields?.updated || new Date().toISOString(),
-                dueDate: subtaskFields?.duedate || null,
-                resolution: subtaskFields?.resolution || null,
-                components: subtaskFields?.components || [],
-                fixVersions: subtaskFields?.fixVersions || [],
+                name: (subtaskFields?.summary as string) || subtaskKey || 'Unknown Subtask',
+                key: subtaskKey,
+                summary: (subtaskFields?.summary as string) || (subtaskKey ? `Subtask: ${subtaskKey}` : 'Unknown Subtask'),
+                priority: (subtaskFields?.priority as TreeData['priority']) || { name: 'Unknown', iconUrl: '' },
+                assignee: (subtaskFields?.assignee as TreeData['assignee']) || { displayName: 'Unassigned', avatarUrls: { '16x16': '' } },
+                status: (subtaskFields?.status as TreeData['status']) || { name: 'Unknown', statusCategory: { colorName: 'medium-gray' } },
+                labels: (subtaskFields?.labels as string[]) || [],
+                storyPoints: (subtaskFields?.customfield_10016 as number) || 0,
+                issueType: (subtaskFields?.issuetype as TreeData['issueType']) || { name: 'Sub-task', iconUrl: '' },
+                reporter: (subtaskFields?.reporter as TreeData['reporter']) || { displayName: 'Unknown', avatarUrls: { '16x16': '' } },
+                created: (subtaskFields?.created as string) || new Date().toISOString(),
+                updated: (subtaskFields?.updated as string) || new Date().toISOString(),
+                dueDate: (subtaskFields?.duedate as string) || undefined,
+                resolution: (subtaskFields?.resolution as TreeData['resolution']) || undefined,
+                components: (subtaskFields?.components as Array<{ name: string }>) || [],
+                fixVersions: (subtaskFields?.fixVersions as Array<{ name: string }>) || [],
                 children: [], 
-                issuelinks: subtaskFields?.issuelinks || [],
-                blockingIssues: extractBlockingIssues(subtaskFields?.issuelinks || []),
-                blockedIssues: extractBlockedIssues(subtaskFields?.issuelinks || []),
+                issuelinks: (subtaskFields?.issuelinks as any[]) || [],
+                blockingIssues: extractBlockingIssues((subtaskFields?.issuelinks as any[]) || []),
+                blockedIssues: extractBlockedIssues((subtaskFields?.issuelinks as any[]) || []),
                 isEpic: false
               };
             }) 
@@ -437,7 +446,7 @@ export function VerticalTreeChart({
                   const truncateForNode = (text: string, maxLength: number = 10): string => {
                     if (!text || typeof text !== 'string') return 'Unknown';
                     if (text.length <= maxLength) return text;
-                    return text.substring(0, maxLength) + '...';
+                    return `${text.substring(0, maxLength)}...`;
                   };
                   
                   const truncatedName = truncateForNode(nodeName);

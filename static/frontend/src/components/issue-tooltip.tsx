@@ -83,7 +83,7 @@ export const IssueTooltip: React.FC<IssueTooltipProps> = ({
   fixVersions = [],
   blockingIssues = [],
   blockedIssues = [],
-  isEpic = false,
+  isEpic: _isEpic = false,
   baseUrl = 'https://gilitz.atlassian.net'
 }) => {
   // Generate consistent colors for labels based on label text
@@ -456,7 +456,7 @@ const IssueType = styled.span`
   background-color: #f4f5f7;
   color: #5e6c84;
   padding: 2px 6px;
-  border: 1px solidrgb(35, 45, 63);
+  border: 1px solid #7e8ba3;
   border-radius: 4px;
   font-size: 11px;
   text-transform: uppercase;

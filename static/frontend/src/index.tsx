@@ -4,9 +4,14 @@ import App from './App';
 
 import '@atlaskit/css-reset';
 
-const StrictMode = React.StrictMode as any;
+const StrictMode = React.StrictMode as React.ComponentType<React.PropsWithChildren<{}>>;
 
-(ReactDOM as any).render(
+// Legacy ReactDOM.render for React 16
+interface LegacyReactDOM {
+  render(element: React.ReactElement, container: Element | null): void;
+}
+
+(ReactDOM as unknown as LegacyReactDOM).render(
   <StrictMode>
     <App />
   </StrictMode>,

@@ -29,7 +29,7 @@ interface Subtask {
       };
     };
     labels?: string[];
-    issuelinks?: any[];
+    issuelinks?: unknown[];
     issuetype?: {
       name: string;
       iconUrl?: string;
@@ -46,9 +46,9 @@ interface Subtask {
     parent?: {
       key: string;
     };
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface SubtasksResponse {
@@ -72,6 +72,9 @@ export const useFetchSubtasksByKeys = ({ subtaskKeys }: UseFetchSubtasksByKeysPr
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Serialize the keys for dependency checking
+  const subtaskKeysString = subtaskKeys.join(',');
 
   useEffect(() => {
     if (!subtaskKeys || subtaskKeys.length === 0) {
@@ -103,7 +106,7 @@ export const useFetchSubtasksByKeys = ({ subtaskKeys }: UseFetchSubtasksByKeysPr
     };
 
     fetchSubtasks();
-  }, [subtaskKeys.join(',')]); // Dependency on serialized subtask keys
+  }, [subtaskKeys, subtaskKeysString]); // Include both dependencies
   
   return { subtasks, loading, error };
 }; 

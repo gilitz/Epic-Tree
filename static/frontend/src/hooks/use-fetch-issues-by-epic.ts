@@ -10,16 +10,16 @@ interface Issue {
   key: string;
   fields: {
     summary: string;
-    issuelinks: any[];
-    subtasks: any[];
-    [key: string]: any;
+    issuelinks: unknown[];
+    subtasks: unknown[];
+    [key: string]: unknown;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface IssuesResponse {
   issues?: Issue[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface UseFetchIssuesByEpicIdReturn {
@@ -27,7 +27,7 @@ interface UseFetchIssuesByEpicIdReturn {
 }
 
 // Helper function to detect network/proxy errors
-const isNetworkError = (error: any): boolean => {
+const _isNetworkError = (error: unknown): boolean => {
   if (!error) return false;
   const errorString = error.toString().toLowerCase();
   return errorString.includes('squid') || 
@@ -50,7 +50,7 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
     }
   };
 
-  const handleFetchError = (error: Error): void => {
+  const handleFetchError = (_error: Error): void => {
     // Set empty array on error to prevent crashes
     setIssues([]);
   };
@@ -58,7 +58,7 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   useEffect(() => {
     const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => {
       try {
-        const result = await invoke('fetchIssuesByEpicId', { epicId });
+        const result = await invoke('fetchIssuesByEpicId', { epicId }) as IssuesResponse;
         return result;
       } catch (error) {
         // Re-throw to be caught by the .catch() handler
