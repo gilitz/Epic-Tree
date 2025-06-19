@@ -39,6 +39,8 @@ export const useUpdateIssueField = ({
         fieldValue
       });
 
+
+
       if (response.success) {
         // Don't refresh data automatically after successful update
         // Trust the optimistic update - only refresh on errors or manual refresh

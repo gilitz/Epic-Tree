@@ -43,7 +43,10 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
       name: (epic?.fields?.summary as string) || (epic?.key as string) || 'Epic Tree',
       key: (epic?.key as string) || 'ET-2',
       summary: (epic?.fields?.summary as string) || 'Loading epic...',
-      priority: epic?.fields?.priority as TreeData['priority'],
+      priority: epic?.fields?.priority ? {
+        ...(epic.fields.priority as any),
+        id: (epic.fields.priority as any)?.id
+      } as TreeData['priority'] : undefined,
       assignee: epic?.fields?.assignee as TreeData['assignee'],
       status: epic?.fields?.status as TreeData['status'],
       labels: (epic?.fields?.labels as string[]) || [],
@@ -69,7 +72,10 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
           name: (issueFields?.summary as string) || (issue?.key as string) || 'Unknown Issue',
           key: issue?.key as string,
           summary: issueFields?.summary as string,
-          priority: issueFields?.priority as TreeData['priority'],
+          priority: issueFields?.priority ? {
+            ...(issueFields.priority as any),
+            id: (issueFields.priority as any)?.id
+          } as TreeData['priority'] : undefined,
           assignee: issueFields?.assignee as TreeData['assignee'],
           status: issueFields?.status as TreeData['status'],
           labels: (issueFields?.labels as string[]) || [],
@@ -100,7 +106,10 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
               name: (subtaskFields?.summary as string) || subtaskKey || 'Unknown Subtask',
               key: subtaskKey,
               summary: (subtaskFields?.summary as string) || (subtaskKey ? `Subtask: ${subtaskKey}` : 'Unknown Subtask'),
-              priority: (subtaskFields?.priority as TreeData['priority']) || { name: 'Unknown', iconUrl: '' },
+              priority: subtaskFields?.priority ? {
+                ...(subtaskFields.priority as any),
+                id: (subtaskFields.priority as any)?.id
+              } as TreeData['priority'] : { name: 'Unknown', iconUrl: '' },
               assignee: (subtaskFields?.assignee as TreeData['assignee']) || { displayName: 'Unassigned', avatarUrls: { '16x16': '' } },
               status: (subtaskFields?.status as TreeData['status']) || { name: 'Unknown', statusCategory: { colorName: 'medium-gray' } },
               labels: (subtaskFields?.labels as string[]) || [],

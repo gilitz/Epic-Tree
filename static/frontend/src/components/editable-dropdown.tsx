@@ -131,18 +131,16 @@ const LoadingSpinner = styled.div`
 `;
 
 const ErrorMessage = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0;
+  position: relative;
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fecaca;
   border-radius: 3px;
   padding: 4px 8px;
   font-size: 12px;
-  white-space: nowrap;
-  z-index: 1000;
-  margin-top: 2px;
+  margin-top: 4px;
+  white-space: normal;
+  word-wrap: break-word;
 `;
 
 export const EditableDropdown: React.FC<EditableDropdownProps> = ({

@@ -7,6 +7,7 @@ import { EditableField } from './editable-field';
 import { EditableDropdown } from './editable-dropdown';
 import { useFetchPriorities } from '../hooks/use-fetch-priorities';
 import { useFetchAssignableUsers } from '../hooks/use-fetch-assignable-users';
+import { useFetchEditableFields } from '../hooks/use-fetch-editable-fields';
 
 interface BlockingIssue {
   key: string;
@@ -97,6 +98,13 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
   const { users: assignableUsers, loading: usersLoading } = useFetchAssignableUsers({ 
     issueKey: issueKey || '' 
   });
+  
+  // Fetch editable fields for this issue
+  const { isFieldEditable, loading: fieldsLoading } = useFetchEditableFields({ 
+    issueKey: issueKey || '' 
+  });
+  
+
   // Generate consistent colors for labels based on label text
   const getLabelColor = (label: string) => {
     const colors = [
@@ -238,48 +246,52 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
       </SummaryContainer>
 
       <DetailsGrid>
-        <DetailRow>
-          <Label>Priority:</Label>
-          <Value>
-            <EditableDropdown
-              issueKey={issueKey || ''}
-              fieldName="priority"
-              currentValue={priority?.id}
-              currentDisplayName={priority?.name}
-              currentIconUrl={priority?.iconUrl}
-              options={priorities.map(p => ({
-                id: p.id,
-                name: p.name,
-                iconUrl: p.iconUrl
-              }))}
-              placeholder="Not set"
-              loading={prioritiesLoading}
-              disabled={!issueKey}
-            />
-          </Value>
-        </DetailRow>
+        {isFieldEditable('priority') && (
+          <DetailRow>
+            <Label>Priority:</Label>
+            <Value>
+              <EditableDropdown
+                issueKey={issueKey || ''}
+                fieldName="priority"
+                currentValue={priority?.id}
+                currentDisplayName={priority?.name}
+                currentIconUrl={priority?.iconUrl}
+                options={priorities.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  iconUrl: p.iconUrl
+                }))}
+                placeholder="Not set"
+                loading={prioritiesLoading || fieldsLoading}
+                disabled={!issueKey}
+              />
+            </Value>
+          </DetailRow>
+        )}
 
-        <DetailRow>
-          <Label>Assignee:</Label>
-          <Value>
-            <EditableDropdown
-              issueKey={issueKey || ''}
-              fieldName="assignee"
-              currentValue={assignee?.accountId}
-              currentDisplayName={assignee?.displayName}
-              currentIconUrl={assignee?.avatarUrls?.['16x16']}
-              options={assignableUsers.map(user => ({
-                id: user.accountId,
-                name: user.displayName,
-                avatarUrl: user.avatarUrls?.['16x16']
-              }))}
-              placeholder="Unassigned"
-              loading={usersLoading}
-              disabled={!issueKey}
-              allowUnassign={true}
-            />
-          </Value>
-        </DetailRow>
+        {isFieldEditable('assignee') && (
+          <DetailRow>
+            <Label>Assignee:</Label>
+            <Value>
+              <EditableDropdown
+                issueKey={issueKey || ''}
+                fieldName="assignee"
+                currentValue={assignee?.accountId}
+                currentDisplayName={assignee?.displayName}
+                currentIconUrl={assignee?.avatarUrls?.['16x16']}
+                options={assignableUsers.map(user => ({
+                  id: user.accountId,
+                  name: user.displayName,
+                  avatarUrl: user.avatarUrls?.['16x16']
+                }))}
+                placeholder="Unassigned"
+                loading={usersLoading || fieldsLoading}
+                disabled={!issueKey}
+                allowUnassign={true}
+              />
+            </Value>
+          </DetailRow>
+        )}
 
 
 
@@ -328,22 +340,24 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
           </DetailRow>
         )}
 
-        <DetailRow>
-          <Label>Story Points:</Label>
-          <Value>
-            <EditableField
-              issueKey={issueKey || ''}
-              fieldName="storyPoints"
-              fieldType="number"
-              value={storyPoints}
-              placeholder="Not estimated"
-              min={0}
-              max={100}
-              step={0.5}
-              disabled={!issueKey}
-            />
-          </Value>
-        </DetailRow>
+        {isFieldEditable('storyPoints') && (
+          <DetailRow>
+            <Label>Story Points:</Label>
+            <Value>
+              <EditableField
+                issueKey={issueKey || ''}
+                fieldName="storyPoints"
+                fieldType="number"
+                value={storyPoints}
+                placeholder="Not estimated"
+                min={0}
+                max={100}
+                step={0.5}
+                disabled={!issueKey || fieldsLoading}
+              />
+            </Value>
+          </DetailRow>
+        )}
 
 
 

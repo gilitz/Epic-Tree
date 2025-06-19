@@ -5,6 +5,8 @@ import { getNodeStyling } from './node-styling';
 import { NodeTooltip } from '../tooltip';
 import { IssueTooltipContent } from '../issue-tooltip';
 import { NodePriorityDisplay } from './node-priority-display';
+import { useOptimisticUpdates } from '../../contexts/optimistic-updates-context';
+import { useShouldShowPriorityIcon } from '../../hooks/use-should-show-priority-icon';
 import { router } from '@forge/bridge';
 
 interface TreeNodeProps {
@@ -30,9 +32,28 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   setHoveredNodeId,
   setTooltipOpenNodeId
 }) => {
+  const { getOptimisticValue } = useOptimisticUpdates();
+  
   const nodeName = nodeData.name || 'Unknown';
-  const priorityIconUrl = nodeData.priority?.iconUrl;
   const displayName = nodeName || 'Unknown';
+  
+  // Check if priority icon should be shown based on field editability
+  const shouldShowPriorityIcon = useShouldShowPriorityIcon({
+    issueKey: nodeData.key,
+    defaultPriority: nodeData.priority
+  });
+  
+  // Get optimistic priority data for tooltip
+  const optimisticPriorityData = nodeData.key 
+    ? getOptimisticValue(nodeData.key, 'priority') as { value: string | null; displayName?: string; iconUrl?: string } | undefined
+    : undefined;
+  
+  // Create priority object with optimistic updates for tooltip
+  const tooltipPriority = optimisticPriorityData ? {
+    id: optimisticPriorityData.value,
+    name: optimisticPriorityData.displayName || nodeData.priority?.name || 'Unknown',
+    iconUrl: optimisticPriorityData.iconUrl || nodeData.priority?.iconUrl
+  } : nodeData.priority;
   
   const isHovered = hoveredNodeId === nodeData.key;
   const isTooltipOpen = tooltipOpenNodeId === nodeData.key;
@@ -57,7 +78,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     <IssueTooltipContent
       issueKey={nodeData.key}
       summary={nodeData.summary}
-      priority={nodeData.priority}
+      priority={tooltipPriority}
       assignee={nodeData.assignee}
       status={nodeData.status}
       labels={nodeData.labels}
@@ -136,9 +157,9 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
         
         {/* Node Text with automatic ellipsis */}
         <foreignObject
-          x={-width / 2 + (priorityIconUrl ? 24 : 12)}
+          x={-width / 2 + (shouldShowPriorityIcon ? 24 : 12)}
           y={-8}
-          width={width - (priorityIconUrl ? 32 : 20)}
+          width={width - (shouldShowPriorityIcon ? 32 : 20)}
           height={16}
           style={{ pointerEvents: 'none' }}
         >
