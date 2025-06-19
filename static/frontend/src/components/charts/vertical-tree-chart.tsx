@@ -292,7 +292,9 @@ export function VerticalTreeChart({
 }
 
 // Styled Components
-const ChartContainer = styled.div<{ isDarkTheme: boolean }>`
+const ChartContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isDarkTheme',
+})<{ isDarkTheme: boolean }>`
   width: 100%;
   height: 100vh;
   position: relative;
