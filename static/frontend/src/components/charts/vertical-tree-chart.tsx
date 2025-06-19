@@ -114,7 +114,7 @@ interface VerticalTreeChartProps {
 
 
 
-const defaultMargin = { top: 50, left: 80, right: 80, bottom: 50 };
+const defaultMargin = { top: 30, left: 40, right: 40, bottom: 30 };
 
 export function VerticalTreeChart({
   width: totalWidth,
@@ -146,11 +146,11 @@ export function VerticalTreeChart({
   } else {
     origin = { x: 0, y: 0 };
     if (orientation === 'vertical') {
-      sizeWidth = innerWidth;
-      sizeHeight = innerHeight;
+      sizeWidth = innerWidth * 0.8; // Use 80% of available width
+      sizeHeight = innerHeight * 0.8; // Use 80% of available height
     } else {
-      sizeWidth = innerHeight;
-      sizeHeight = innerWidth;
+      sizeWidth = innerHeight * 0.8; // Use 80% of available height
+      sizeHeight = innerWidth * 0.8; // Use 80% of available width
     }
   }
 
@@ -459,18 +459,18 @@ export function VerticalTreeChart({
             root={data}
             size={[sizeWidth, sizeHeight]}
             separation={(a: any, b: any) => {
-              // Much more reasonable separation values
+              // Reduced separation values for tighter spacing
               if (a?.parent === b?.parent) {
-                // Siblings - moderate spacing
-                return 1;
+                // Siblings - tight spacing
+                return 0.5;
               } else {
-                // Non-siblings - slightly more spacing
-                return 1.5;
+                // Non-siblings - moderate spacing
+                return 0.8;
               }
             }}
           >
             {(tree) => (
-              <Group top={origin.y} left={origin.x}>
+              <Group top={origin.y + 10} left={origin.x + 50}>
                 
                 {(tree.links() || []).map((link, index) => (
                   <LinkComponent
@@ -484,8 +484,8 @@ export function VerticalTreeChart({
                 ))}
 
                 {(tree.descendants() || []).map((node, index) => {
-                  const width = 140; // Increased width to accommodate icon + text
-                  const height = 32; // Slightly increased height
+                  const width = 120; // Reduced width for more compact nodes
+                  const height = 28; // Reduced height for more compact nodes
 
                   let top: number;
                   let left: number;
@@ -523,7 +523,7 @@ export function VerticalTreeChart({
                      const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
                      
                      // Base styling - all nodes look the same
-                     let fill = '#272b4d';
+                     let fill = '#575f6b'; // Much brighter grayish-blue background
                      let stroke = '#4a5568';
                      let strokeWidth = 2;
                      
@@ -549,7 +549,7 @@ export function VerticalTreeChart({
                        } else if (isInProgress) {
                          fill = '#8a7a1a'; // Darker yellow
                        } else {
-                         fill = '#1a1d37'; // Darker default
+                         fill = '#64748b'; // Darker grayish-blue for clicked state
                        }
                        
                        // Darken stroke color
