@@ -20,6 +20,13 @@ import { LoadingComponent, NetworkErrorComponent, LoadingIssuesComponent } from 
 
 const defaultMargin = { top: 30, left: 40, right: 40, bottom: 30 };
 
+// Constants for fixed spacing
+const NODE_WIDTH = 120;
+const NODE_HEIGHT = 28;
+const HORIZONTAL_SPACING = 180; // Fixed horizontal spacing between nodes
+const VERTICAL_SPACING = 50; // Fixed vertical spacing between levels
+const MIN_CONTAINER_PADDING = 50; // Minimum padding around the tree
+
 export function VerticalTreeChart({
   width: totalWidth,
   height: totalHeight,
@@ -36,28 +43,6 @@ export function VerticalTreeChart({
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
-
-  let origin: { x: number; y: number };
-  let sizeWidth: number;
-  let sizeHeight: number;
-
-  if (layout === 'polar') {
-    origin = {
-      x: innerWidth / 2,
-      y: innerHeight / 2,
-    };
-    sizeWidth = 2 * Math.PI;
-    sizeHeight = Math.min(innerWidth, innerHeight) / 2;
-  } else {
-    origin = { x: 0, y: 0 };
-    if (orientation === 'vertical') {
-      sizeWidth = innerWidth * 0.8; // Use 80% of available width
-      sizeHeight = innerHeight * 0.8; // Use 80% of available height
-    } else {
-      sizeWidth = innerHeight * 0.8; // Use 80% of available height
-      sizeHeight = innerWidth * 0.8; // Use 80% of available width
-    }
-  }
 
   const LinkComponent = getLinkComponent({ layout, linkType, orientation }) as any;
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
@@ -99,6 +84,47 @@ export function VerticalTreeChart({
       return hierarchy({ name: 'Error', children: [] });
     }
   }, [finalTreeData]);
+
+  // Calculate tree dimensions based on actual data
+  const { treeWidth, treeHeight, origin } = useMemo(() => {
+    if (!data) {
+      return { treeWidth: 0, treeHeight: 0, origin: { x: 0, y: 0 } };
+    }
+
+    // Calculate the maximum width and height needed for the tree
+    const descendants = data.descendants();
+    const maxDepth = Math.max(...descendants.map(d => d.depth));
+    
+    // Count nodes at each level to determine maximum width needed
+    const nodesByLevel: { [key: number]: number } = {};
+    descendants.forEach(node => {
+      nodesByLevel[node.depth] = (nodesByLevel[node.depth] || 0) + 1;
+    });
+    const maxNodesAtLevel = Math.max(...Object.values(nodesByLevel));
+
+    let calculatedTreeWidth: number;
+    let calculatedTreeHeight: number;
+
+    if (orientation === 'vertical') {
+      // For vertical orientation: width = max nodes horizontally, height = depth vertically
+      calculatedTreeWidth = maxNodesAtLevel * HORIZONTAL_SPACING;
+      calculatedTreeHeight = (maxDepth + 1) * VERTICAL_SPACING;
+    } else {
+      // For horizontal orientation: width = depth horizontally, height = max nodes vertically  
+      calculatedTreeWidth = HORIZONTAL_SPACING * 2.1;
+      calculatedTreeHeight = VERTICAL_SPACING * 10;
+    }
+
+    return {
+      treeWidth: calculatedTreeWidth,
+      treeHeight: calculatedTreeHeight,
+      origin: { x: MIN_CONTAINER_PADDING, y: MIN_CONTAINER_PADDING }
+    };
+  }, [data, orientation, innerWidth, innerHeight]);
+
+  // Calculate SVG dimensions (tree size + padding)
+  const svgWidth = treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right;
+  const svgHeight = treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom;
 
   // Handle error states and loading
   if (!issuesByEpic && !rootEpicIssue) {
@@ -172,94 +198,95 @@ export function VerticalTreeChart({
         toggleTheme={toggleTheme}
         toggleFullScreen={toggleFullScreen}
       />
-      <svg width="100%" height="100%" viewBox={`0 0 ${totalWidth} ${totalHeight}`}>
-        <defs>
-          <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
-          <filter id="hover-shadow-gray" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4a5568" floodOpacity="0.8"/>
-          </filter>
-          <filter id="hover-shadow-blue" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.8"/>
-          </filter>
-          <filter id="hover-shadow-red" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#dc2626" floodOpacity="0.8"/>
-          </filter>
-          <filter id="hover-shadow-green" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4ade80" floodOpacity="0.8"/>
-          </filter>
-          <filter id="hover-shadow-yellow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#fbbf24" floodOpacity="0.8"/>
-          </filter>
-        </defs>
-        
-        <Group top={margin.top} left={margin.left}>
-          <Tree
-            root={data}
-            size={[sizeWidth, sizeHeight]}
-            separation={(a: any, b: any) => {
-              // Reduced separation values for tighter spacing
-              if (a?.parent === b?.parent) {
-                // Siblings - tight spacing
-                return 0.5;
-              } else {
-                // Non-siblings - moderate spacing
-                return 0.8;
-              }
-            }}
-          >
-            {(tree) => (
-              <Group top={origin.y + 10} left={origin.x + 50}>
-                
-                {(tree.links() || []).map((link, index) => (
-                  <LinkComponent
-                    key={index}
-                    data={link}
-                    percent={stepPercent}
-                    stroke="rgb(254,110,158,0.6)"
-                    strokeWidth="1"
-                    fill="none"
-                  />
-                ))}
-
-                {(tree.descendants() || []).map((node, index) => {
-                  const width = 120; // Reduced width for more compact nodes
-                  const height = 28; // Reduced height for more compact nodes
-
-                  let top: number;
-                  let left: number;
-                  if (layout === 'polar') {
-                    const [radialX, radialY] = pointRadial(node.x, node.y);
-                    top = radialY;
-                    left = radialX;
-                  } else if (orientation === 'vertical') {
-                    top = node.y;
-                    left = node.x;
-                  } else {
-                    top = node.x;
-                    left = node.y;
-                  }
-                  const nodeData = node.data as TreeData;
+      <ScrollableContainer>
+        <svg 
+          width={svgWidth} 
+          height={svgHeight}
+          style={{ minWidth: totalWidth, minHeight: totalHeight }}
+        >
+          <defs>
+            <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
+            <filter id="hover-shadow-gray" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4a5568" floodOpacity="0.8"/>
+            </filter>
+            <filter id="hover-shadow-blue" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.8"/>
+            </filter>
+            <filter id="hover-shadow-red" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#dc2626" floodOpacity="0.8"/>
+            </filter>
+            <filter id="hover-shadow-green" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4ade80" floodOpacity="0.8"/>
+            </filter>
+            <filter id="hover-shadow-yellow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#fbbf24" floodOpacity="0.8"/>
+            </filter>
+          </defs>
+          
+          <Group top={margin.top} left={margin.left}>
+            <Tree
+              root={data}
+              size={[treeWidth, treeHeight]}
+              separation={(_a: any, _b: any) => {
+                // Fixed separation based on constants
+                if (orientation === 'vertical') {
+                  return HORIZONTAL_SPACING / treeWidth;
+                } else {
+                  return VERTICAL_SPACING / treeHeight;
+                }
+              }}
+            >
+              {(tree) => (
+                <Group top={origin.y} left={origin.x}>
                   
-                  return (
-                    <TreeNode
+                  {(tree.links() || []).map((link, index) => (
+                    <LinkComponent
                       key={index}
-                      nodeData={nodeData}
-                      width={width}
-                      height={height}
-                      left={left}
-                      top={top}
-                      hoveredNodeId={hoveredNodeId}
-                      tooltipOpenNodeId={tooltipOpenNodeId}
-                      setHoveredNodeId={setHoveredNodeId}
-                      setTooltipOpenNodeId={setTooltipOpenNodeId}
+                      data={link}
+                      percent={stepPercent}
+                      stroke="rgb(254,110,158,0.6)"
+                      strokeWidth="1"
+                      fill="none"
                     />
-                  );
-                })}
-              </Group>
-            )}
-          </Tree>
-        </Group>
-      </svg>
+                  ))}
+
+                  {(tree.descendants() || []).map((node, index) => {
+                    let top: number;
+                    let left: number;
+                    if (layout === 'polar') {
+                      const [radialX, radialY] = pointRadial(node.x, node.y);
+                      top = radialY;
+                      left = radialX;
+                    } else if (orientation === 'vertical') {
+                      top = node.y;
+                      left = node.x;
+                    } else {
+                      top = node.x;
+                      left = node.y;
+                    }
+                    const nodeData = node.data as TreeData;
+                    
+                    return (
+                      <TreeNode
+                        key={index}
+                        nodeData={nodeData}
+                        width={NODE_WIDTH}
+                        height={NODE_HEIGHT}
+                        left={left}
+                        top={top}
+                        hoveredNodeId={hoveredNodeId}
+                        tooltipOpenNodeId={tooltipOpenNodeId}
+                        setHoveredNodeId={setHoveredNodeId}
+                        setTooltipOpenNodeId={setTooltipOpenNodeId}
+                      />
+                    );
+                  })}
+                </Group>
+              )}
+            </Tree>
+          </Group>
+        </svg>
+      </ScrollableContainer>
     </ChartContainer>
   );
 }
@@ -275,6 +302,37 @@ const ChartContainer = styled.div<{ isDarkTheme: boolean }>`
   .clickable-node:active {
     filter: brightness(0.85) !important;
   }
+`;
+
+const ScrollableContainer = styled.div`
+  width: 100%;
+  height: calc(100vh - 60px); /* Account for toggle buttons */
+  overflow: auto;
+  position: relative;
+  
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
 `;
 
  
