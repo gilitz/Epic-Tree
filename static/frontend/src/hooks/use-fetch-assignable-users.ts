@@ -23,7 +23,7 @@ export const useFetchAssignableUsers = ({ issueKey }: UseFetchAssignableUsersPro
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!issueKey) {
+    if (!issueKey || issueKey.trim() === '') {
       setUsers([]);
       return;
     }
@@ -33,10 +33,8 @@ export const useFetchAssignableUsers = ({ issueKey }: UseFetchAssignableUsersPro
       setError(null);
       
       try {
-        console.log(`👥 FRONTEND: Fetching assignable users for ${issueKey}`);
         const result: AssignableUser[] = await invoke('fetchAssignableUsers', { issueKey });
         setUsers(result);
-        console.log(`✅ FRONTEND: Fetched ${result.length} assignable users for ${issueKey}`);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignable users';
         console.error('❌ FRONTEND: Error fetching assignable users:', err);
