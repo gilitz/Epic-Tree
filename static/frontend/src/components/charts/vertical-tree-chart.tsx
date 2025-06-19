@@ -128,7 +128,6 @@ export function VerticalTreeChart({
   const [stepPercent, _setStepPercent] = useState<number>(0.5);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
-  const [clickedNodeId, setClickedNodeId] = useState<string | null>(null);
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
@@ -587,9 +586,8 @@ export function VerticalTreeChart({
                   
                   const isHovered = hoveredNodeId === nodeData.key;
                   const isTooltipOpen = tooltipOpenNodeId === nodeData.key;
-                  const isClicked = clickedNodeId === nodeData.key;
                   const shouldShowHoverEffect = isHovered || isTooltipOpen;
-                  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect, isClicked);
+                  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect, false);
                   
                   // Handle node click
                   const handleNodeClick = async (e: React.MouseEvent) => {
@@ -597,14 +595,6 @@ export function VerticalTreeChart({
                     e.stopPropagation();
                     
                     if (nodeData.key) {
-                      // Set clicked state for animation
-                      setClickedNodeId(nodeData.key);
-                      
-                      // Clear clicked state after animation
-                      setTimeout(() => {
-                        setClickedNodeId(null);
-                      }, 150);
-                      
                       try {
                         await router.open(`/browse/${nodeData.key}`);
                       } catch (error) {
@@ -648,8 +638,11 @@ export function VerticalTreeChart({
                         transform={`translate(${left}, ${top})`}
                         tabIndex={-1}
                         focusable="false"
+                        onClick={handleNodeClick}
                         style={{ 
-                          outline: 'none'
+                          outline: 'none',
+                          cursor: 'pointer',
+                          pointerEvents: 'all'
                         }}
                       >
                         {/* Direct SVG rect - no styled components */}
@@ -666,15 +659,17 @@ export function VerticalTreeChart({
                           filter={nodeStyling.filter}
                           tabIndex={-1}
                           focusable="false"
-                          transform={isClicked ? 'scale(0.97)' : 'scale(1)'}
+                          transform={'scale(1)'}
                           style={{ 
                             cursor: 'pointer',
                             transition: 'filter 0.2s ease-in-out, fill 0.15s ease-out, stroke 0.15s ease-out, transform 0.15s ease-out',
                             outline: 'none',
                             outlineStyle: 'none',
                             border: 'none',
-                            transformOrigin: 'center'
+                            transformOrigin: 'center',
+                            pointerEvents: 'all'
                           }}
+                          className="clickable-node"
                           onClick={handleNodeClick}
                           onMouseEnter={() => setHoveredNodeId(nodeData.key || null)}
                           onMouseLeave={() => setHoveredNodeId(null)}
@@ -770,6 +765,10 @@ const ChartContainer = styled.div`
   height: 100vh;
   position: relative;
   background: transparent;
+  
+  .clickable-node:active {
+    filter: brightness(0.85) !important;
+  }
 `;
 
 const ToggleButtonsContainer = styled.div`
