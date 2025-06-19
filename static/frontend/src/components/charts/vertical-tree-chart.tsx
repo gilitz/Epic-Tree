@@ -128,6 +128,7 @@ export function VerticalTreeChart({
   const [stepPercent, _setStepPercent] = useState<number>(0.5);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
+  const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
@@ -421,14 +422,21 @@ export function VerticalTreeChart({
     }
   };
 
+  const toggleTheme = () => {
+    setIsDarkTheme(!isDarkTheme);
+  };
+
   return totalWidth < 10 ? null : (
-    <ChartContainer>
+    <ChartContainer isDarkTheme={isDarkTheme}>
       <ToggleButtonsContainer>
         <ToggleButton onClick={toggleOrientation}>
           {orientation === 'vertical' ? '↕️' : '↔️'}
         </ToggleButton>
         <ToggleButton onClick={toggleLinkType}>
           {linkType === 'line' ? '─' : linkType === 'diagonal' ? '╱' : '└'}
+        </ToggleButton>
+        <ToggleButton onClick={toggleTheme}>
+          {isDarkTheme ? '☀️' : '🌙'}
         </ToggleButton>
         <ToggleButton onClick={toggleFullScreen}>
           ⛶
@@ -760,11 +768,12 @@ const ErrorSubtitle = styled.div`
   margin-top: 8px;
 `;
 
-const ChartContainer = styled.div`
+const ChartContainer = styled.div<{ isDarkTheme: boolean }>`
   width: 100%;
   height: 100vh;
   position: relative;
-  background: transparent;
+  background: ${props => props.isDarkTheme ? '#1a1a1a' : '#f8fafc'};
+  transition: background-color 0.3s ease;
   
   .clickable-node:active {
     filter: brightness(0.85) !important;
