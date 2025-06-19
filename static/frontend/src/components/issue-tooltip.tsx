@@ -1,8 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import { router } from '@forge/bridge';
-import { Tooltip, SecondaryTooltip } from './tooltip';
+import { SecondaryTooltip } from './tooltip';
 import { Tag } from './tag';
+import { EditableField } from './editable-field';
 
 interface BlockingIssue {
   key: string;
@@ -213,17 +214,18 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
         </HeaderRight>
       </TooltipHeader>
 
-      {summary && (
-        <SummaryContainer>
-          {summary.length > 100 ? (
-            <Tooltip content={<SummaryTooltipContent>{summary}</SummaryTooltipContent>} interactive={false}>
-              <Summary>{summary}</Summary>
-            </Tooltip>
-          ) : (
-            <Summary>{summary}</Summary>
-          )}
-        </SummaryContainer>
-      )}
+      <SummaryContainer>
+        <EditableField
+          issueKey={issueKey || ''}
+          fieldName="summary"
+          fieldType="textarea"
+          value={summary}
+          placeholder="No summary"
+          multiline={true}
+          maxLength={255}
+          disabled={!issueKey}
+        />
+      </SummaryContainer>
 
       <DetailsGrid>
         <DetailRow>
@@ -306,11 +308,17 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
         <DetailRow>
           <Label>Story Points:</Label>
           <Value>
-            {storyPoints ? (
-              <StoryPointsBadge>{storyPoints}</StoryPointsBadge>
-            ) : (
-              <EmptyValue>Not estimated</EmptyValue>
-            )}
+            <EditableField
+              issueKey={issueKey || ''}
+              fieldName="storyPoints"
+              fieldType="number"
+              value={storyPoints}
+              placeholder="Not estimated"
+              min={0}
+              max={100}
+              step={0.5}
+              disabled={!issueKey}
+            />
           </Value>
         </DetailRow>
 
@@ -478,19 +486,7 @@ const SummaryContainer = styled.div`
   margin-bottom: 12px;
 `;
 
-const Summary = styled.div`
-  font-size: 15px;
-  line-height: 1.4;
-  color: #172b4d;
-  font-weight: 500;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 2.8em; /* Approximately 2 lines */
-  cursor: ${props => props.onClick ? 'pointer' : 'default'};
-`;
+
 
 const DetailsGrid = styled.div`
   display: flex;
@@ -610,21 +606,7 @@ const TooltipLabelsContainer = styled.div`
   gap: 4px;
 `;
 
-const StoryPointsBadge = styled.span`
-  background-color: #1976d2;
-  color: white;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 600;
-  width: fit-content;
-  height: fit-content;
-  min-width: 18px;
-  min-height: 18px;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
+
 
 const DueDateValue = styled.span<{ $isOverdue?: boolean }>`
   font-size: 12px;
@@ -644,10 +626,7 @@ const VersionsContainer = styled.div`
   gap: 4px;
 `;
 
-const SummaryTooltipContent = styled.div`
-  max-width: 300px;
-  white-space: pre-wrap;
-`;
+
 
 const IssueSpan = styled.span`
   display: inline;
