@@ -351,6 +351,69 @@ resolver.define('fetchAssignableUsers', async (data: unknown): Promise<Array<{ a
   }
 });
 
+// New resolver for fetching editable fields for an issue
+resolver.define('fetchEditableFields', async (data: unknown): Promise<{ editableFields: string[] }> => {
+  const { issueKey } = (data as { payload: { issueKey: string } }).payload;
+  
+  const fallbackData = { editableFields: ['summary'] }; // Always allow summary as fallback
+  
+  if (!issueKey) {
+    return fallbackData;
+  }
+  
+  try {
+    // Get issue metadata to check which fields are editable
+    const response = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}/editmeta`);
+    
+    if (!response.ok) {
+      console.error(`❌ BACKEND: Failed to fetch editable fields for ${issueKey}:`, response.status);
+      return fallbackData;
+    }
+    
+    const editMeta = await response.json() as {
+      fields: Record<string, {
+        required: boolean;
+        schema: { type: string };
+        name: string;
+        hasDefaultValue: boolean;
+        operations: string[];
+      }>;
+    };
+    
+    // Map JIRA field names back to our frontend field names
+    const fieldMapping: Record<string, string> = {
+      'customfield_10016': 'storyPoints',
+      'summary': 'summary',
+      'assignee': 'assignee',
+      'priority': 'priority',
+      'labels': 'labels'
+    };
+    
+    const editableFields: string[] = [];
+    
+    // Check each field we care about
+    Object.keys(fieldMapping).forEach(jiraFieldName => {
+      if (editMeta.fields && editMeta.fields[jiraFieldName]) {
+        const frontendFieldName = fieldMapping[jiraFieldName];
+        editableFields.push(frontendFieldName);
+      }
+    });
+    
+    // Always include summary if not already included (most issues allow summary editing)
+    if (!editableFields.includes('summary')) {
+      editableFields.push('summary');
+    }
+    
+    console.log(`✅ BACKEND: Editable fields for ${issueKey}:`, editableFields);
+    
+    return { editableFields };
+    
+  } catch (error) {
+    console.error(`❌ BACKEND: Error fetching editable fields for ${issueKey}:`, error);
+    return fallbackData;
+  }
+});
+
 // New resolver for updating issue fields
 resolver.define('updateIssueField', async (data: unknown): Promise<{ success: boolean; error?: string }> => {
   const { issueKey, fieldName, fieldValue } = (data as { 
@@ -360,6 +423,8 @@ resolver.define('updateIssueField', async (data: unknown): Promise<{ success: bo
       fieldValue: unknown; 
     } 
   }).payload;
+  
+
   
   try {
     // Map frontend field names to Jira field names
@@ -404,6 +469,7 @@ resolver.define('updateIssueField', async (data: unknown): Promise<{ success: bo
             [jiraFieldName]: fieldValue ? { id: fieldValue } : null
           }
         };
+
         break;
       case 'labels':
         updatePayload = {
@@ -432,11 +498,32 @@ resolver.define('updateIssueField', async (data: unknown): Promise<{ success: bo
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unable to read error response');
       console.error(`❌ BACKEND: Failed to update ${fieldName} for ${issueKey}:`, response.status, errorText);
+      
+      // Parse JIRA error for better user messages
+      let userFriendlyError = `Failed to update ${fieldName}: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.errors && errorData.errors[fieldName]) {
+          const jiraError = errorData.errors[fieldName];
+          if (jiraError.includes('not on the appropriate screen')) {
+            userFriendlyError = `Cannot update ${fieldName}: This field is not configured for this issue type. Please contact your JIRA administrator.`;
+          } else if (jiraError.includes('unknown')) {
+            userFriendlyError = `Cannot update ${fieldName}: Field not available for this issue type.`;
+          } else {
+            userFriendlyError = `Cannot update ${fieldName}: ${jiraError}`;
+          }
+        }
+      } catch (parseError) {
+        // Keep the default error message if parsing fails
+      }
+      
       return { 
         success: false, 
-        error: `Failed to update ${fieldName}: ${response.status} ${response.statusText}` 
+        error: userFriendlyError
       };
     }
+    
+
     
     return { success: true };
     
