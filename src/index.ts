@@ -404,8 +404,6 @@ resolver.define('fetchEditableFields', async (data: unknown): Promise<{ editable
       editableFields.push('summary');
     }
     
-    console.log(`✅ BACKEND: Editable fields for ${issueKey}:`, editableFields);
-    
     return { editableFields };
     
   } catch (error) {
