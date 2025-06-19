@@ -4,6 +4,9 @@ import { router } from '@forge/bridge';
 import { SecondaryTooltip } from './tooltip';
 import { Tag } from './tag';
 import { EditableField } from './editable-field';
+import { EditableDropdown } from './editable-dropdown';
+import { useFetchPriorities } from '../hooks/use-fetch-priorities';
+import { useFetchAssignableUsers } from '../hooks/use-fetch-assignable-users';
 
 interface BlockingIssue {
   key: string;
@@ -25,10 +28,12 @@ interface IssueTooltipProps {
   issueKey?: string;
   summary?: string;
   priority?: {
+    id?: string;
     name: string;
     iconUrl?: string;
   };
   assignee?: {
+    accountId?: string;
     displayName: string;
     avatarUrls?: {
       '16x16': string;
@@ -87,6 +92,11 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
   isEpic: _isEpic = false,
   baseUrl = 'https://gilitz.atlassian.net'
 }) => {
+  // Fetch priorities and assignable users
+  const { priorities, loading: prioritiesLoading } = useFetchPriorities();
+  const { users: assignableUsers, loading: usersLoading } = useFetchAssignableUsers({ 
+    issueKey: issueKey || '' 
+  });
   // Generate consistent colors for labels based on label text
   const getLabelColor = (label: string) => {
     const colors = [
@@ -231,30 +241,43 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
         <DetailRow>
           <Label>Priority:</Label>
           <Value>
-            {priority ? (
-              <>
-                {priority.iconUrl && <PriorityIcon src={priority.iconUrl} alt={priority.name} />}
-                {priority.name}
-              </>
-            ) : (
-              <EmptyValue>Not set</EmptyValue>
-            )}
+            <EditableDropdown
+              issueKey={issueKey || ''}
+              fieldName="priority"
+              currentValue={priority?.id}
+              currentDisplayName={priority?.name}
+              currentIconUrl={priority?.iconUrl}
+              options={priorities.map(p => ({
+                id: p.id,
+                name: p.name,
+                iconUrl: p.iconUrl
+              }))}
+              placeholder="Not set"
+              loading={prioritiesLoading}
+              disabled={!issueKey}
+            />
           </Value>
         </DetailRow>
 
         <DetailRow>
           <Label>Assignee:</Label>
           <Value>
-            {assignee ? (
-              <>
-                {assignee.avatarUrls?.['16x16'] && (
-                  <Avatar src={assignee.avatarUrls['16x16']} alt={assignee.displayName} />
-                )}
-                {assignee.displayName}
-              </>
-            ) : (
-              <EmptyValue>Unassigned</EmptyValue>
-            )}
+            <EditableDropdown
+              issueKey={issueKey || ''}
+              fieldName="assignee"
+              currentValue={assignee?.accountId}
+              currentDisplayName={assignee?.displayName}
+              currentIconUrl={assignee?.avatarUrls?.['16x16']}
+              options={assignableUsers.map(user => ({
+                id: user.accountId,
+                name: user.displayName,
+                avatarUrl: user.avatarUrls?.['16x16']
+              }))}
+              placeholder="Unassigned"
+              loading={usersLoading}
+              disabled={!issueKey}
+              allowUnassign={true}
+            />
           </Value>
         </DetailRow>
 
@@ -540,16 +563,7 @@ const StatusValue = styled.span<{ $statusColor?: string }>`
   }};
 `;
 
-const PriorityIcon = styled.img`
-  width: 16px;
-  height: 16px;
-`;
 
-const Avatar = styled.img`
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-`;
 
 const LabelsContainer = styled.div`
   display: flex;
@@ -643,10 +657,6 @@ const StatusContainer = styled.div`
   align-items: center;
 `;
 
-const EmptyValue = styled.span`
-  font-size: 12px;
-  color: #9ca3af;
-  font-style: italic;
-`;
+
 
  

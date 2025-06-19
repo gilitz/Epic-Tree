@@ -13,6 +13,7 @@ import { useFetchSubtasksByKeys } from '../../hooks/use-fetch-subtasks-by-keys';
 import getLinkComponent from './get-link-component';
 import { NodeTooltip } from '../tooltip';
 import { IssueTooltipContent } from '../issue-tooltip';
+import { NodePriorityDisplay } from './node-priority-display';
 import { router } from '@forge/bridge';
 
 interface BlockingIssue {
@@ -636,17 +637,15 @@ export function VerticalTreeChart({
                           onMouseLeave={() => setHoveredNodeId(null)}
                         />
 
-                        {/* Priority Icon */}
-                        {priorityIconUrl && (
-                          <image
-                            x={-width / 2 + 4}
-                            y={-8}
-                            width={16}
-                            height={16}
-                            href={priorityIconUrl}
-                            style={{ pointerEvents: 'none' }}
-                          />
-                        )}
+                        {/* Priority Icon with optimistic updates */}
+                        <NodePriorityDisplay
+                          issueKey={nodeData.key}
+                          defaultPriority={nodeData.priority}
+                          x={-width / 2 + 4}
+                          y={-8}
+                          width={16}
+                          height={16}
+                        />
                         
                         {/* Node Text with automatic ellipsis */}
                         <foreignObject

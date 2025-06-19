@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
+import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
 
 interface EditableFieldProps {
   issueKey: string;
@@ -238,21 +239,30 @@ export const EditableField: React.FC<EditableFieldProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [showError, setShowError] = useState(false);
-  const [optimisticValue, setOptimisticValue] = useState<string | number | undefined | null>(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const { 
+    getOptimisticValue, 
+    setOptimisticValue, 
+    clearOptimisticValue, 
+    hasOptimisticValue 
+  } = useOptimisticUpdates();
 
   const { updateField, isUpdating, error } = useUpdateIssueField({
     onSuccess: (issueKey, fieldName, newValue) => {
       setIsEditing(false);
       setShowError(false);
-      // Keep the optimistic value as it should match the server response
+      
+      // Don't clear optimistic state - let it persist until natural expiry
+      // This ensures the value stays consistent regardless of any data refreshes
+      
       onUpdateSuccess?.(newValue);
     },
     onError: (error) => {
       setShowError(true);
       // Revert optimistic update on error
-      setOptimisticValue(value);
+      clearOptimisticValue(issueKey, fieldName);
       onUpdateError?.(error);
     }
   });
@@ -296,7 +306,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
     setIsEditing(false);
     
     // Set optimistic value immediately
-    setOptimisticValue(processedValue as string | number | null);
+    setOptimisticValue(issueKey, fieldName, processedValue);
 
     // Add a small delay to ensure loading state is visible
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -306,7 +316,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
       // Error handling is done in the hook
       return;
     }
-  }, [editValue, fieldType, isUpdating, updateField, issueKey, fieldName]);
+  }, [editValue, fieldType, isUpdating, updateField, issueKey, fieldName, setOptimisticValue]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -332,12 +342,12 @@ export const EditableField: React.FC<EditableFieldProps> = ({
     }
   }, [isEditing, multiline]);
 
-  // Sync optimistic value with actual value when not updating
+  // Sync optimistic value with actual value when not updating and not in optimistic state
   useEffect(() => {
-    if (!isUpdating) {
-      setOptimisticValue(value);
+    if (!hasOptimisticValue(issueKey, fieldName)) {
+      // No optimistic update, so props value is the current value
     }
-  }, [value, isUpdating]);
+  }, [value, issueKey, fieldName, hasOptimisticValue]);
 
   // Handle click outside to cancel (changed from save to avoid accidental saves)
   useEffect(() => {
@@ -363,7 +373,8 @@ export const EditableField: React.FC<EditableFieldProps> = ({
     }
     
     // Show optimistic value immediately when updating
-    const currentValue = optimisticValue !== undefined ? optimisticValue : value;
+    const optimisticVal = getOptimisticValue(issueKey, fieldName);
+    const currentValue = optimisticVal !== undefined ? optimisticVal : value;
     
     if (currentValue === null || currentValue === undefined || currentValue === '') {
       return placeholder;
@@ -372,7 +383,8 @@ export const EditableField: React.FC<EditableFieldProps> = ({
     return currentValue.toString();
   };
 
-  const currentValue = optimisticValue !== undefined ? optimisticValue : value;
+  const optimisticVal = getOptimisticValue(issueKey, fieldName);
+  const currentValue = optimisticVal !== undefined ? optimisticVal : value;
   const isEmpty = currentValue === null || currentValue === undefined || currentValue === '';
 
   return (

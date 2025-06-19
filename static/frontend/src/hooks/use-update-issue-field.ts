@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { invoke, events } from '@forge/bridge';
+import { invoke } from '@forge/bridge';
 
 interface UseUpdateIssueFieldProps {
   onSuccess?: (issueKey: string, fieldName: string, newValue: unknown) => void;
@@ -44,8 +44,9 @@ export const useUpdateIssueField = ({
       if (response.success) {
         console.log(`✅ FRONTEND: Successfully updated ${fieldName} for ${issueKey}`);
         
-        // Trigger a Jira issue changed event to refresh data
-        events.emit('JIRA_ISSUE_CHANGED', { issueKey });
+        // Don't refresh data automatically after successful update
+        // Trust the optimistic update - only refresh on errors or manual refresh
+        // This prevents any flicker between old and new values
         
         onSuccess?.(issueKey, fieldName, fieldValue);
         return true;
