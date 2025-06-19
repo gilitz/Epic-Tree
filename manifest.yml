@@ -18,13 +18,14 @@ resources:
 permissions:
   content:
     styles:
-      - 'unsafe-inline'
+      - "unsafe-inline"
     scripts:
-      - 'unsafe-inline'
-      - 'unsafe-hashes'
+      - "unsafe-inline"
+      - "unsafe-hashes"
   scopes:
     - read:jira-work
     - write:jira-work
+    - read:jira-user
 app:
   runtime:
     name: nodejs20.x

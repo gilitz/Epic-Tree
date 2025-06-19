@@ -33,8 +33,6 @@ export const useUpdateIssueField = ({
     setError(null);
 
     try {
-      console.log(`🔄 FRONTEND: Updating ${fieldName} for ${issueKey} to:`, fieldValue);
-      
       const response: UpdateIssueFieldResponse = await invoke('updateIssueField', {
         issueKey,
         fieldName,
@@ -42,8 +40,6 @@ export const useUpdateIssueField = ({
       });
 
       if (response.success) {
-        console.log(`✅ FRONTEND: Successfully updated ${fieldName} for ${issueKey}`);
-        
         // Don't refresh data automatically after successful update
         // Trust the optimistic update - only refresh on errors or manual refresh
         // This prevents any flicker between old and new values

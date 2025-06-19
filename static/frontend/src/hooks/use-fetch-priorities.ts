@@ -24,10 +24,8 @@ export const useFetchPriorities = (): UseFetchPrioritiesReturn => {
       setError(null);
       
       try {
-        console.log('🎯 FRONTEND: Fetching priorities');
         const result: Priority[] = await invoke('fetchPriorities');
         setPriorities(result);
-        console.log(`✅ FRONTEND: Fetched ${result.length} priorities`);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch priorities';
         console.error('❌ FRONTEND: Error fetching priorities:', err);

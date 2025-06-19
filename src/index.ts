@@ -56,10 +56,12 @@ interface JiraIssue {
       };
     };
     priority: {
+      id?: string;
       name: string;
       iconUrl: string;
     };
     assignee: {
+      accountId?: string;
       displayName: string;
       avatarUrls: Record<string, string>;
     } | null;
@@ -123,7 +125,6 @@ const safeApiRequest = async <T>(requestFn: () => Promise<ApiResponse>, fallback
     }
     
     const data = await response.json() as T;
-    console.log(`API request successful for: ${context}`);
     return data;
   } catch (error) {
     console.error(`Error in API request for ${context}:`, error);
@@ -194,7 +195,6 @@ resolver.define('fetchIssueById', async (data: unknown): Promise<JiraIssue> => {
 
 resolver.define('fetchIssuesByEpicId', async (data: unknown): Promise<JiraSearchResponse> => {
   const epicId = (data as { payload: { epicId: string } }).payload.epicId;
-  console.log(`Fetching issues for epic: ${epicId}`);
   
   // Request all fields that might be needed for the tooltip
   const fields = [
@@ -215,18 +215,13 @@ resolver.define('fetchIssuesByEpicId', async (data: unknown): Promise<JiraSearch
   
   const result = await safeApiRequest(requestFn, fallbackData, `issues for epic ${epicId}`);
   
-  const issueCount = result.issues?.length || 0;
-  console.log(`Fetched ${issueCount} issues for epic: ${epicId}`);
-  
   return result;
 });
 
 resolver.define('fetchSubtasksByParentKeys', async (data: unknown): Promise<JiraSearchResponse> => {
   const parentKeys: string[] = (data as { payload: { parentKeys: string[] } }).payload.parentKeys;
-  console.log(`🔍 BACKEND: Fetching subtasks for parent keys: ${parentKeys.join(', ')}`);
   
   if (!parentKeys || parentKeys.length === 0) {
-    console.log('🔍 BACKEND: No parent keys provided, returning empty result');
     return { issues: [], total: 0, maxResults: 0, startAt: 0 };
   }
   
@@ -252,17 +247,6 @@ resolver.define('fetchSubtasksByParentKeys', async (data: unknown): Promise<Jira
   const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${encodeURIComponent(jql)}&fields=${fields}&maxResults=200`);
   
   const result = await safeApiRequest(requestFn, fallbackData, `subtasks for parents ${parentKeys.join(', ')}`);
-  
-  const subtaskCount = result.issues?.length || 0;
-  
-  if (subtaskCount > 0) {
-    console.log('🔍 BACKEND: Found subtasks:', result.issues.map((issue: JiraIssue) => ({
-      key: issue.key,
-      summary: issue.fields?.summary,
-      parent: issue.fields?.parent?.key,
-      issueType: issue.fields?.issuetype?.name
-    })));
-  }
   
   return result;
 });
@@ -292,13 +276,177 @@ resolver.define('fetchSubtasksByKeys', async (data: unknown): Promise<JiraSearch
   const keysJql = subtaskKeys.map((key: string) => `key="${key}"`).join(' OR ');
   const jql = `${keysJql}`;
   
-  console.log(`🔍 BACKEND: Direct keys JQL Query: ${jql}`);
-  
   const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${jql}&fields=${fields}&maxResults=200`);
   
   const result = await safeApiRequest(requestFn, fallbackData, `subtasks by keys ${subtaskKeys.join(', ')}`);
   
   return result;
+});
+
+// New resolver for fetching available priorities
+resolver.define('fetchPriorities', async (): Promise<Array<{ id: string; name: string; iconUrl: string }>> => {
+  const fallbackData: Array<{ id: string; name: string; iconUrl: string }> = [];
+  
+  try {
+    const response = await api.asUser().requestJira(route`/rest/api/3/priority`);
+    
+    if (!response.ok) {
+      console.error('❌ BACKEND: Failed to fetch priorities:', response.status);
+      return fallbackData;
+    }
+    
+    const priorities = await response.json() as Array<{ id: string; name: string; iconUrl: string }>;
+    return priorities;
+    
+  } catch (error) {
+    console.error('❌ BACKEND: Error fetching priorities:', error);
+    return fallbackData;
+  }
+});
+
+// New resolver for fetching assignable users for a project
+resolver.define('fetchAssignableUsers', async (data: unknown): Promise<Array<{ accountId: string; displayName: string; avatarUrls: Record<string, string> }>> => {
+  const { issueKey } = (data as { payload: { issueKey: string } }).payload;
+  
+  const fallbackData: Array<{ accountId: string; displayName: string; avatarUrls: Record<string, string> }> = [];
+  
+  if (!issueKey) {
+    return fallbackData;
+  }
+  
+  try {
+    // Try the issue-specific assignable users endpoint first
+    let response = await api.asUser().requestJira(route`/rest/api/3/user/assignable/search?issueKey=${issueKey}&maxResults=50`);
+    
+    if (!response.ok) {
+      
+      // Fallback: Get the project key from the issue and search by project
+      try {
+        const issueResponse = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}?fields=project`);
+        if (issueResponse.ok) {
+          const issueData = await issueResponse.json() as { fields: { project: { key: string } } };
+          const projectKey = issueData.fields.project.key;
+          
+          response = await api.asUser().requestJira(route`/rest/api/3/user/assignable/search?project=${projectKey}&maxResults=50`);
+        }
+      } catch (projectError) {
+        console.error('👥 BACKEND: Failed to get project info:', projectError);
+      }
+    }
+    
+    if (!response.ok) {
+      console.error('❌ BACKEND: Failed to fetch assignable users:', response.status);
+      const errorText = await response.text().catch(() => 'Unable to read error response');
+      console.error('❌ BACKEND: Error details:', errorText);
+      return fallbackData;
+    }
+    
+    const users = await response.json() as Array<{ accountId: string; displayName: string; avatarUrls: Record<string, string> }>;
+    
+    return users;
+    
+  } catch (error) {
+    console.error('❌ BACKEND: Error fetching assignable users:', error);
+    return fallbackData;
+  }
+});
+
+// New resolver for updating issue fields
+resolver.define('updateIssueField', async (data: unknown): Promise<{ success: boolean; error?: string }> => {
+  const { issueKey, fieldName, fieldValue } = (data as { 
+    payload: { 
+      issueKey: string; 
+      fieldName: string; 
+      fieldValue: unknown; 
+    } 
+  }).payload;
+  
+  try {
+    // Map frontend field names to Jira field names
+    const fieldMapping: Record<string, string> = {
+      'storyPoints': 'customfield_10016',
+      'summary': 'summary',
+      'assignee': 'assignee',
+      'priority': 'priority',
+      'labels': 'labels'
+    };
+    
+    const jiraFieldName = fieldMapping[fieldName] || fieldName;
+    
+    // Prepare the update payload based on field type
+    let updatePayload: Record<string, unknown> = {};
+    
+    switch (fieldName) {
+      case 'storyPoints':
+        updatePayload = {
+          fields: {
+            [jiraFieldName]: fieldValue
+          }
+        };
+        break;
+      case 'summary':
+        updatePayload = {
+          fields: {
+            [jiraFieldName]: fieldValue
+          }
+        };
+        break;
+      case 'assignee':
+        updatePayload = {
+          fields: {
+            [jiraFieldName]: fieldValue ? { accountId: fieldValue } : null
+          }
+        };
+        break;
+      case 'priority':
+        updatePayload = {
+          fields: {
+            [jiraFieldName]: fieldValue ? { id: fieldValue } : null
+          }
+        };
+        break;
+      case 'labels':
+        updatePayload = {
+          fields: {
+            [jiraFieldName]: Array.isArray(fieldValue) ? fieldValue : []
+          }
+        };
+        break;
+      default:
+        updatePayload = {
+          fields: {
+            [jiraFieldName]: fieldValue
+          }
+        };
+    }
+    
+    const response = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}`, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatePayload)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unable to read error response');
+      console.error(`❌ BACKEND: Failed to update ${fieldName} for ${issueKey}:`, response.status, errorText);
+      return { 
+        success: false, 
+        error: `Failed to update ${fieldName}: ${response.status} ${response.statusText}` 
+      };
+    }
+    
+    return { success: true };
+    
+  } catch (error) {
+    console.error(`❌ BACKEND: Error updating ${fieldName} for ${issueKey}:`, error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
 });
 
 export const handler = resolver.getDefinitions() as unknown; 

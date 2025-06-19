@@ -128,6 +128,7 @@ export function VerticalTreeChart({
   const [stepPercent, _setStepPercent] = useState<number>(0.5);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
+  const [clickedNodeId, setClickedNodeId] = useState<string | null>(null);
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
@@ -510,7 +511,7 @@ export function VerticalTreeChart({
                   const displayName = nodeName || 'Unknown';
                   
                                      // Unified node styling based on status and blocking state
-                   const getNodeStyling = (nodeData: TreeData, isHovered: boolean) => {
+                   const getNodeStyling = (nodeData: TreeData, isHovered: boolean, isClicked: boolean) => {
                      const isDone = nodeData.status?.statusCategory?.colorName === 'green' || 
                                    nodeData.status?.name?.toLowerCase().includes('done') ||
                                    nodeData.status?.name?.toLowerCase().includes('closed') ||
@@ -540,6 +541,25 @@ export function VerticalTreeChart({
                        stroke = '#dc2626'; // Red border for blocked items
                        strokeWidth = 2;
                      }
+                     
+                     // Darken colors when clicked
+                     if (isClicked) {
+                       // Darken fill color by reducing brightness
+                       if (isDone) {
+                         fill = '#014a1f'; // Darker green
+                       } else if (isInProgress) {
+                         fill = '#8a7a1a'; // Darker yellow
+                       } else {
+                         fill = '#1a1d37'; // Darker default
+                       }
+                       
+                       // Darken stroke color
+                       if (isBlocked) {
+                         stroke = '#a21e1e'; // Darker red
+                       } else {
+                         stroke = '#3a4252'; // Darker default stroke
+                       }
+                     }
                     
                                                               // Choose shadow color based on node state
                      let shadowFilter = '';
@@ -567,8 +587,9 @@ export function VerticalTreeChart({
                   
                   const isHovered = hoveredNodeId === nodeData.key;
                   const isTooltipOpen = tooltipOpenNodeId === nodeData.key;
+                  const isClicked = clickedNodeId === nodeData.key;
                   const shouldShowHoverEffect = isHovered || isTooltipOpen;
-                  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect);
+                  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect, isClicked);
                   
                   // Handle node click
                   const handleNodeClick = async (e: React.MouseEvent) => {
@@ -576,6 +597,14 @@ export function VerticalTreeChart({
                     e.stopPropagation();
                     
                     if (nodeData.key) {
+                      // Set clicked state for animation
+                      setClickedNodeId(nodeData.key);
+                      
+                      // Clear clicked state after animation
+                      setTimeout(() => {
+                        setClickedNodeId(null);
+                      }, 150);
+                      
                       try {
                         await router.open(`/browse/${nodeData.key}`);
                       } catch (error) {
@@ -615,7 +644,14 @@ export function VerticalTreeChart({
                       onShow={() => setTooltipOpenNodeId(nodeData.key || null)}
                       onHide={() => setTooltipOpenNodeId(null)}
                     >
-                      <g transform={`translate(${left}, ${top})`}>
+                      <g 
+                        transform={`translate(${left}, ${top})`}
+                        tabIndex={-1}
+                        focusable="false"
+                        style={{ 
+                          outline: 'none'
+                        }}
+                      >
                         {/* Direct SVG rect - no styled components */}
                         <rect
                           height={height}
@@ -628,9 +664,16 @@ export function VerticalTreeChart({
                           strokeOpacity={nodeStyling.strokeOpacity}
                           rx={nodeStyling.rx}
                           filter={nodeStyling.filter}
+                          tabIndex={-1}
+                          focusable="false"
+                          transform={isClicked ? 'scale(0.97)' : 'scale(1)'}
                           style={{ 
                             cursor: 'pointer',
-                            transition: 'filter 0.2s ease-in-out'
+                            transition: 'filter 0.2s ease-in-out, fill 0.15s ease-out, stroke 0.15s ease-out, transform 0.15s ease-out',
+                            outline: 'none',
+                            outlineStyle: 'none',
+                            border: 'none',
+                            transformOrigin: 'center'
                           }}
                           onClick={handleNodeClick}
                           onMouseEnter={() => setHoveredNodeId(nodeData.key || null)}
