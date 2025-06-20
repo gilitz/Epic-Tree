@@ -5,27 +5,28 @@
   "homepage": ".",
   "dependencies": {
     "@atlaskit/css-reset": "^6.6.2",
-    "@forge/bridge": "4.3.0",
-    "react": "^16",
-    "react-dom": "^16",
     "@atlaskit/smart-card": "^32.8.2",
     "@atlaskit/tokens": "^2.5.0",
     "@compiled/babel-plugin": "^0.34.0",
     "@compiled/babel-plugin-strip-runtime": "^0.33.0",
     "@compiled/parcel-config": "^0.5.5",
+    "@forge/bridge": "4.3.0",
     "@tippyjs/react": "^4.2.6",
     "@visx/responsive": "^3.12.0",
     "@visx/visx": "^3.12.0",
     "add": "^2.0.6",
+    "react": "^16",
+    "react-dom": "^16",
     "styled-components": "^6.1.13"
   },
   "devDependencies": {
-    "react-scripts": "^5.0.1",
-    "typescript": "^5.0.0",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/d3-shape": "^3.1.0",
     "@types/react": "^16.14.0",
     "@types/react-dom": "^16.9.0",
     "@types/styled-components": "^5.1.0",
-    "@types/d3-shape": "^3.1.0"
+    "react-scripts": "^5.0.1",
+    "typescript": "^5.0.0"
   },
   "scripts": {
     "start": "react-scripts start",

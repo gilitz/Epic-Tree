@@ -158,19 +158,19 @@ export function VerticalTreeChart({
       // Enter fullscreen
       if (element.requestFullscreen) {
         element.requestFullscreen();
-      } else if ((element as Element & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen) {
-        (element as Element & { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
-      } else if ((element as Element & { msRequestFullscreen?: () => void }).msRequestFullscreen) {
-        (element as Element & { msRequestFullscreen: () => void }).msRequestFullscreen();
+      } else if ((element as unknown as { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen) {
+        (element as unknown as { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+      } else if ((element as unknown as { msRequestFullscreen?: () => void }).msRequestFullscreen) {
+        (element as unknown as { msRequestFullscreen: () => void }).msRequestFullscreen();
       }
     } else {
       // Exit fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen();
-      } else if ((document as Document & { webkitExitFullscreen?: () => void }).webkitExitFullscreen) {
-        (document as Document & { webkitExitFullscreen: () => void }).webkitExitFullscreen();
-      } else if ((document as Document & { msExitFullscreen?: () => void }).msExitFullscreen) {
-        (document as Document & { msExitFullscreen: () => void }).msExitFullscreen();
+      } else if ((document as unknown as { webkitExitFullscreen?: () => void }).webkitExitFullscreen) {
+        (document as unknown as { webkitExitFullscreen: () => void }).webkitExitFullscreen();
+      } else if ((document as unknown as { msExitFullscreen?: () => void }).msExitFullscreen) {
+        (document as unknown as { msExitFullscreen: () => void }).msExitFullscreen();
       }
     }
   };
