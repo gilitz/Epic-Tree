@@ -139,16 +139,16 @@
 
   /* Jira Issue Status Colors */
   --color-jira-todo: var(--color-neutral-600);
-  --color-jira-todo-bg: var(--color-neutral-100);
+  --color-jira-todo-bg: var(--color-neutral-0);
   --color-jira-todo-border: var(--color-neutral-300);
   --color-jira-in-progress: var(--color-warning-600);
-  --color-jira-in-progress-bg: var(--color-warning-100);
+  --color-jira-in-progress-bg: var(--color-warning-50);
   --color-jira-in-progress-border: var(--color-warning-300);
   --color-jira-done: var(--color-success-600);
-  --color-jira-done-bg: var(--color-success-100);
+  --color-jira-done-bg: var(--color-success-50);
   --color-jira-done-border: var(--color-success-300);
   --color-jira-blocked: var(--color-error-600);
-  --color-jira-blocked-bg: var(--color-error-100);
+  --color-jira-blocked-bg: var(--color-error-50);
   --color-jira-blocked-border: var(--color-error-300);
 
   /* Tree Visualization Colors */
@@ -169,7 +169,7 @@
      ========================================================================== */
 
   /* Background Colors */
-  --color-background-primary: #1f1f21;
+  --color-background-primary: #161618;
   --color-background-secondary: var(--color-neutral-900);
   --color-background-tertiary: var(--color-neutral-800);
   --color-background-elevated: var(--color-neutral-900);
