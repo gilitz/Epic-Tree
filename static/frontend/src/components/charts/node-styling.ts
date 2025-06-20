@@ -1,6 +1,12 @@
 import { TreeData } from './types';
+import { ThemeColors } from '../../theme/colors';
 
-export const getNodeStyling = (nodeData: TreeData, isHovered: boolean, isClicked: boolean) => {
+export const getNodeStyling = (
+  nodeData: TreeData, 
+  isHovered: boolean, 
+  isClicked: boolean,
+  colors: ThemeColors
+) => {
   const isDone = nodeData.status?.statusCategory?.colorName === 'green' || 
                 nodeData.status?.name?.toLowerCase().includes('done') ||
                 nodeData.status?.name?.toLowerCase().includes('closed') ||
@@ -12,42 +18,39 @@ export const getNodeStyling = (nodeData: TreeData, isHovered: boolean, isClicked
   
   const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
   
-  // Base styling - all nodes look the same
-  let fill = '#575f6b'; // Much brighter grayish-blue background
-  let stroke = '#4a5568';
-  let strokeWidth = 2;
+  // Base styling using theme colors
+  let fill = colors.jira.todoBg;
+  let stroke = colors.jira.todoBorder;
+  let strokeWidth = 1.5;
+  let textColor = colors.text.primary;
   
-  // Status-based modifications
+  // Status-based modifications using theme colors
   if (isDone) {
-    fill = '#017d2d'; // Green background for done items (matching image)
+    fill = colors.jira.doneBg;
+    stroke = colors.jira.doneBorder;
+    textColor = colors.jira.done;
+  } else if (isInProgress) {
+    fill = colors.jira.inProgressBg;
+    stroke = colors.jira.inProgressBorder;
+    textColor = colors.jira.inProgress;
+  } else {
+    fill = colors.jira.todoBg;
+    stroke = colors.jira.todoBorder;
+    textColor = colors.jira.todo;
   }
   
-  if (isInProgress) {
-    fill = '#baa625'; // Yellow background for in progress items
-  }
+  // Blocked state - no longer changes border, will show icon instead
   
-  if (isBlocked) {
-    stroke = '#dc2626'; // Red border for blocked items
+  // Hover state enhancements - keep the same background color
+  if (isHovered) {
     strokeWidth = 2;
+    // Don't change the fill color on hover, keep the same background
   }
   
-  // Darken colors when clicked
+  // Clicked state modifications
   if (isClicked) {
-    // Darken fill color by reducing brightness
-    if (isDone) {
-      fill = '#014a1f'; // Darker green
-    } else if (isInProgress) {
-      fill = '#8a7a1a'; // Darker yellow
-    } else {
-      fill = '#64748b'; // Darker grayish-blue for clicked state
-    }
-    
-    // Darken stroke color
-    if (isBlocked) {
-      stroke = '#a21e1e'; // Darker red
-    } else {
-      stroke = '#3a4252'; // Darker default stroke
-    }
+    strokeWidth = 2.5;
+    fill = colors.surface.active;
   }
 
   // Choose shadow color based on node state
@@ -60,7 +63,7 @@ export const getNodeStyling = (nodeData: TreeData, isHovered: boolean, isClicked
     } else if (isInProgress) {
       shadowFilter = 'url(#hover-shadow-yellow)';
     } else {
-      shadowFilter = 'url(#hover-shadow-gray)';
+      shadowFilter = 'url(#hover-shadow-blue)';
     }
   }
   
@@ -69,7 +72,8 @@ export const getNodeStyling = (nodeData: TreeData, isHovered: boolean, isClicked
     stroke,
     strokeWidth,
     strokeOpacity: 1,
-    rx: 4, // Consistent border radius
-    filter: shadowFilter || undefined
+    rx: 6, // More rounded corners for modern look
+    filter: shadowFilter || undefined,
+    textColor
   };
 }; 

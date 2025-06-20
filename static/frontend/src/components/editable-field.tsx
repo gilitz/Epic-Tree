@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
 import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
+import { useTheme } from '../theme/theme-context';
 
 interface EditableFieldProps {
   issueKey: string;
@@ -27,7 +28,9 @@ const EditableContainer = styled.div<{ $disabled?: boolean; $isUpdating?: boolea
   opacity: ${props => props.$disabled ? 0.6 : 1};
 `;
 
-const DisplayValue = styled.span<{ $isEditing?: boolean; $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean }>`
+const DisplayValue = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
+})<{ $isEditing?: boolean; $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean; colors?: any }>`
   display: ${props => props.$isEditing ? 'none' : 'inline-flex'};
   align-items: center;
   color: ${props => props.$isEmpty ? '#9ca3af' : 'inherit'};
@@ -42,8 +45,8 @@ const DisplayValue = styled.span<{ $isEditing?: boolean; $isEmpty?: boolean; $di
   transition: opacity 0.2s ease;
   
   &:hover {
-    background-color: ${props => props.$disabled ? 'transparent' : '#f3f4f6'};
-    border-color: ${props => props.$disabled ? 'transparent' : '#d1d5db'};
+    background-color: ${props => props.$disabled ? 'transparent' : (props.colors?.surface.hover || '#f3f4f6')};
+    border-color: ${props => props.$disabled ? 'transparent' : (props.colors?.border.primary || '#d1d5db')};
   }
   
   &:after {
@@ -68,20 +71,22 @@ const EditInputContainer = styled.div<{ $isEditing?: boolean }>`
   gap: 4px;
 `;
 
-const EditInput = styled.input<{ $isEditing?: boolean }>`
-  background: white;
-  border: 2px solid #3b82f6;
+const EditInput = styled.input.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$isEditing',
+})<{ $isEditing?: boolean; colors?: any }>`
+  background: ${props => props.colors?.surface.primary || 'white'};
+  border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;
   padding: 2px 4px;
   font-size: inherit;
   font-family: inherit;
-  color: inherit;
+  color: ${props => props.colors?.text.primary || 'inherit'};
   outline: none;
   min-width: 60px;
   
   &:focus {
-    border-color: #1d4ed8;
-    box-shadow: 0 0 0 1px #1d4ed8;
+    border-color: ${props => props.colors?.interactive.primaryHover || '#1d4ed8'};
+    box-shadow: 0 0 0 1px ${props => props.colors?.interactive.primaryHover || '#1d4ed8'};
   }
 `;
 
@@ -91,22 +96,24 @@ const EditTextareaContainer = styled.div<{ $isEditing?: boolean }>`
   gap: 4px;
 `;
 
-const EditTextarea = styled.textarea<{ $isEditing?: boolean }>`
-  background: white;
-  border: 2px solid #3b82f6;
+const EditTextarea = styled.textarea.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$isEditing',
+})<{ $isEditing?: boolean; colors?: any }>`
+  background: ${props => props.colors?.surface.primary || 'white'};
+  border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;
   padding: 4px;
   font-size: inherit;
   font-family: inherit;
-  color: inherit;
+  color: ${props => props.colors?.text.primary || 'inherit'};
   outline: none;
   min-width: 200px;
   min-height: 60px;
   resize: vertical;
   
   &:focus {
-    border-color: #1d4ed8;
-    box-shadow: 0 0 0 1px #1d4ed8;
+    border-color: ${props => props.colors?.interactive.primaryHover || '#1d4ed8'};
+    box-shadow: 0 0 0 1px ${props => props.colors?.interactive.primaryHover || '#1d4ed8'};
   }
 `;
 
@@ -236,6 +243,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
   max,
   step = 1
 }) => {
+  const { colors } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [showError, setShowError] = useState(false);
@@ -396,6 +404,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
         $isUpdating={isUpdating}
         onClick={handleStartEdit}
         title={disabled ? 'Editing disabled' : (isUpdating ? 'Updating...' : 'Click to edit')}
+        colors={colors}
       >
         {getDisplayText()}
         {isUpdating && (
@@ -412,6 +421,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
             onKeyDown={handleKeyDown}
             maxLength={maxLength}
             placeholder={placeholder}
+            colors={colors}
           />
           <EditButtonsContainer>
             <AcceptButton
@@ -442,6 +452,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
             max={max}
             step={step}
             placeholder={placeholder}
+            colors={colors}
           />
           <AcceptButton
             onClick={handleSaveEdit}

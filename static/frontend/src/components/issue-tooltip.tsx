@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTheme } from '../theme/theme-context';
 import { router } from '@forge/bridge';
 import { SecondaryTooltip } from './tooltip';
 import { Tag } from './tag';
@@ -93,6 +94,9 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
   isEpic: _isEpic = false,
   baseUrl = 'https://gilitz.atlassian.net'
 }) => {
+  // Get theme colors for proper text visibility
+  const { colors } = useTheme();
+  
   // Fetch priorities and assignable users
   const { priorities, loading: prioritiesLoading } = useFetchPriorities();
   const { users: assignableUsers, loading: usersLoading } = useFetchAssignableUsers({ 
@@ -248,8 +252,8 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
       <DetailsGrid>
         {isFieldEditable('priority') && (
           <DetailRow>
-            <Label>Priority:</Label>
-            <Value>
+            <Label colors={colors}>Priority:</Label>
+            <Value colors={colors}>
               <EditableDropdown
                 issueKey={issueKey || ''}
                 fieldName="priority"
@@ -271,8 +275,8 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {isFieldEditable('assignee') && (
           <DetailRow>
-            <Label>Assignee:</Label>
-            <Value>
+            <Label colors={colors}>Assignee:</Label>
+            <Value colors={colors}>
               <EditableDropdown
                 issueKey={issueKey || ''}
                 fieldName="assignee"
@@ -297,7 +301,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {labels && labels.length > 0 && (
           <DetailRow>
-            <Label>Labels:</Label>
+            <Label colors={colors}>Labels:</Label>
             <LabelsContainer>
               {labels.slice(0, 3).map((label, index) => {
                 const labelColor = getLabelColor(label);
@@ -342,8 +346,8 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {isFieldEditable('storyPoints') && (
           <DetailRow>
-            <Label>Story Points:</Label>
-            <Value>
+            <Label colors={colors}>Story Points:</Label>
+            <Value colors={colors}>
               <EditableField
                 issueKey={issueKey || ''}
                 fieldName="storyPoints"
@@ -363,22 +367,22 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {created && (
           <DetailRow>
-            <Label>Created:</Label>
-            <Value>{formatDate(created)}</Value>
+            <Label colors={colors}>Created:</Label>
+            <Value colors={colors}>{formatDate(created)}</Value>
           </DetailRow>
         )}
 
         {updated && (
           <DetailRow>
-            <Label>Updated:</Label>
-            <Value>{formatDate(updated)}</Value>
+            <Label colors={colors}>Updated:</Label>
+            <Value colors={colors}>{formatDate(updated)}</Value>
           </DetailRow>
         )}
 
         {dueDate && (
           <DetailRow>
-            <Label>Due Date:</Label>
-            <DueDateValue $isOverdue={isOverdue(dueDate)}>
+            <Label colors={colors}>Due Date:</Label>
+            <DueDateValue $isOverdue={isOverdue(dueDate)} colors={colors}>
               {formatDate(dueDate)}
               {isOverdue(dueDate) && ' ⚠️'}
             </DueDateValue>
@@ -389,7 +393,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {components && components.length > 0 && (
           <DetailRow>
-            <Label>Components:</Label>
+            <Label colors={colors}>Components:</Label>
             <ComponentsContainer>
               {components.map((component, index) => (
                 <Tag 
@@ -408,7 +412,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {fixVersions && fixVersions.length > 0 && (
           <DetailRow>
-            <Label>Fix Versions:</Label>
+            <Label colors={colors}>Fix Versions:</Label>
             <VersionsContainer>
               {fixVersions.map((version, index) => (
                 <Tag 
@@ -427,7 +431,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {blockingIssues && blockingIssues.length > 0 && (
           <DetailRow>
-            <Label>🚫 Blocked by:</Label>
+            <Label colors={colors}>🚫 Blocked by:</Label>
             <BlockingIssuesContainer>
               {blockingIssues.map((issue, index) => (
                 <IssueSpan key={issue.key}>
@@ -448,7 +452,7 @@ export const IssueTooltipContent: React.FC<IssueTooltipProps> = ({
 
         {blockedIssues && blockedIssues.length > 0 && (
           <DetailRow>
-            <Label>🔒 Blocking:</Label>
+            <Label colors={colors}>🔒 Blocking:</Label>
             <BlockingIssuesContainer>
               {blockedIssues.map((issue, index) => (
                 <IssueSpan key={issue.key}>
@@ -537,16 +541,20 @@ const DetailRow = styled.div`
   gap: 8px;
 `;
 
-const Label = styled.span`
+const Label = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors?: any }>`
   font-size: 12px;
-  color: #5e6c84;
+  color: ${props => props.colors?.text.tertiary || '#5e6c84'};
   font-weight: 500;
   min-width: 60px;
 `;
 
-const Value = styled.span`
+const Value = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors?: any }>`
   font-size: 12px;
-  color: #172b4d;
+  color: ${props => props.colors?.text.primary || '#172b4d'};
   display: flex;
   align-items: center;
   gap: 4px;
@@ -636,9 +644,11 @@ const TooltipLabelsContainer = styled.div`
 
 
 
-const DueDateValue = styled.span<{ $isOverdue?: boolean }>`
+const DueDateValue = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$isOverdue',
+})<{ $isOverdue?: boolean; colors?: any }>`
   font-size: 12px;
-  color: ${props => props.$isOverdue ? '#d32f2f' : '#172b4d'};
+  color: ${props => props.$isOverdue ? (props.colors?.status.error || '#d32f2f') : (props.colors?.text.primary || '#172b4d')};
   font-weight: ${props => props.$isOverdue ? '600' : '400'};
 `;
 

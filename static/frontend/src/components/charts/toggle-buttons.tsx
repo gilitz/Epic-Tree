@@ -1,37 +1,34 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTheme } from '../../theme/theme-context';
+import { StyledComponentColors } from '../../theme/colors';
 
 interface ToggleButtonsProps {
   orientation: 'vertical' | 'horizontal';
-  linkType: 'diagonal' | 'step' | 'curve' | 'line';
   isDarkTheme: boolean;
   toggleOrientation: () => void;
-  toggleLinkType: () => void;
   toggleTheme: () => void;
   toggleFullScreen: () => void;
 }
 
 export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
   orientation,
-  linkType,
   isDarkTheme,
   toggleOrientation,
-  toggleLinkType,
   toggleTheme,
   toggleFullScreen
 }) => {
+  const { colors } = useTheme();
+  
   return (
     <ToggleButtonsContainer>
-      <ToggleButton onClick={toggleOrientation}>
+      <ToggleButton colors={colors} onClick={toggleOrientation}>
         {orientation === 'vertical' ? '↕️' : '↔️'}
       </ToggleButton>
-      <ToggleButton onClick={toggleLinkType}>
-        {linkType === 'line' ? '─' : linkType === 'diagonal' ? '╱' : '└'}
-      </ToggleButton>
-      <ToggleButton onClick={toggleTheme}>
+      <ToggleButton colors={colors} onClick={toggleTheme}>
         {isDarkTheme ? '☀️' : '🌙'}
       </ToggleButton>
-      <ToggleButton onClick={toggleFullScreen}>
+      <ToggleButton colors={colors} onClick={toggleFullScreen}>
         ⛶
       </ToggleButton>
     </ToggleButtonsContainer>
@@ -48,22 +45,40 @@ const ToggleButtonsContainer = styled.div`
   z-index: 1000;
 `;
 
-const ToggleButton = styled.button`
-  background-color: rgba(0, 0, 0, 0.7);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  padding: 6px 8px;
+const ToggleButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<StyledComponentColors>`
+  background-color: ${props => props.colors.surface.elevated};
+  color: ${props => props.colors.text.primary};
+  border: 1px solid ${props => props.colors.border.primary};
+  border-radius: 8px;
+  padding: 8px 12px;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: ${props => props.colors.shadow.sm};
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 36px;
   
   &:hover {
-    background-color: rgba(0, 0, 0, 0.8);
-    border-color: rgba(255, 255, 255, 0.5);
+    background-color: ${props => props.colors.surface.hover};
+    border-color: ${props => props.colors.border.secondary};
+    box-shadow: ${props => props.colors.shadow.md};
+    transform: translateY(-1px);
   }
   
   &:active {
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: ${props => props.colors.surface.active};
+    transform: translateY(0);
+    box-shadow: ${props => props.colors.shadow.sm};
+  }
+  
+  &:focus {
+    outline: 2px solid ${props => props.colors.border.focus};
+    outline-offset: 2px;
   }
 `; 

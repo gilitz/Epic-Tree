@@ -1,6 +1,7 @@
 import React, { ReactNode, ReactElement } from 'react';
 import TippyImport from "@tippyjs/react";
 import styled from "styled-components";
+import { useTheme } from '../theme/theme-context';
 
 const Tippy = TippyImport as React.ComponentType<Record<string, unknown>>;
 
@@ -16,6 +17,8 @@ interface TooltipProps {
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, disabled, children, onShow, onHide, className, ...props }) => {
+  const { colors } = useTheme();
+  
   // Always append to document.body to ensure it's above everything
   return (
     <Tippy 
@@ -26,7 +29,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, d
       disabled={disabled}
       interactive={interactive}
       zIndex={99999}
-      content={<UnifiedTooltipContainer className={className}>{content}</UnifiedTooltipContainer>}
+      content={<UnifiedTooltipContainer colors={colors} className={className}>{content}</UnifiedTooltipContainer>}
       boundary="viewport"
       placement="auto"
       onShow={onShow}
@@ -68,21 +71,24 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, d
 };
 
 // Unified container style for ALL tooltips
-const UnifiedTooltipContainer = styled.div`
+const UnifiedTooltipContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
   width: fit-content;
   max-width: 400px;
   max-height: 70vh;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background-color: ${props => props.colors.surface.elevated};
+  border: 1px solid ${props => props.colors.border.primary};
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: ${props => props.colors.shadow.xl};
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #333;
+  color: ${props => props.colors.text.primary};
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
   z-index: 2147483647;
+  backdrop-filter: blur(8px);
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {
@@ -90,22 +96,22 @@ const UnifiedTooltipContainer = styled.div`
   }
   
   &::-webkit-scrollbar-track {
-    background: #f8f9fa;
+    background: ${props => props.colors.surface.secondary};
     border-radius: 3px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #dee2e6;
+    background: ${props => props.colors.border.secondary};
     border-radius: 3px;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: #adb5bd;
+    background: ${props => props.colors.text.tertiary};
   }
   
   /* Firefox scrollbar styling */
   scrollbar-width: thin;
-  scrollbar-color: #dee2e6 #f8f9fa;
+  scrollbar-color: ${props => props.colors.border.secondary} ${props => props.colors.surface.secondary};
 `;
 
 export const NodeTooltip = styled(Tooltip)`
@@ -114,13 +120,15 @@ export const NodeTooltip = styled(Tooltip)`
 
 // Secondary tooltip container with grayer background for nested tooltips
 const SecondaryTooltipContainer = styled(UnifiedTooltipContainer)`
-  background-color: #e9ecef;
-  border-color: #6c757d;
-  color: #495057;
+  background-color: ${props => props.colors.surface.secondary};
+  border-color: ${props => props.colors.border.secondary};
+  color: ${props => props.colors.text.secondary};
 `;
 
 // Secondary tooltip component for tooltips that appear over other tooltips
 export const SecondaryTooltip: React.FC<TooltipProps> = ({ content, delay, interactive, disabled, children, onShow, onHide, className, ...props }) => {
+  const { colors } = useTheme();
+  
   return (
     <Tippy 
       {...props}
@@ -130,7 +138,7 @@ export const SecondaryTooltip: React.FC<TooltipProps> = ({ content, delay, inter
       disabled={disabled}
       interactive={interactive}
       zIndex={99999}
-      content={<SecondaryTooltipContainer className={className}>{content}</SecondaryTooltipContainer>}
+      content={<SecondaryTooltipContainer colors={colors} className={className}>{content}</SecondaryTooltipContainer>}
       boundary="viewport"
       placement="auto"
       onShow={onShow}

@@ -9,6 +9,7 @@ import { pointRadial } from 'd3-shape';
 import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
 import { useFetchSubtasksByKeys } from '../../hooks/use-fetch-subtasks-by-keys';
+import { useTheme } from '../../theme/theme-context';
 import getLinkComponent from './get-link-component';
 
 // Import new components and utilities
@@ -33,13 +34,13 @@ export function VerticalTreeChart({
   margin = defaultMargin,
 }: VerticalTreeChartProps): JSX.Element | null {
   
+  const { colors, isDarkTheme, toggleTheme } = useTheme();
   const [layout, _setLayout] = useState<'polar' | 'cartesian'>('cartesian');
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal');
-  const [linkType, setLinkType] = useState<'diagonal' | 'step' | 'curve' | 'line'>('step');
+  const linkType = 'diagonal';
   const [stepPercent, _setStepPercent] = useState<number>(0.5);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
-  const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
 
   const innerWidth = totalWidth - margin.left - margin.right;
   const innerHeight = totalHeight - margin.top - margin.bottom;
@@ -147,16 +148,7 @@ export function VerticalTreeChart({
     setOrientation(orientation === 'vertical' ? 'horizontal' : 'vertical');
   };
 
-  // Toggle link type between line, diagonal, and step
-  const toggleLinkType = () => {
-    if (linkType === 'line') {
-      setLinkType('diagonal');
-    } else if (linkType === 'diagonal') {
-      setLinkType('step');
-    } else {
-      setLinkType('line');
-    }
-  };
+  // Link type is now fixed to curve, no toggle needed
 
   // Toggle full screen
   const toggleFullScreen = () => {
@@ -183,29 +175,25 @@ export function VerticalTreeChart({
     }
   };
 
-  const toggleTheme = () => {
-    setIsDarkTheme(!isDarkTheme);
-  };
+
 
   return totalWidth < 10 ? null : (
-    <ChartContainer isDarkTheme={isDarkTheme}>
+    <ChartContainer colors={colors}>
       <ToggleButtons
         orientation={orientation}
-        linkType={linkType}
         isDarkTheme={isDarkTheme}
         toggleOrientation={toggleOrientation}
-        toggleLinkType={toggleLinkType}
         toggleTheme={toggleTheme}
         toggleFullScreen={toggleFullScreen}
       />
-      <ScrollableContainer>
+      <ScrollableContainer colors={colors}>
         <svg 
           width={svgWidth} 
           height={svgHeight}
           style={{ minWidth: totalWidth, minHeight: totalHeight }}
         >
           <defs>
-            <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
+            <LinearGradient id="links-gradient" from={colors.tree.lines} to={colors.tree.linesHover} />
             <filter id="hover-shadow-gray" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#4a5568" floodOpacity="0.8"/>
             </filter>
@@ -244,8 +232,8 @@ export function VerticalTreeChart({
                       key={index}
                       data={link}
                       percent={stepPercent}
-                      stroke="rgb(254,110,158,0.6)"
-                      strokeWidth="1"
+                      stroke={colors.tree.lines}
+                      strokeWidth="1.5"
                       fill="none"
                     />
                   ))}
@@ -293,12 +281,12 @@ export function VerticalTreeChart({
 
 // Styled Components
 const ChartContainer = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'isDarkTheme',
-})<{ isDarkTheme: boolean }>`
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
   width: 100%;
   height: 100vh;
   position: relative;
-  background: ${props => props.isDarkTheme ? '#1a1a1a' : '#f8fafc'};
+  background: ${props => props.colors.background.primary};
   transition: background-color 0.3s ease;
   
   .clickable-node:active {
@@ -306,7 +294,9 @@ const ChartContainer = styled.div.withConfig({
   }
 `;
 
-const ScrollableContainer = styled.div`
+const ScrollableContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
   width: 100%;
   height: calc(100vh - 60px); /* Account for toggle buttons */
   overflow: auto;
@@ -319,22 +309,22 @@ const ScrollableContainer = styled.div`
   }
   
   &::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
+    background: ${props => props.colors.surface.secondary};
     border-radius: 4px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.3);
+    background: ${props => props.colors.border.secondary};
     border-radius: 4px;
     
     &:hover {
-      background: rgba(0, 0, 0, 0.5);
+      background: ${props => props.colors.text.tertiary};
     }
   }
   
   /* For Firefox */
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
+  scrollbar-color: ${props => props.colors.border.secondary} ${props => props.colors.surface.secondary};
 `;
 
  

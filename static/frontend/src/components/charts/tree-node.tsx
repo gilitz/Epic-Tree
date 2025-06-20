@@ -7,6 +7,7 @@ import { IssueTooltipContent } from '../issue-tooltip';
 import { NodePriorityDisplay } from './node-priority-display';
 import { useOptimisticUpdates } from '../../contexts/optimistic-updates-context';
 import { useShouldShowPriorityIcon } from '../../hooks/use-should-show-priority-icon';
+import { useTheme } from '../../theme/theme-context';
 import { router } from '@forge/bridge';
 
 interface TreeNodeProps {
@@ -33,6 +34,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   setTooltipOpenNodeId
 }) => {
   const { getOptimisticValue } = useOptimisticUpdates();
+  const { colors } = useTheme();
   
   const nodeName = nodeData.name || 'Unknown';
   const displayName = nodeName || 'Unknown';
@@ -58,7 +60,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   const isHovered = hoveredNodeId === nodeData.key;
   const isTooltipOpen = tooltipOpenNodeId === nodeData.key;
   const shouldShowHoverEffect = isHovered || isTooltipOpen;
-  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect, false);
+  const nodeStyling = getNodeStyling(nodeData, shouldShowHoverEffect, false, colors);
   
   // Handle node click
   const handleNodeClick = async (e: React.MouseEvent) => {
@@ -115,6 +117,18 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           pointerEvents: 'all'
         }}
       >
+        {/* Background layer to hide lines behind transparent nodes */}
+        <rect
+          height={height}
+          width={width}
+          y={-height / 2}
+          x={-width / 2}
+          fill={colors.background.primary}
+          stroke="none"
+          rx={nodeStyling.rx}
+          style={{ pointerEvents: 'none' }}
+        />
+        
         {/* Direct SVG rect - no styled components */}
         <rect
           height={height}
@@ -145,29 +159,79 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           onMouseLeave={() => setHoveredNodeId(null)}
         />
 
-        {/* Priority Icon with optimistic updates */}
-        <NodePriorityDisplay
-          issueKey={nodeData.key}
-          defaultPriority={nodeData.priority}
-          x={-width / 2 + 4}
-          y={-8}
-          width={16}
-          height={16}
-        />
+        {/* Check if blocked */}
+        {(() => {
+          const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
+          const iconSpacing = 16; // Space for each icon (reduced from 20)
+          const rightMargin = 8; // Right margin from edge
+          let iconsWidth = 0;
+          
+          // Calculate total width needed for icons
+          if (shouldShowPriorityIcon) iconsWidth += iconSpacing;
+          if (isBlocked) iconsWidth += iconSpacing;
+          
+          return (
+            <>
+              {/* Priority Icon - moved to the right side */}
+              {shouldShowPriorityIcon && (
+                <NodePriorityDisplay
+                  issueKey={nodeData.key}
+                  defaultPriority={nodeData.priority}
+                  x={width / 2 - rightMargin - iconsWidth + (isBlocked ? 0 : iconSpacing - 16)}
+                  y={-8}
+                  width={16}
+                  height={16}
+                />
+              )}
+              
+              {/* Blocked Icon - rightmost, same size as priority icon */}
+              {isBlocked && (
+                <foreignObject
+                  x={width / 2 - rightMargin - 16}
+                  y={-8}
+                  width={16}
+                  height={16}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <div
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      lineHeight: '16px'
+                    }}
+                  >
+                    🚫
+                  </div>
+                </foreignObject>
+              )}
+            </>
+          );
+        })()}
         
-        {/* Node Text with automatic ellipsis */}
+        {/* Node Text with automatic ellipsis - adjusted for icons on the right */}
         <foreignObject
-          x={-width / 2 + (shouldShowPriorityIcon ? 24 : 12)}
+          x={-width / 2 + 8}
           y={-8}
-          width={width - (shouldShowPriorityIcon ? 32 : 20)}
+          width={width - 16 - ((() => {
+            const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
+            let iconsWidth = 0;
+                         if (shouldShowPriorityIcon) iconsWidth += 16;
+                         if (isBlocked) iconsWidth += 16;
+            return iconsWidth;
+          })())}
           height={16}
           style={{ pointerEvents: 'none' }}
         >
           <div
             style={{
               fontSize: '12px',
-              fontFamily: 'Arial',
-              color: nodeStyling.fill === '#017d2d' || nodeStyling.fill === '#baa625' ? '#000000' : '#ffffff',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontWeight: '500',
+              color: nodeStyling.textColor,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',

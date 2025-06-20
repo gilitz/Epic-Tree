@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
 import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
+import { useTheme } from '../theme/theme-context';
 
 interface DropdownOption {
   id: string;
@@ -32,7 +33,9 @@ const DropdownContainer = styled.div<{ $disabled?: boolean }>`
   opacity: ${props => props.$disabled ? 0.6 : 1};
 `;
 
-const DisplayValue = styled.div<{ $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean }>`
+const DisplayValue = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
+})<{ $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean; colors?: any }>`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -48,8 +51,8 @@ const DisplayValue = styled.div<{ $isEmpty?: boolean; $disabled?: boolean; $isUp
   transition: opacity 0.2s ease;
   
   &:hover {
-    background-color: ${props => props.$disabled ? 'transparent' : '#f3f4f6'};
-    border-color: ${props => props.$disabled ? 'transparent' : '#d1d5db'};
+    background-color: ${props => props.$disabled ? 'transparent' : (props.colors?.surface.hover || '#f3f4f6')};
+    border-color: ${props => props.$disabled ? 'transparent' : (props.colors?.border.primary || '#d1d5db')};
   }
   
   &:after {
@@ -68,13 +71,15 @@ const DisplayValue = styled.div<{ $isEmpty?: boolean; $disabled?: boolean; $isUp
   }
 `;
 
-const DropdownList = styled.div<{ $isOpen?: boolean }>`
+const DropdownList = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
+})<{ $isOpen?: boolean; colors?: any }>`
   display: ${props => props.$isOpen ? 'block' : 'none'};
   position: absolute;
   top: 100%;
   left: 0;
-  background: white;
-  border: 2px solid #3b82f6;
+  background: ${props => props.colors?.surface.primary || 'white'};
+  border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -83,16 +88,18 @@ const DropdownList = styled.div<{ $isOpen?: boolean }>`
   overflow-y: auto;
 `;
 
-const DropdownOptionItem = styled.div<{ $isSelected?: boolean }>`
+const DropdownOptionItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
+})<{ $isSelected?: boolean; colors?: any }>`
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
   cursor: pointer;
-  background-color: ${props => props.$isSelected ? '#eff6ff' : 'white'};
+  background-color: ${props => props.$isSelected ? (props.colors?.surface.active || '#eff6ff') : (props.colors?.surface.primary || 'white')};
   
   &:hover {
-    background-color: #f3f4f6;
+    background-color: ${props => props.colors?.surface.hover || '#f3f4f6'};
   }
 `;
 
@@ -109,9 +116,11 @@ const OptionAvatar = styled.img`
   flex-shrink: 0;
 `;
 
-const OptionText = styled.span`
+const OptionText = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors?: any }>`
   font-size: 12px;
-  color: #172b4d;
+  color: ${props => props.colors?.text.primary || '#172b4d'};
 `;
 
 const LoadingSpinner = styled.div`
@@ -157,6 +166,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
   disabled = false,
   allowUnassign = false
 }) => {
+  const { colors } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [showError, setShowError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -283,17 +293,19 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
         $isUpdating={isUpdating}
         onClick={handleToggleDropdown}
         title={disabled ? 'Editing disabled' : (isUpdating ? 'Updating...' : 'Click to select')}
+        colors={colors}
       >
         {getDisplayContent()}
       </DisplayValue>
 
-      <DropdownList $isOpen={isOpen}>
+      <DropdownList $isOpen={isOpen} colors={colors}>
         {allowUnassign && (
           <DropdownOptionItem
             $isSelected={!optimisticData?.value && !currentValue}
             onClick={() => handleSelectOption(null)}
+            colors={colors}
           >
-            <OptionText>Unassigned</OptionText>
+            <OptionText colors={colors}>Unassigned</OptionText>
           </DropdownOptionItem>
         )}
         {options.map((option) => (
@@ -301,10 +313,11 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
             key={option.id}
             $isSelected={(optimisticData?.value || currentValue) === option.id}
             onClick={() => handleSelectOption(option)}
+            colors={colors}
           >
             {option.iconUrl && <OptionIcon src={option.iconUrl} alt={option.name} />}
             {option.avatarUrl && <OptionAvatar src={option.avatarUrl} alt={option.name} />}
-            <OptionText>{option.name}</OptionText>
+            <OptionText colors={colors}>{option.name}</OptionText>
           </DropdownOptionItem>
         ))}
       </DropdownList>
