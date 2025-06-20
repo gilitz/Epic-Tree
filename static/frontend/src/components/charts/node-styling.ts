@@ -1,11 +1,11 @@
 import { TreeData } from './types';
-import { ThemeColors } from '../../theme/colors';
+import { CSSThemeColors } from '../../theme/theme-context';
 
 export const getNodeStyling = (
   nodeData: TreeData, 
   isHovered: boolean, 
   isClicked: boolean,
-  colors: ThemeColors
+  colors: CSSThemeColors
 ) => {
   const isDone = nodeData.status?.statusCategory?.colorName === 'green' || 
                 nodeData.status?.name?.toLowerCase().includes('done') ||

@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom';
 import App from './App';
 
 import '@atlaskit/css-reset';
+import './index.css';
 
 const StrictMode = React.StrictMode as React.ComponentType<React.PropsWithChildren<{}>>;
 

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { VerticalTreeChart } from './components/charts/vertical-tree-chart';
 import { ParentSize } from "@visx/responsive";
 import { OptimisticUpdatesProvider } from './contexts/optimistic-updates-context';
-import { ThemeProvider, useTheme } from './theme/theme-context';
+import { ThemeProvider } from './theme/theme-context';
 import { GlobalStyle } from './theme/global-styles';
 import '@atlaskit/css-reset';
 
@@ -13,11 +13,9 @@ interface ParentSizeProps {
 }
 
 const AppContent: React.FC = () => {
-  const { colors } = useTheme();
-  
   return (
     <>
-      <GlobalStyle colors={colors} />
+      <GlobalStyle />
       <AppContainer>
         <ParentSize>
           {(parent: ParentSizeProps) => (

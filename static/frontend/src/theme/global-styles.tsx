@@ -1,11 +1,6 @@
 import { createGlobalStyle } from 'styled-components';
-import { ThemeColors } from './colors';
 
-interface GlobalStyleProps {
-  colors: ThemeColors;
-}
-
-export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
+export const GlobalStyle = createGlobalStyle`
   /* CSS Reset and Base Styles */
   *, *::before, *::after {
     box-sizing: border-box;
@@ -24,8 +19,8 @@ export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
   body {
     margin: 0;
     padding: 0;
-    background-color: ${props => props.colors.background.primary};
-    color: ${props => props.colors.text.primary};
+    background-color: var(--color-background-primary);
+    color: var(--color-text-primary);
     font-size: 14px;
     line-height: 1.5;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -37,7 +32,7 @@ export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
     margin: 0;
     font-weight: 600;
     line-height: 1.2;
-    color: ${props => props.colors.text.primary};
+    color: var(--color-text-primary);
   }
 
   h1 { font-size: 2rem; }
@@ -49,22 +44,22 @@ export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
 
   p {
     margin: 0 0 1rem 0;
-    color: ${props => props.colors.text.secondary};
+    color: var(--color-text-secondary);
   }
 
   /* Links */
   a {
-    color: ${props => props.colors.text.link};
+    color: var(--color-text-link);
     text-decoration: none;
     transition: color 0.2s ease;
 
     &:hover {
-      color: ${props => props.colors.text.linkHover};
+      color: var(--color-text-link-hover);
       text-decoration: underline;
     }
 
     &:focus {
-      outline: 2px solid ${props => props.colors.border.focus};
+      outline: 2px solid var(--color-border-focus);
       outline-offset: 2px;
       border-radius: 2px;
     }
@@ -87,27 +82,27 @@ export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
   }
 
   input, textarea, select {
-    background-color: ${props => props.colors.surface.primary};
-    border: 1px solid ${props => props.colors.border.primary};
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
     border-radius: 6px;
     padding: 8px 12px;
-    color: ${props => props.colors.text.primary};
+    color: var(--color-text-primary);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
       outline: none;
-      border-color: ${props => props.colors.border.focus};
-      box-shadow: 0 0 0 3px ${props => props.colors.border.focus}20;
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-border-focus) 20%, transparent);
     }
 
     &:disabled {
-      background-color: ${props => props.colors.surface.disabled};
-      color: ${props => props.colors.text.disabled};
+      background-color: var(--color-surface-disabled);
+      color: var(--color-text-disabled);
       cursor: not-allowed;
     }
 
     &::placeholder {
-      color: ${props => props.colors.text.tertiary};
+      color: var(--color-text-tertiary);
     }
   }
 
@@ -118,33 +113,33 @@ export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
   }
 
   ::-webkit-scrollbar-track {
-    background: ${props => props.colors.surface.secondary};
+    background: var(--color-surface-secondary);
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: ${props => props.colors.border.secondary};
+    background: var(--color-border-secondary);
     border-radius: 4px;
     transition: background 0.2s ease;
 
     &:hover {
-      background: ${props => props.colors.text.tertiary};
+      background: var(--color-text-tertiary);
     }
   }
 
   ::-webkit-scrollbar-corner {
-    background: ${props => props.colors.surface.secondary};
+    background: var(--color-surface-secondary);
   }
 
   /* Firefox scrollbars */
   * {
     scrollbar-width: thin;
-    scrollbar-color: ${props => props.colors.border.secondary} ${props => props.colors.surface.secondary};
+    scrollbar-color: var(--color-border-secondary) var(--color-surface-secondary);
   }
 
   /* Focus styles */
   *:focus {
-    outline: 2px solid ${props => props.colors.border.focus};
+    outline: 2px solid var(--color-border-focus);
     outline-offset: 2px;
   }
 
@@ -153,19 +148,19 @@ export const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
   }
 
   *:focus-visible {
-    outline: 2px solid ${props => props.colors.border.focus};
+    outline: 2px solid var(--color-border-focus);
     outline-offset: 2px;
   }
 
   /* Selection styles */
   ::selection {
-    background-color: ${props => props.colors.interactive.primary}30;
-    color: ${props => props.colors.text.primary};
+    background-color: color-mix(in srgb, var(--color-interactive-primary) 30%, transparent);
+    color: var(--color-text-primary);
   }
 
   ::-moz-selection {
-    background-color: ${props => props.colors.interactive.primary}30;
-    color: ${props => props.colors.text.primary};
+    background-color: color-mix(in srgb, var(--color-interactive-primary) 30%, transparent);
+    color: var(--color-text-primary);
   }
 
   /* Utility classes */

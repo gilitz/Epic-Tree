@@ -1,0 +1,249 @@
+/* ==========================================================================
+   Color Palette - CSS Custom Properties
+   ========================================================================== */
+
+/* Light Theme Colors */
+:root {
+  /* Primary Colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Secondary/Neutral Colors */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+  --color-neutral-950: #030712;
+
+  /* Success Colors */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+
+  /* Warning Colors */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+
+  /* Error Colors */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+  /* Info Colors */
+  --color-info-50: #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-200: #bae6fd;
+  --color-info-300: #7dd3fc;
+  --color-info-400: #38bdf8;
+  --color-info-500: #0ea5e9;
+  --color-info-600: #0284c7;
+  --color-info-700: #0369a1;
+  --color-info-800: #075985;
+  --color-info-900: #0c4a6e;
+
+  /* ==========================================================================
+     Semantic Color Variables - Light Theme
+     ========================================================================== */
+
+  /* Background Colors */
+  --color-background-primary: var(--color-neutral-50);
+  --color-background-secondary: var(--color-neutral-100);
+  --color-background-tertiary: var(--color-neutral-200);
+  --color-background-elevated: var(--color-neutral-0);
+  --color-background-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Surface Colors */
+  --color-surface-primary: var(--color-neutral-0);
+  --color-surface-secondary: var(--color-neutral-50);
+  --color-surface-tertiary: var(--color-neutral-100);
+  --color-surface-elevated: var(--color-neutral-0);
+  --color-surface-hover: var(--color-neutral-50);
+  --color-surface-active: var(--color-neutral-100);
+  --color-surface-disabled: var(--color-neutral-100);
+
+  /* Border Colors */
+  --color-border-primary: var(--color-neutral-200);
+  --color-border-secondary: var(--color-neutral-300);
+  --color-border-focus: var(--color-primary-500);
+  --color-border-error: var(--color-error-300);
+  --color-border-success: var(--color-success-300);
+  --color-border-warning: var(--color-warning-300);
+
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-tertiary: var(--color-neutral-500);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-inverse: var(--color-neutral-0);
+  --color-text-link: var(--color-primary-600);
+  --color-text-link-hover: var(--color-primary-700);
+
+  /* Interactive Colors */
+  --color-interactive-primary: var(--color-primary-600);
+  --color-interactive-primary-hover: var(--color-primary-700);
+  --color-interactive-primary-active: var(--color-primary-800);
+  --color-interactive-secondary: var(--color-neutral-200);
+  --color-interactive-secondary-hover: var(--color-neutral-300);
+  --color-interactive-secondary-active: var(--color-neutral-400);
+
+  /* Status Colors */
+  --color-status-success: var(--color-success-600);
+  --color-status-success-bg: var(--color-success-50);
+  --color-status-success-border: var(--color-success-200);
+  --color-status-warning: var(--color-warning-600);
+  --color-status-warning-bg: var(--color-warning-50);
+  --color-status-warning-border: var(--color-warning-200);
+  --color-status-error: var(--color-error-600);
+  --color-status-error-bg: var(--color-error-50);
+  --color-status-error-border: var(--color-error-200);
+  --color-status-info: var(--color-info-600);
+  --color-status-info-bg: var(--color-info-50);
+  --color-status-info-border: var(--color-info-200);
+
+  /* Jira Issue Status Colors */
+  --color-jira-todo: var(--color-neutral-600);
+  --color-jira-todo-bg: var(--color-neutral-100);
+  --color-jira-todo-border: var(--color-neutral-300);
+  --color-jira-in-progress: var(--color-warning-600);
+  --color-jira-in-progress-bg: var(--color-warning-100);
+  --color-jira-in-progress-border: var(--color-warning-300);
+  --color-jira-done: var(--color-success-600);
+  --color-jira-done-bg: var(--color-success-100);
+  --color-jira-done-border: var(--color-success-300);
+  --color-jira-blocked: var(--color-error-600);
+  --color-jira-blocked-bg: var(--color-error-100);
+  --color-jira-blocked-border: var(--color-error-300);
+
+  /* Tree Visualization Colors */
+  --color-tree-lines: var(--color-info-400);
+  --color-tree-lines-hover: var(--color-info-500);
+
+  /* Shadow Colors */
+  --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark Theme Colors */
+[data-theme="dark"] {
+  /* ==========================================================================
+     Semantic Color Variables - Dark Theme
+     ========================================================================== */
+
+  /* Background Colors */
+  --color-background-primary: #1f1f21;
+  --color-background-secondary: var(--color-neutral-900);
+  --color-background-tertiary: var(--color-neutral-800);
+  --color-background-elevated: var(--color-neutral-900);
+  --color-background-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Surface Colors */
+  --color-surface-primary: var(--color-neutral-900);
+  --color-surface-secondary: var(--color-neutral-800);
+  --color-surface-tertiary: var(--color-neutral-700);
+  --color-surface-elevated: var(--color-neutral-800);
+  --color-surface-hover: var(--color-neutral-800);
+  --color-surface-active: var(--color-neutral-700);
+  --color-surface-disabled: var(--color-neutral-800);
+
+  /* Border Colors */
+  --color-border-primary: var(--color-neutral-700);
+  --color-border-secondary: var(--color-neutral-600);
+  --color-border-focus: var(--color-primary-400);
+  --color-border-error: var(--color-error-600);
+  --color-border-success: var(--color-success-600);
+  --color-border-warning: var(--color-warning-600);
+
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-300);
+  --color-text-tertiary: var(--color-neutral-400);
+  --color-text-disabled: var(--color-neutral-600);
+  --color-text-inverse: var(--color-neutral-900);
+  --color-text-link: var(--color-primary-400);
+  --color-text-link-hover: var(--color-primary-300);
+
+  /* Interactive Colors */
+  --color-interactive-primary: var(--color-primary-500);
+  --color-interactive-primary-hover: var(--color-primary-400);
+  --color-interactive-primary-active: var(--color-primary-600);
+  --color-interactive-secondary: var(--color-neutral-700);
+  --color-interactive-secondary-hover: var(--color-neutral-600);
+  --color-interactive-secondary-active: var(--color-neutral-500);
+
+  /* Status Colors */
+  --color-status-success: var(--color-success-400);
+  --color-status-success-bg: color-mix(in srgb, var(--color-success-950) 25%, transparent);
+  --color-status-success-border: var(--color-success-700);
+  --color-status-warning: var(--color-warning-400);
+  --color-status-warning-bg: color-mix(in srgb, var(--color-warning-950) 25%, transparent);
+  --color-status-warning-border: var(--color-warning-700);
+  --color-status-error: var(--color-error-400);
+  --color-status-error-bg: color-mix(in srgb, var(--color-error-950) 25%, transparent);
+  --color-status-error-border: var(--color-error-700);
+  --color-status-info: var(--color-info-400);
+  --color-status-info-bg: color-mix(in srgb, var(--color-info-950) 25%, transparent);
+  --color-status-info-border: var(--color-info-700);
+
+  /* Jira Issue Status Colors - Dark Theme */
+  --color-jira-todo: var(--color-neutral-400);
+  --color-jira-todo-bg: var(--color-neutral-800);
+  --color-jira-todo-border: var(--color-neutral-600);
+  --color-jira-in-progress: var(--color-warning-300);
+  --color-jira-in-progress-bg: color-mix(in srgb, var(--color-warning-300) 35%, transparent);
+  --color-jira-in-progress-border: var(--color-warning-400);
+  --color-jira-done: var(--color-success-400);
+  --color-jira-done-bg: color-mix(in srgb, var(--color-success-400) 35%, transparent);
+  --color-jira-done-border: var(--color-success-500);
+  --color-jira-blocked: var(--color-error-400);
+  --color-jira-blocked-bg: var(--color-error-800);
+  --color-jira-blocked-border: var(--color-error-600);
+
+  /* Tree Visualization Colors */
+  --color-tree-lines: var(--color-info-300);
+  --color-tree-lines-hover: var(--color-info-200);
+
+  /* Shadow Colors */
+  --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+} 
