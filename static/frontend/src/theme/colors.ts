@@ -295,9 +295,9 @@ const colorPalette: ColorPalette = {
 // Light theme colors
 export const lightTheme: ThemeColors = {
   background: {
-    primary: colorPalette.neutral[0],
-    secondary: colorPalette.neutral[50],
-    tertiary: colorPalette.neutral[100],
+    primary: colorPalette.neutral[50], // Slightly darker than pure white
+    secondary: colorPalette.neutral[100],
+    tertiary: colorPalette.neutral[200],
     elevated: colorPalette.neutral[0],
     overlay: 'rgba(0, 0, 0, 0.5)',
   },
@@ -386,7 +386,7 @@ export const lightTheme: ThemeColors = {
 // Dark theme colors
 export const darkTheme: ThemeColors = {
   background: {
-    primary: colorPalette.neutral[950],
+    primary: '#17171a',
     secondary: colorPalette.neutral[900],
     tertiary: colorPalette.neutral[800],
     elevated: colorPalette.neutral[900],
