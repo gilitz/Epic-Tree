@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useTheme } from '../theme/theme-context';
+import { useTheme, CSSThemeColors } from '../theme/theme-context';
 import { router } from '@forge/bridge';
 import { SecondaryTooltip } from './tooltip';
 import { Tag } from './tag';
@@ -543,7 +543,7 @@ const DetailRow = styled.div`
 
 const Label = styled.span.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors?: any }>`
+})<{ colors?: CSSThemeColors }>`
   font-size: 12px;
   color: ${props => props.colors?.text.tertiary || '#5e6c84'};
   font-weight: 500;
@@ -552,7 +552,7 @@ const Label = styled.span.withConfig({
 
 const Value = styled.span.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors?: any }>`
+})<{ colors?: CSSThemeColors }>`
   font-size: 12px;
   color: ${props => props.colors?.text.primary || '#172b4d'};
   display: flex;
@@ -646,7 +646,7 @@ const TooltipLabelsContainer = styled.div`
 
 const DueDateValue = styled.span.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$isOverdue',
-})<{ $isOverdue?: boolean; colors?: any }>`
+})<{ $isOverdue?: boolean; colors?: CSSThemeColors }>`
   font-size: 12px;
   color: ${props => props.$isOverdue ? (props.colors?.status.error || '#d32f2f') : (props.colors?.text.primary || '#172b4d')};
   font-weight: ${props => props.$isOverdue ? '600' : '400'};

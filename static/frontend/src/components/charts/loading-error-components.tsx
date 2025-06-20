@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useTheme } from '../../theme/theme-context';
+import { useTheme, CSSThemeColors } from '../../theme/theme-context';
 
 export const LoadingComponent: React.FC = () => {
   const { colors } = useTheme();
@@ -64,7 +64,7 @@ const fadeIn = keyframes`
 // Styled Components
 const LoadingContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -78,7 +78,7 @@ const LoadingContainer = styled.div.withConfig({
 
 const LoadingSpinner = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   width: 32px;
   height: 32px;
   border: 3px solid ${props => props.colors.border.primary};
@@ -90,7 +90,7 @@ const LoadingSpinner = styled.div.withConfig({
 
 const LoadingTitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   font-size: 18px;
   font-weight: 600;
   color: ${props => props.colors.text.primary};
@@ -99,14 +99,14 @@ const LoadingTitle = styled.div.withConfig({
 
 const LoadingSubtitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   font-size: 14px;
   color: ${props => props.colors.text.secondary};
 `;
 
 const ErrorContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -120,7 +120,7 @@ const ErrorContainer = styled.div.withConfig({
 
 const ErrorIcon = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   font-size: 48px;
   margin-bottom: 16px;
   filter: sepia(1) saturate(2) hue-rotate(20deg);
@@ -128,7 +128,7 @@ const ErrorIcon = styled.div.withConfig({
 
 const ErrorTitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   font-size: 20px;
   font-weight: 600;
   color: ${props => props.colors.status.error};
@@ -137,7 +137,7 @@ const ErrorTitle = styled.div.withConfig({
 
 const ErrorMessage = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   font-size: 14px;
   color: ${props => props.colors.text.secondary};
   max-width: 400px;
@@ -147,7 +147,7 @@ const ErrorMessage = styled.div.withConfig({
 
 const ErrorSubtitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   font-size: 12px;
   color: ${props => props.colors.text.tertiary};
   margin-bottom: 16px;
@@ -155,7 +155,7 @@ const ErrorSubtitle = styled.div.withConfig({
 
 const RetryButton = styled.button.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   background-color: ${props => props.colors.interactive.primary};
   color: ${props => props.colors.text.inverse};
   border: none;

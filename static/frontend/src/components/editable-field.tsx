@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
 import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
-import { useTheme } from '../theme/theme-context';
+import { useTheme, CSSThemeColors } from '../theme/theme-context';
 
 interface EditableFieldProps {
   issueKey: string;
@@ -30,7 +30,7 @@ const EditableContainer = styled.div<{ $disabled?: boolean; $isUpdating?: boolea
 
 const DisplayValue = styled.span.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
-})<{ $isEditing?: boolean; $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean; colors?: any }>`
+})<{ $isEditing?: boolean; $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean; colors?: CSSThemeColors }>`
   display: ${props => props.$isEditing ? 'none' : 'inline-flex'};
   align-items: center;
   color: ${props => props.$isEmpty ? '#9ca3af' : 'inherit'};
@@ -73,7 +73,7 @@ const EditInputContainer = styled.div<{ $isEditing?: boolean }>`
 
 const EditInput = styled.input.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$isEditing',
-})<{ $isEditing?: boolean; colors?: any }>`
+})<{ $isEditing?: boolean; colors?: CSSThemeColors }>`
   background: ${props => props.colors?.surface.primary || 'white'};
   border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;
@@ -98,7 +98,7 @@ const EditTextareaContainer = styled.div<{ $isEditing?: boolean }>`
 
 const EditTextarea = styled.textarea.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$isEditing',
-})<{ $isEditing?: boolean; colors?: any }>`
+})<{ $isEditing?: boolean; colors?: CSSThemeColors }>`
   background: ${props => props.colors?.surface.primary || 'white'};
   border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;

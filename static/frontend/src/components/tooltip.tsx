@@ -1,7 +1,7 @@
 import React, { ReactNode, ReactElement } from 'react';
 import TippyImport from "@tippyjs/react";
 import styled from "styled-components";
-import { useTheme } from '../theme/theme-context';
+import { useTheme, CSSThemeColors } from '../theme/theme-context';
 
 const Tippy = TippyImport as React.ComponentType<Record<string, unknown>>;
 
@@ -73,7 +73,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, d
 // Unified container style for ALL tooltips
 const UnifiedTooltipContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+})<{ colors: CSSThemeColors }>`
   width: fit-content;
   max-width: 400px;
   max-height: 70vh;

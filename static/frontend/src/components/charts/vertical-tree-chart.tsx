@@ -42,8 +42,8 @@ export function VerticalTreeChart({
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
 
-  const innerWidth = totalWidth - margin.left - margin.right;
-  const innerHeight = totalHeight - margin.top - margin.bottom;
+  const _innerWidth = totalWidth - margin.left - margin.right;
+  const _innerHeight = totalHeight - margin.top - margin.bottom;
 
   const LinkComponent = getLinkComponent({ layout, linkType, orientation }) as any;
   const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
@@ -121,7 +121,7 @@ export function VerticalTreeChart({
       treeHeight: calculatedTreeHeight,
       origin: { x: MIN_CONTAINER_PADDING, y: MIN_CONTAINER_PADDING }
     };
-  }, [data, orientation, innerWidth, innerHeight]);
+  }, [data, orientation]);
 
   // Calculate SVG dimensions (tree size + padding)
   const svgWidth = treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right;
@@ -158,19 +158,19 @@ export function VerticalTreeChart({
       // Enter fullscreen
       if (element.requestFullscreen) {
         element.requestFullscreen();
-      } else if ((element as any).webkitRequestFullscreen) {
-        (element as any).webkitRequestFullscreen();
-      } else if ((element as any).msRequestFullscreen) {
-        (element as any).msRequestFullscreen();
+      } else if ((element as Element & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen) {
+        (element as Element & { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+      } else if ((element as Element & { msRequestFullscreen?: () => void }).msRequestFullscreen) {
+        (element as Element & { msRequestFullscreen: () => void }).msRequestFullscreen();
       }
     } else {
       // Exit fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
+      } else if ((document as Document & { webkitExitFullscreen?: () => void }).webkitExitFullscreen) {
+        (document as Document & { webkitExitFullscreen: () => void }).webkitExitFullscreen();
+      } else if ((document as Document & { msExitFullscreen?: () => void }).msExitFullscreen) {
+        (document as Document & { msExitFullscreen: () => void }).msExitFullscreen();
       }
     }
   };
@@ -215,7 +215,7 @@ export function VerticalTreeChart({
             <Tree
               root={data}
               size={[treeWidth, treeHeight]}
-              separation={(_a: any, _b: any) => {
+              separation={() => {
                 // Fixed separation based on constants
                 if (orientation === 'vertical') {
                   return HORIZONTAL_SPACING / treeWidth;

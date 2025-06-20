@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
 import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
-import { useTheme } from '../theme/theme-context';
+import { useTheme, CSSThemeColors } from '../theme/theme-context';
 
 interface DropdownOption {
   id: string;
@@ -35,7 +35,7 @@ const DropdownContainer = styled.div<{ $disabled?: boolean }>`
 
 const DisplayValue = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
-})<{ $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean; colors?: any }>`
+})<{ $isEmpty?: boolean; $disabled?: boolean; $isUpdating?: boolean; colors?: CSSThemeColors }>`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -73,7 +73,7 @@ const DisplayValue = styled.div.withConfig({
 
 const DropdownList = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
-})<{ $isOpen?: boolean; colors?: any }>`
+})<{ $isOpen?: boolean; colors?: CSSThemeColors }>`
   display: ${props => props.$isOpen ? 'block' : 'none'};
   position: absolute;
   top: 100%;
@@ -90,7 +90,7 @@ const DropdownList = styled.div.withConfig({
 
 const DropdownOptionItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && !prop.startsWith('$'),
-})<{ $isSelected?: boolean; colors?: any }>`
+})<{ $isSelected?: boolean; colors?: CSSThemeColors }>`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -118,7 +118,7 @@ const OptionAvatar = styled.img`
 
 const OptionText = styled.span.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors?: any }>`
+})<{ colors?: CSSThemeColors }>`
   font-size: 12px;
   color: ${props => props.colors?.text.primary || '#172b4d'};
 `;
