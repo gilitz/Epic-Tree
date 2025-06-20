@@ -205,6 +205,13 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
   const handleSelectOption = useCallback(async (option: DropdownOption | null) => {
     if (isUpdating) return;
 
+    console.log(`🔄 DROPDOWN: Selecting option for ${fieldName}:`, {
+      option,
+      currentValue,
+      currentDisplayName,
+      isUnassign: option === null
+    });
+
     // Set optimistic values immediately as a structured object
     const optimisticData = option ? {
       value: option.id,
@@ -216,18 +223,24 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       iconUrl: undefined
     };
     
+    console.log(`🔄 DROPDOWN: Setting optimistic data:`, optimisticData);
     setOptimisticValue(issueKey, fieldName, optimisticData);
     setIsOpen(false);
 
     // Add a small delay to ensure loading state is visible
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    const success = await updateField(issueKey, fieldName, option?.id || null);
+    const fieldValueToSend = option?.id || null;
+    console.log(`🔄 DROPDOWN: Sending field value:`, fieldValueToSend);
+    
+    const success = await updateField(issueKey, fieldName, fieldValueToSend);
     if (!success) {
       // Error handling is done in the hook
       return;
     }
-  }, [isUpdating, updateField, issueKey, fieldName, setOptimisticValue]);
+    
+    console.log(`✅ DROPDOWN: Successfully updated ${fieldName} to:`, fieldValueToSend);
+  }, [isUpdating, updateField, issueKey, fieldName, setOptimisticValue, currentValue, currentDisplayName]);
 
   // Initialize optimistic values when component mounts or when props change (but not during optimistic updates)
   useEffect(() => {
@@ -261,8 +274,25 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
     }
 
     const optimisticData = getOptimisticValue(issueKey, fieldName) as { value: string | null; displayName?: string; iconUrl?: string } | undefined;
-    const displayName = optimisticData?.displayName || currentDisplayName;
-    const iconUrl = optimisticData?.iconUrl || currentIconUrl;
+    
+    // If we have optimistic data, use it (including null/undefined for unassign)
+    // If no optimistic data, use current props
+    const displayName = hasOptimisticValue(issueKey, fieldName) 
+      ? optimisticData?.displayName 
+      : currentDisplayName;
+    const iconUrl = hasOptimisticValue(issueKey, fieldName) 
+      ? optimisticData?.iconUrl 
+      : currentIconUrl;
+    
+    console.log(`🖼️ DROPDOWN: Display content for ${fieldName}:`, {
+      hasOptimistic: hasOptimisticValue(issueKey, fieldName),
+      optimisticData,
+      displayName,
+      iconUrl,
+      currentDisplayName,
+      currentIconUrl
+    });
+    
     const isEmpty = !displayName;
 
     if (isEmpty) {
@@ -283,7 +313,9 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
   };
 
   const optimisticData = getOptimisticValue(issueKey, fieldName) as { value: string | null; displayName?: string; iconUrl?: string } | undefined;
-  const isEmpty = !optimisticData?.displayName && !currentDisplayName;
+  const isEmpty = hasOptimisticValue(issueKey, fieldName) 
+    ? !optimisticData?.displayName 
+    : !currentDisplayName;
 
   return (
     <DropdownContainer ref={dropdownRef} $disabled={disabled}>
@@ -301,7 +333,11 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       <DropdownList $isOpen={isOpen} colors={colors}>
         {allowUnassign && (
           <DropdownOptionItem
-            $isSelected={!optimisticData?.value && !currentValue}
+            $isSelected={
+              hasOptimisticValue(issueKey, fieldName) 
+                ? optimisticData?.value === null 
+                : !currentValue
+            }
             onClick={() => handleSelectOption(null)}
             colors={colors}
           >
@@ -311,7 +347,11 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
         {options.map((option) => (
           <DropdownOptionItem
             key={option.id}
-            $isSelected={(optimisticData?.value || currentValue) === option.id}
+            $isSelected={
+              hasOptimisticValue(issueKey, fieldName)
+                ? optimisticData?.value === option.id
+                : currentValue === option.id
+            }
             onClick={() => handleSelectOption(option)}
             colors={colors}
           >
