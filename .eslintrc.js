@@ -1,34 +1,26 @@
 module.exports = {
+  root: true,
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2020,
-    sourceType: 'module',
-  },
-  plugins: ['@typescript-eslint'],
+  plugins: [
+    '@typescript-eslint',
+    'react-hooks'
+  ],
   extends: [
     'eslint:recommended',
+    'plugin:@typescript-eslint/recommended'
   ],
-  root: true,
   env: {
     node: true,
-    es6: true,
+    es6: true
   },
-  ignorePatterns: ['dist', 'node_modules', 'static'],
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module'
+  },
+  ignorePatterns: ['node_modules', 'dist', 'build', 'static'],
   rules: {
-    // TypeScript specific rules - less strict
-    '@typescript-eslint/no-unused-vars': ['error', { 
-      argsIgnorePattern: '^_',
-      varsIgnorePattern: '^_',
-      ignoreRestSiblings: true 
-    }],
-    '@typescript-eslint/no-explicit-any': 'warn',
-    
-    // General rules - less strict
-    'no-console': 'off', // Allow console.log for debugging
-    'no-unused-vars': 'off', // Use TypeScript version instead
-    'prefer-const': 'error',
-    'no-var': 'error',
-    'object-shorthand': 'warn',
-    'prefer-template': 'warn',
-  },
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn'
+  }
 }; 

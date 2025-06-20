@@ -9,21 +9,7 @@ interface RequestContext {
   };
 }
 
-interface _FetchLabelsRequest {
-  context: RequestContext;
-}
 
-interface _FetchIssueRequest {
-  payload: {
-    issueId: string;
-  };
-}
-
-interface _FetchIssuesByEpicRequest {
-  payload: {
-    epicId: string;
-  };
-}
 
 interface Label {
   id: string;
@@ -139,8 +125,6 @@ const safeApiRequest = async <T>(requestFn: () => Promise<ApiResponse>, fallback
 
 resolver.define('fetchLabels', async (req: unknown): Promise<Label[]> => {
   const key = (req as { context: RequestContext }).context.extension.issue.key;
-
-  const _fallbackData: Label[] = [];
   
   const requestFn = () => api.asUser().requestJira(route`/rest/api/3/issue/${key}?fields=labels`);
   
