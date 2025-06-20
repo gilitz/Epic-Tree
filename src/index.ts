@@ -511,7 +511,7 @@ resolver.define('updateIssueField', async (data: unknown): Promise<{ success: bo
             userFriendlyError = `Cannot update ${fieldName}: ${jiraError}`;
           }
         }
-      } catch (parseError) {
+      } catch {
         // Keep the default error message if parsing fails
       }
       
