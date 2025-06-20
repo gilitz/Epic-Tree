@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
+import styled from 'styled-components';
 import { TreeData } from './types';
 import { getNodeStyling } from './node-styling';
 import { NodeTooltip } from '../tooltip';
@@ -193,19 +194,9 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
                   height={16}
                   style={{ pointerEvents: 'none' }}
                 >
-                  <div
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      lineHeight: '16px'
-                    }}
-                  >
+                  <BlockedIconContainer>
                     🚫
-                  </div>
+                  </BlockedIconContainer>
                 </foreignObject>
               )}
             </>
@@ -226,23 +217,34 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           height={16}
           style={{ pointerEvents: 'none' }}
         >
-          <div
-            style={{
-              fontSize: '12px',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              fontWeight: '500',
-              color: nodeStyling.textColor,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              lineHeight: '16px',
-              transition: 'color 0.2s ease-in-out'
-            }}
-          >
+          <NodeTextContainer textColor={nodeStyling.textColor}>
             {displayName}
-          </div>
+          </NodeTextContainer>
         </foreignObject>
       </g>
     </NodeTooltip>
   );
-}; 
+};
+
+// Styled Components
+const BlockedIconContainer = styled.div`
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 16px;
+`;
+
+const NodeTextContainer = styled.div<{ textColor: string }>`
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 500;
+  color: ${props => props.textColor};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 16px;
+  transition: color 0.2s ease-in-out;
+`; 
