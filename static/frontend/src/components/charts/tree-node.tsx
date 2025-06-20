@@ -217,7 +217,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           height={16}
           style={{ pointerEvents: 'none' }}
         >
-          <NodeTextContainer textColor={nodeStyling.textColor}>
+          <NodeTextContainer $textColor={nodeStyling.textColor}>
             {displayName}
           </NodeTextContainer>
         </foreignObject>
@@ -237,11 +237,11 @@ const BlockedIconContainer = styled.div`
   line-height: 16px;
 `;
 
-const NodeTextContainer = styled.div<{ textColor: string }>`
+const NodeTextContainer = styled.div<{ $textColor: string }>`
   font-size: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 500;
-  color: ${props => props.textColor};
+  color: ${props => props.$textColor};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
