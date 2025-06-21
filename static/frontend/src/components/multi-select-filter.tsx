@@ -199,7 +199,9 @@ const FilterContainer = styled.div<{ colors: any }>`
   display: inline-block;
 `;
 
-const FilterButton = styled.button<{ colors: any; isActive: boolean; isOpen: boolean }>`
+const FilterButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => !['isActive', 'isOpen', 'colors'].includes(prop),
+})<{ colors: any; isActive: boolean; isOpen: boolean }>`
   display: flex;
   align-items: center;
   gap: 4px;

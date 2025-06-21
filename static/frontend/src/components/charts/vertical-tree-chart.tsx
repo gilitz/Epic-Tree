@@ -331,9 +331,7 @@ const ChartContainer = styled.div.withConfig({
   height: 100vh;
   position: relative;
   background: ${props => props.colors.background.primary};
-  border: 1px solid var(--color-border-container);
-  border-radius: var(--border-radius-container);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease;
   
   .clickable-node:active {
     filter: brightness(0.85) !important;
@@ -390,8 +388,6 @@ const InitialLoadingContainer = styled.div.withConfig({
   width: 100%;
   height: 100vh;
   background: ${props => props.colors.background.primary};
-  border: 1px solid var(--color-border-container);
-  border-radius: var(--border-radius-container);
 `;
 
 const EpicKeyDisplay = styled.div.withConfig({

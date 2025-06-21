@@ -47,5 +47,8 @@ const AppContainer = styled.div`
   width: 100%;
   height: 100vh;
   position: relative;
+  border: 1px solid var(--color-border-container);
+  border-radius: var(--border-radius-container);
   transition: border-color 0.3s ease;
+  overflow: hidden;
 `; 
