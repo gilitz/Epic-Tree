@@ -28,7 +28,7 @@ const NODE_HEIGHT = 28;
 const EPIC_NODE_WIDTH = NODE_WIDTH * 1.5; // 50% longer
 const EPIC_NODE_HEIGHT = NODE_HEIGHT * 2 - 12; // Double height minus 4px
 const HORIZONTAL_SPACING = 180; // Fixed horizontal spacing between nodes
-const VERTICAL_SPACING = 50; // Fixed vertical spacing between levels
+const VERTICAL_SPACING = 65; // Fixed vertical spacing between levels (increased for better visual separation)
 const MIN_CONTAINER_PADDING = 50; // Minimum padding around the tree
 
 export function VerticalTreeChart({
