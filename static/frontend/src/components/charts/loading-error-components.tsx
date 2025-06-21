@@ -73,6 +73,9 @@ const LoadingContainer = styled.div.withConfig({
   text-align: center;
   min-height: 200px;
   background-color: ${props => props.colors.background.primary};
+  border: 1px solid var(--color-border-container);
+  border-radius: var(--border-radius-container);
+  margin: 20px;
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
@@ -115,6 +118,9 @@ const ErrorContainer = styled.div.withConfig({
   text-align: center;
   min-height: 200px;
   background-color: ${props => props.colors.background.primary};
+  border: 1px solid ${props => props.colors.status.errorBorder};
+  border-radius: var(--border-radius-container);
+  margin: 20px;
   animation: ${fadeIn} 0.3s ease-out;
 `;
 

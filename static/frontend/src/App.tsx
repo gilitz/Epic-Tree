@@ -44,4 +44,5 @@ const AppContainer = styled.div`
   width: 100%;
   height: 100vh;
   position: relative;
+  transition: border-color 0.3s ease;
 `; 

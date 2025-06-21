@@ -105,6 +105,7 @@
   --color-border-error: var(--color-error-300);
   --color-border-success: var(--color-success-300);
   --color-border-warning: var(--color-warning-300);
+  --color-border-container: var(--color-container-border-light);
 
   /* Text Colors */
   --color-text-primary: var(--color-neutral-900);
@@ -160,6 +161,21 @@
   --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* ==========================================================================
+     Global Layout Variables (Theme-Independent)
+     ========================================================================== */
+
+  /* Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-container: var(--border-radius-lg);
+
+  /* Container Border Colors */
+  --color-container-border-light: #dddedd;  /* \Match Jira colors */
+  --color-container-border-dark: #37373a;  /* \Match Jira colors */
 }
 
 /* Dark Theme Colors */
@@ -169,7 +185,7 @@
      ========================================================================== */
 
   /* Background Colors */
-  --color-background-primary: #161618;
+  --color-background-primary: #1c1c1e;
   --color-background-secondary: var(--color-neutral-900);
   --color-background-tertiary: var(--color-neutral-800);
   --color-background-elevated: var(--color-neutral-900);
@@ -191,6 +207,7 @@
   --color-border-error: var(--color-error-600);
   --color-border-success: var(--color-success-600);
   --color-border-warning: var(--color-warning-600);
+  --color-border-container: var(--color-container-border-dark);
 
   /* Text Colors */
   --color-text-primary: var(--color-neutral-50);

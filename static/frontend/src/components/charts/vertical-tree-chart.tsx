@@ -287,7 +287,9 @@ const ChartContainer = styled.div.withConfig({
   height: 100vh;
   position: relative;
   background: ${props => props.colors.background.primary};
-  transition: background-color 0.3s ease;
+  border: 1px solid var(--color-border-container);
+  border-radius: var(--border-radius-container);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
   
   .clickable-node:active {
     filter: brightness(0.85) !important;
@@ -298,9 +300,11 @@ const ScrollableContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
   width: 100%;
-  height: calc(100vh - 60px); /* Account for toggle buttons */
+  height: 100%; // calc(100vh - 60px); /* Account for toggle buttons */
   overflow: auto;
   position: relative;
+  // border: 1px solid ${props => props.colors.border.secondary};
+  transition: border-color 0.3s ease;
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {

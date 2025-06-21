@@ -43,6 +43,12 @@ const ToggleButtonsContainer = styled.div`
   display: flex;
   gap: 8px;
   z-index: 1000;
+  padding: 8px;
+  background-color: var(--color-surface-primary);
+  border: 1px solid var(--color-border-container);
+  border-radius: var(--border-radius-container);
+  box-shadow: var(--color-shadow-sm);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 `;
 
 const ToggleButton = styled.button.withConfig({
@@ -75,10 +81,5 @@ const ToggleButton = styled.button.withConfig({
     background-color: ${props => props.colors.surface.active};
     transform: translateY(0);
     box-shadow: ${props => props.colors.shadow.sm};
-  }
-  
-  &:focus {
-    outline: 2px solid ${props => props.colors.border.focus};
-    outline-offset: 2px;
   }
 `; 
