@@ -175,7 +175,7 @@
 
   /* Container Border Colors */
   --color-container-border-light: #dddedd;  /* \Match Jira colors */
-  --color-container-border-dark: #37373a;  /* \Match Jira colors */
+  --color-container-border-dark: #37373a;  /* Match Jira colors */
 }
 
 /* Dark Theme Colors */
