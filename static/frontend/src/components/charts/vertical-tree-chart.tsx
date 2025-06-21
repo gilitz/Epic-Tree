@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Group } from '@visx/group';
 import { hierarchy, Tree } from '@visx/hierarchy';
 import { LinearGradient } from '@visx/gradient';
@@ -17,7 +17,7 @@ import { VerticalTreeChartProps, TreeData } from './types';
 import { transformDataToTree } from './tree-data-utils';
 import { TreeNode } from './tree-node';
 import { ToggleButtons } from './toggle-buttons';
-import { LoadingComponent, NetworkErrorComponent, LoadingIssuesComponent } from './loading-error-components';
+import { LoadingComponent, NetworkErrorComponent } from './loading-error-components';
 
 const defaultMargin = { top: 30, left: 40, right: 40, bottom: 30 };
 
@@ -41,6 +41,7 @@ export function VerticalTreeChart({
   const [stepPercent, _setStepPercent] = useState<number>(0.5);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
+  const [hasInitialized, setHasInitialized] = useState<boolean>(false);
 
   const _innerWidth = totalWidth - margin.left - margin.right;
   const _innerHeight = totalHeight - margin.top - margin.bottom;
@@ -73,6 +74,30 @@ export function VerticalTreeChart({
   const { subtasks } = useFetchSubtasksByKeys({ subtaskKeys });
 
   const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic, subtasksData: subtasks });
+
+  // Check if we have fully loaded data (epic + issues + subtasks if any exist)
+  const isFullyLoaded = useMemo(() => {
+    if (!rootEpicIssue) return false;
+    if (!issuesByEpic) return false;
+    
+    // If we have issues with subtasks, wait for subtasks to load too
+    const hasIssuesWithSubtasks = issuesByEpic.some(issue => 
+      issue.fields?.subtasks && Array.isArray(issue.fields.subtasks) && issue.fields.subtasks.length > 0
+    );
+    
+    if (hasIssuesWithSubtasks && subtaskKeys.length > 0 && (!subtasks || subtasks.length === 0)) {
+      return false;
+    }
+    
+    return true;
+  }, [rootEpicIssue, issuesByEpic, subtasks, subtaskKeys]);
+
+  // Set initialization state when fully loaded
+  React.useEffect(() => {
+    if (isFullyLoaded && !hasInitialized) {
+      setHasInitialized(true);
+    }
+  }, [isFullyLoaded, hasInitialized]);
 
   // Use real data only
   const finalTreeData = transformedTreeData;
@@ -127,20 +152,28 @@ export function VerticalTreeChart({
   const svgWidth = treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right;
   const svgHeight = treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom;
 
-  // Handle error states and loading
-  if (!issuesByEpic && !rootEpicIssue) {
-    return <LoadingComponent />;
-  }
-
   // Handle network error states
   if (rootEpicIssue?.fields?.summary?.includes('Network Error') || 
       rootEpicIssue?.fields?.summary?.includes('Error loading')) {
     return <NetworkErrorComponent />;
   }
 
-  // Don't render if we only have loading state
-  if (transformedTreeData.name === 'Loading...' && transformedTreeData.children?.length === 0) {
-    return <LoadingIssuesComponent />;
+  // Show initial loading only if we haven't fully loaded yet and haven't initialized
+  if (!isFullyLoaded && !hasInitialized) {
+    // Show epic key/name if we have it, otherwise show generic loading
+    if (rootEpicIssue) {
+      return (
+        <InitialLoadingContainer colors={colors}>
+          <EpicKeyDisplay colors={colors}>
+            {rootEpicIssue.key}: {rootEpicIssue.fields?.summary || 'Loading...'}
+          </EpicKeyDisplay>
+          <CenteredLoadingSpinner colors={colors} />
+          <LoadingText colors={colors}>Loading full Epic tree...</LoadingText>
+        </InitialLoadingContainer>
+      );
+    } else {
+      return <LoadingComponent />;
+    }
   }
 
   // Toggle orientation between vertical and horizontal
@@ -329,6 +362,58 @@ const ScrollableContainer = styled.div.withConfig({
   /* For Firefox */
   scrollbar-width: thin;
   scrollbar-color: ${props => props.colors.border.secondary} ${props => props.colors.surface.secondary};
+`;
+
+// Initial loading styled components
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const InitialLoadingContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  background: ${props => props.colors.background.primary};
+  border: 1px solid var(--color-border-container);
+  border-radius: var(--border-radius-container);
+`;
+
+const EpicKeyDisplay = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  font-size: 24px;
+  font-weight: 600;
+  color: ${props => props.colors.text.primary};
+  margin-bottom: 40px;
+  text-align: center;
+  max-width: 80%;
+  word-wrap: break-word;
+`;
+
+const CenteredLoadingSpinner = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${props => props.colors.border.primary};
+  border-top: 4px solid ${props => props.colors.interactive.primary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+  margin-bottom: 20px;
+`;
+
+const LoadingText = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  font-size: 16px;
+  color: ${props => props.colors.text.secondary};
+  text-align: center;
 `;
 
  
