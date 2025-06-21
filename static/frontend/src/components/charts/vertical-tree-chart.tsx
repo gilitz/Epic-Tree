@@ -14,10 +14,11 @@ import getLinkComponent from './get-link-component';
 
 // Import new components and utilities
 import { VerticalTreeChartProps, TreeData } from './types';
-import { transformDataToTree } from './tree-data-utils';
+import { transformDataToTree, filterTreeData } from './tree-data-utils';
 import { TreeNode } from './tree-node';
-import { ToggleButtons } from './toggle-buttons';
 import { LoadingComponent, NetworkErrorComponent } from './loading-error-components';
+import { FilterBar } from '../filter-bar';
+import { useFilters } from '../../contexts/filter-context';
 
 const defaultMargin = { top: 30, left: 40, right: 40, bottom: 30 };
 
@@ -35,6 +36,7 @@ export function VerticalTreeChart({
 }: VerticalTreeChartProps): JSX.Element | null {
   
   const { colors, isDarkTheme, toggleTheme } = useTheme();
+  const { filters } = useFilters();
   const [layout, _setLayout] = useState<'polar' | 'cartesian'>('cartesian');
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal');
   const linkType = 'diagonal';
@@ -99,8 +101,13 @@ export function VerticalTreeChart({
     }
   }, [isFullyLoaded, hasInitialized]);
 
-  // Use real data only
-  const finalTreeData = transformedTreeData;
+  // Apply filters to the tree data
+  const finalTreeData = useMemo(() => {
+    if (!transformedTreeData) return transformedTreeData;
+    
+    const filteredData = filterTreeData(transformedTreeData, filters);
+    return filteredData || transformedTreeData;
+  }, [transformedTreeData, filters]);
 
   const data = useMemo(() => {
     try {
@@ -212,13 +219,17 @@ export function VerticalTreeChart({
 
   return totalWidth < 10 ? null : (
     <ChartContainer colors={colors}>
-      <ToggleButtons
-        orientation={orientation}
-        isDarkTheme={isDarkTheme}
-        toggleOrientation={toggleOrientation}
-        toggleTheme={toggleTheme}
-        toggleFullScreen={toggleFullScreen}
-      />
+      {issuesByEpic && issuesByEpic.length > 0 && rootEpicIssue && (
+        <FilterBar 
+          issuesByEpic={issuesByEpic} 
+          epicKey={rootEpicIssue.key || 'ET-2'}
+          orientation={orientation}
+          isDarkTheme={isDarkTheme}
+          toggleOrientation={toggleOrientation}
+          toggleTheme={toggleTheme}
+          toggleFullScreen={toggleFullScreen}
+        />
+      )}
       <ScrollableContainer colors={colors}>
         <svg 
           width={svgWidth} 
@@ -333,10 +344,9 @@ const ScrollableContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
   width: 100%;
-  height: 100%; // calc(100vh - 60px); /* Account for toggle buttons */
+  height: 100%;
   overflow: auto;
   position: relative;
-  // border: 1px solid ${props => props.colors.border.secondary};
   transition: border-color 0.3s ease;
   
   /* Custom scrollbar styling */

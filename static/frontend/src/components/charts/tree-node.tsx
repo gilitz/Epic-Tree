@@ -115,7 +115,9 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
         style={{ 
           outline: 'none',
           cursor: 'pointer',
-          pointerEvents: 'all'
+          pointerEvents: 'all',
+          opacity: nodeData.isContextOnly ? 0.4 : 1,
+          transition: 'opacity 0.2s ease-in-out'
         }}
       >
         {/* Background layer to hide lines behind transparent nodes */}

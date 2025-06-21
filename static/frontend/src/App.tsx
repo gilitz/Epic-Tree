@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { VerticalTreeChart } from './components/charts/vertical-tree-chart';
 import { ParentSize } from "@visx/responsive";
 import { OptimisticUpdatesProvider } from './contexts/optimistic-updates-context';
+import { FilterProvider } from './contexts/filter-context';
 import { ThemeProvider } from './theme/theme-context';
 import { GlobalStyle } from './theme/global-styles';
 import '@atlaskit/css-reset';
@@ -30,9 +31,11 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ThemeProvider initialTheme={true}>
-      <OptimisticUpdatesProvider>
-        <AppContent />
-      </OptimisticUpdatesProvider>
+      <FilterProvider>
+        <OptimisticUpdatesProvider>
+          <AppContent />
+        </OptimisticUpdatesProvider>
+      </FilterProvider>
     </ThemeProvider>
   );
 };

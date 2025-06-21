@@ -26,6 +26,7 @@ export interface TreeData {
   };
   assignee?: {
     displayName: string;
+    accountId?: string;
     avatarUrls?: {
       '16x16': string;
     };
@@ -61,6 +62,7 @@ export interface TreeData {
   blockedIssues?: BlockedIssue[];
   children?: TreeData[];
   isEpic?: boolean;
+  isContextOnly?: boolean; // Flag to indicate if node is shown for context only
 }
 
 export interface Issue {

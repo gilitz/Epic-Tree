@@ -27,6 +27,75 @@ export const extractBlockedIssues = (issuelinks: any[]): BlockedIssue[] => {
     }));
 };
 
+// Filter function to check if a node matches the filter criteria
+export const nodeMatchesFilters = (node: TreeData, filters: { assignees: string[]; statuses: string[] }): boolean => {
+  // If no filters are applied, show all nodes
+  if (filters.assignees.length === 0 && filters.statuses.length === 0) {
+    return true;
+  }
+
+  let matchesAssigneeFilter = true;
+  let matchesStatusFilter = true;
+
+  // Check assignee filter
+  if (filters.assignees.length > 0) {
+    if (filters.assignees.includes('unassigned')) {
+      // If "unassigned" is selected, check if node has no assignee OR if other assignees are also selected
+      const hasNoAssignee = !node.assignee || !node.assignee.displayName;
+      const otherAssignees = filters.assignees.filter(a => a !== 'unassigned');
+      const hasSelectedAssignee = node.assignee && node.assignee.accountId && otherAssignees.includes(node.assignee.accountId);
+      matchesAssigneeFilter = hasNoAssignee || hasSelectedAssignee;
+    } else {
+      // Only check for specific assignees
+      matchesAssigneeFilter = node.assignee && node.assignee.accountId && filters.assignees.includes(node.assignee.accountId);
+    }
+  }
+
+  // Check status filter
+  if (filters.statuses.length > 0) {
+    matchesStatusFilter = node.status && filters.statuses.includes(node.status.name);
+  }
+
+  return matchesAssigneeFilter && matchesStatusFilter;
+};
+
+// Recursive function to filter tree data with context tracking
+export const filterTreeData = (node: TreeData, filters: { assignees: string[]; statuses: string[] }): TreeData | null => {
+  // Always include the root epic node, but filter its children
+  if (node.isEpic) {
+    const filteredChildren = node.children
+      ?.map(child => filterTreeData(child, filters))
+      .filter((child): child is TreeData => child !== null) || [];
+    
+    return {
+      ...node,
+      children: filteredChildren
+    };
+  }
+
+  // For non-epic nodes, check if the node itself matches
+  const nodeMatches = nodeMatchesFilters(node, filters);
+  
+  // Filter children recursively
+  const filteredChildren = node.children
+    ?.map(child => filterTreeData(child, filters))
+    .filter((child): child is TreeData => child !== null) || [];
+
+  // Include the node if:
+  // 1. The node itself matches the filters, OR
+  // 2. The node has children that match the filters (so we don't lose parent nodes)
+  if (nodeMatches || filteredChildren.length > 0) {
+    return {
+      ...node,
+      children: filteredChildren,
+      // Add a flag to indicate if this node is shown for context only
+      isContextOnly: !nodeMatches && filteredChildren.length > 0
+    };
+  }
+
+  return null;
+};
+
 export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic | null; issues: Issue[]; subtasksData: any[] }): TreeData => {
   try {
     // Create a map of detailed subtask data by key
