@@ -17,6 +17,7 @@ export const getNodeStyling = (
                       nodeData.status?.name?.toLowerCase().includes('progress');
   
   const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
+  const isEpic = nodeData.isEpic;
   
   // Base styling using theme colors
   let fill = colors.jira.todoBg;
@@ -24,8 +25,15 @@ export const getNodeStyling = (
   let strokeWidth = 1.5;
   let textColor = colors.text.primary;
   
-  // Status-based modifications using theme colors
-  if (isDone) {
+  // Epic styling takes priority over status
+  if (isEpic) {
+    fill = colors.jira.epicBg;
+    stroke = colors.jira.epicBorder;
+    textColor = colors.jira.epic;
+    strokeWidth = 2; // Make epic nodes slightly more prominent
+  }
+  // Status-based modifications using theme colors (only if not epic)
+  else if (isDone) {
     fill = colors.jira.doneBg;
     stroke = colors.jira.doneBorder;
     textColor = colors.jira.done;
@@ -56,7 +64,9 @@ export const getNodeStyling = (
   // Choose shadow color based on node state
   let shadowFilter = '';
   if (isHovered) {
-    if (isBlocked) {
+    if (isEpic) {
+      shadowFilter = 'url(#hover-shadow-purple)';
+    } else if (isBlocked) {
       shadowFilter = 'url(#hover-shadow-red)';
     } else if (isDone) {
       shadowFilter = 'url(#hover-shadow-green)';

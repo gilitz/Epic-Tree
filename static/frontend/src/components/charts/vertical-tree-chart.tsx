@@ -25,6 +25,8 @@ const defaultMargin = { top: 30, left: 40, right: 40, bottom: 30 };
 // Constants for fixed spacing
 const NODE_WIDTH = 120;
 const NODE_HEIGHT = 28;
+const EPIC_NODE_WIDTH = NODE_WIDTH * 1.5; // 50% longer
+const EPIC_NODE_HEIGHT = NODE_HEIGHT * 2 - 12; // Double height minus 4px
 const HORIZONTAL_SPACING = 180; // Fixed horizontal spacing between nodes
 const VERTICAL_SPACING = 50; // Fixed vertical spacing between levels
 const MIN_CONTAINER_PADDING = 50; // Minimum padding around the tree
@@ -230,7 +232,7 @@ export function VerticalTreeChart({
           toggleFullScreen={toggleFullScreen}
         />
       )}
-      <ScrollableContainer colors={colors}>
+      <ScrollableContainer colors={colors} $orientation={orientation}>
         <svg 
           width={svgWidth} 
           height={svgHeight}
@@ -252,6 +254,9 @@ export function VerticalTreeChart({
             </filter>
             <filter id="hover-shadow-yellow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#fbbf24" floodOpacity="0.8"/>
+            </filter>
+            <filter id="hover-shadow-purple" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#a855f7" floodOpacity="0.8"/>
             </filter>
           </defs>
           
@@ -298,12 +303,16 @@ export function VerticalTreeChart({
                     }
                     const nodeData = node.data as TreeData;
                     
+                    // Use larger dimensions for epic nodes
+                    const nodeWidth = nodeData.isEpic ? EPIC_NODE_WIDTH : NODE_WIDTH;
+                    const nodeHeight = nodeData.isEpic ? EPIC_NODE_HEIGHT : NODE_HEIGHT;
+                    
                     return (
                       <TreeNode
                         key={index}
                         nodeData={nodeData}
-                        width={NODE_WIDTH}
-                        height={NODE_HEIGHT}
+                        width={nodeWidth}
+                        height={nodeHeight}
                         left={left}
                         top={top}
                         hoveredNodeId={hoveredNodeId}
@@ -339,13 +348,14 @@ const ChartContainer = styled.div.withConfig({
 `;
 
 const ScrollableContainer = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
+  shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$orientation',
+})<{ colors: any; $orientation: 'vertical' | 'horizontal' }>`
   width: 100%;
   height: 100%;
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
+  padding-left: ${props => props.$orientation === 'horizontal' ? '24px' : '0'};
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {

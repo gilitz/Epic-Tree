@@ -208,7 +208,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
         {/* Node Text with automatic ellipsis - adjusted for icons on the right */}
         <foreignObject
           x={-width / 2 + 8}
-          y={-8}
+          y={nodeData.isEpic ? -14 : -8}
           width={width - 16 - ((() => {
             const isBlocked = nodeData.blockingIssues && nodeData.blockingIssues.length > 0;
             let iconsWidth = 0;
@@ -216,10 +216,13 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
                          if (isBlocked) iconsWidth += 16;
             return iconsWidth;
           })())}
-          height={16}
+          height={nodeData.isEpic ? 28 : 16}
           style={{ pointerEvents: 'none' }}
         >
-          <NodeTextContainer $textColor={nodeStyling.textColor}>
+          <NodeTextContainer 
+            $textColor={nodeStyling.textColor}
+            $isEpic={nodeData.isEpic}
+          >
             {displayName}
           </NodeTextContainer>
         </foreignObject>
@@ -239,14 +242,22 @@ const BlockedIconContainer = styled.div`
   line-height: 16px;
 `;
 
-const NodeTextContainer = styled.div<{ $textColor: string }>`
+const NodeTextContainer = styled.div<{ $textColor: string; $isEpic?: boolean }>`
   font-size: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 500;
   color: ${props => props.$textColor};
-  white-space: nowrap;
+  white-space: ${props => props.$isEpic ? 'normal' : 'nowrap'};
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 16px;
   transition: color 0.2s ease-in-out;
+  
+  ${props => props.$isEpic && `
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-wrap: break-word;
+    height: 28px;
+  `}
 `; 

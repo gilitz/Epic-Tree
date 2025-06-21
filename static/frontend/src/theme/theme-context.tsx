@@ -70,6 +70,9 @@ interface CSSThemeColors {
     blocked: string;
     blockedBg: string;
     blockedBorder: string;
+    epic: string;
+    epicBg: string;
+    epicBorder: string;
   };
   shadow: {
     sm: string;
@@ -162,6 +165,9 @@ const cssColors: CSSThemeColors = {
     blocked: 'var(--color-jira-blocked)',
     blockedBg: 'var(--color-jira-blocked-bg)',
     blockedBorder: 'var(--color-jira-blocked-border)',
+    epic: 'var(--color-jira-epic)',
+    epicBg: 'var(--color-jira-epic-bg)',
+    epicBorder: 'var(--color-jira-epic-border)',
   },
   shadow: {
     sm: 'var(--color-shadow-sm)',
