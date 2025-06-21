@@ -4,6 +4,7 @@ import { MultiSelectFilter, FilterOption } from './multi-select-filter';
 import { useFilters } from '../contexts/filter-context';
 import { useTheme } from '../theme/theme-context';
 import { useFetchAssignableUsers } from '../hooks/use-fetch-assignable-users';
+import { useFetchPriorities } from '../hooks/use-fetch-priorities';
 
 interface FilterBarProps {
   issuesByEpic: any[];
@@ -25,10 +26,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   toggleFullScreen 
 }) => {
   const { colors } = useTheme();
-  const { filters, updateAssigneeFilter, updateStatusFilter, clearAllFilters, hasActiveFilters } = useFilters();
+  const { 
+    filters, 
+    updateAssigneeFilter, 
+    updateStatusFilter, 
+    updatePriorityFilter, 
+    updateLabelsFilter, 
+    updateBlockingStatusFilter, 
+    clearAllFilters, 
+    hasActiveFilters 
+  } = useFilters();
   
-  // Fetch assignable users for the epic
+  // Fetch assignable users and priorities
   const { users: assignableUsers } = useFetchAssignableUsers({ issueKey: epicKey });
+  const { priorities } = useFetchPriorities();
 
   // Extract unique assignees from issues and combine with assignable users
   const assigneeOptions: FilterOption[] = useMemo(() => {
@@ -111,7 +122,116 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     });
   }, [issuesByEpic]);
 
-  if (assigneeOptions.length <= 1 && statusOptions.length === 0) {
+  // Extract unique priorities from issues and combine with available priorities
+  const priorityOptions: FilterOption[] = useMemo(() => {
+    const priorityMap = new Map<string, FilterOption>();
+
+    // Add priorities from current issues
+    issuesByEpic.forEach(issue => {
+      if (issue.fields?.priority) {
+        const priority = issue.fields.priority;
+        const priorityId = priority.id || priority.name;
+        if (priorityId && !priorityMap.has(priorityId)) {
+          priorityMap.set(priorityId, {
+            id: priorityId,
+            label: priority.name || 'Unknown Priority',
+            value: priorityId,
+            iconUrl: priority.iconUrl,
+          });
+        }
+      }
+    });
+
+    // Add all available priorities from the system
+    priorities.forEach(priority => {
+      if (!priorityMap.has(priority.id)) {
+        priorityMap.set(priority.id, {
+          id: priority.id,
+          label: priority.name,
+          value: priority.id,
+          iconUrl: priority.iconUrl,
+        });
+      }
+    });
+
+    return Array.from(priorityMap.values()).sort((a, b) => {
+      // Custom sort order for priorities: High, Medium, Low, then others alphabetically
+      const priorityOrder = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
+      const aIndex = priorityOrder.indexOf(a.label);
+      const bIndex = priorityOrder.indexOf(b.label);
+      
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      
+      return a.label.localeCompare(b.label);
+    });
+  }, [issuesByEpic, priorities]);
+
+  // Extract unique labels from issues
+  const labelOptions: FilterOption[] = useMemo(() => {
+    const labelSet = new Set<string>();
+    
+    issuesByEpic.forEach(issue => {
+      if (issue.fields?.labels && Array.isArray(issue.fields.labels)) {
+        issue.fields.labels.forEach((label: string) => {
+          if (label) {
+            labelSet.add(label);
+          }
+        });
+      }
+    });
+
+    const options: FilterOption[] = [];
+
+    // Add all unique labels without colors
+    Array.from(labelSet).sort().forEach(label => {
+      options.push({
+        id: label,
+        label,
+        value: label,
+      });
+    });
+
+    return options;
+  }, [issuesByEpic]);
+
+  // Blocking/Blocked status options with emoji icons
+  const blockingStatusOptions: FilterOption[] = useMemo(() => {
+    return [
+      {
+        id: 'blocking',
+        label: 'Blocking',
+        value: 'blocking',
+        iconUrl: `data:image/svg+xml;charset=utf-8,${  encodeURIComponent(`
+          <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <text x="8" y="11" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">🔒</text>
+          </svg>
+        `)}`,
+      },
+      {
+        id: 'blocked',
+        label: 'Blocked',
+        value: 'blocked',
+        iconUrl: `data:image/svg+xml;charset=utf-8,${  encodeURIComponent(`
+          <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <text x="8" y="11" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">🚫</text>
+          </svg>
+        `)}`,
+      },
+    ];
+  }, []);
+
+  // Check if we have enough options to show filters
+  const showAssigneeFilter = assigneeOptions.length > 1;
+  const showStatusFilter = statusOptions.length > 0;
+  const showPriorityFilter = priorityOptions.length > 0;
+  const showLabelsFilter = labelOptions.length > 0;
+  const showBlockingFilter = blockingStatusOptions.length > 0;
+
+  if (!showAssigneeFilter && !showStatusFilter && !showPriorityFilter && !showLabelsFilter && !showBlockingFilter) {
     return null; // Don't show filter bar if there's nothing to filter
   }
 
@@ -119,7 +239,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     <FilterBarContainer colors={colors}>
       <FilterSection>
         <FiltersRow>
-          {assigneeOptions.length > 1 && (
+          {showAssigneeFilter && (
             <MultiSelectFilter
               label="Assignee"
               options={assigneeOptions}
@@ -129,12 +249,41 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             />
           )}
           
-          {statusOptions.length > 0 && (
+          {showStatusFilter && (
             <MultiSelectFilter
               label="Status"
               options={statusOptions}
               selectedValues={filters.statuses}
               onChange={updateStatusFilter}
+            />
+          )}
+
+          {showPriorityFilter && (
+            <MultiSelectFilter
+              label="Priority"
+              options={priorityOptions}
+              selectedValues={filters.priorities}
+              onChange={updatePriorityFilter}
+              showIcons={true}
+            />
+          )}
+
+          {showLabelsFilter && (
+            <MultiSelectFilter
+              label="Labels"
+              options={labelOptions}
+              selectedValues={filters.labels}
+              onChange={updateLabelsFilter}
+            />
+          )}
+
+          {showBlockingFilter && (
+            <MultiSelectFilter
+              label="Linked"
+              options={blockingStatusOptions}
+              selectedValues={filters.blockingStatus}
+              onChange={updateBlockingStatusFilter}
+              showIcons={true}
             />
           )}
           
@@ -165,7 +314,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 const FilterBarContainer = styled.div<{ colors: any }>`
   display: flex;
   align-items: center;
-  padding: 16px 24px;
+  padding: 8px 24px;
   background: ${props => props.colors.background.primary};
   border-bottom: 1px solid ${props => props.colors.border.primary};
 `;

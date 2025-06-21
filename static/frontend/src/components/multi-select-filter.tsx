@@ -7,6 +7,7 @@ export interface FilterOption {
   label: string;
   value: string;
   avatarUrl?: string;
+  iconUrl?: string;
 }
 
 interface MultiSelectFilterProps {
@@ -15,6 +16,7 @@ interface MultiSelectFilterProps {
   selectedValues: string[];
   onChange: (selectedValues: string[]) => void;
   showAvatars?: boolean;
+  showIcons?: boolean;
 }
 
 export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
@@ -23,6 +25,7 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
   selectedValues,
   onChange,
   showAvatars = false,
+  showIcons = false,
 }) => {
   const { colors } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
@@ -102,6 +105,9 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                 {showAvatars && displayInfo.firstOption?.avatarUrl && (
                   <Avatar src={displayInfo.firstOption.avatarUrl} alt={displayInfo.firstOption.label} />
                 )}
+                {showIcons && displayInfo.firstOption?.iconUrl && (
+                  <Icon src={displayInfo.firstOption.iconUrl} alt={displayInfo.firstOption.label} />
+                )}
                 <FilterValue colors={colors}>
                   {displayInfo.text}
                 </FilterValue>
@@ -123,7 +129,10 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                             {showAvatars && option.avatarUrl && (
                               <TooltipAvatar src={option.avatarUrl} alt={option.label} />
                             )}
-                            <TooltipText>• {option.label}</TooltipText>
+                            {showIcons && option.iconUrl && (
+                              <TooltipAvatar src={option.iconUrl} alt={option.label} />
+                            )}
+                            <TooltipText>{option.label}</TooltipText>
                           </TooltipContent>
                         </TooltipLine>
                       ))}
@@ -141,15 +150,6 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
 
       {isOpen && (
         <DropdownMenu colors={colors}>
-          <DropdownHeader colors={colors}>
-            <HeaderTitle colors={colors}>{label}</HeaderTitle>
-            {hasSelections && (
-              <ClearButton onClick={handleClearAll} colors={colors}>
-                Clear All
-              </ClearButton>
-            )}
-          </DropdownHeader>
-          
           <OptionsList>
             {options.map((option) => (
               <OptionItem
@@ -169,10 +169,24 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                   <DropdownAvatar src={option.avatarUrl} alt={option.label} />
                 )}
                 
-                <OptionLabel colors={colors}>{option.label}</OptionLabel>
+                {showIcons && option.iconUrl && (
+                  <DropdownIcon src={option.iconUrl} alt={option.label} />
+                )}
+                
+                <OptionLabel colors={colors}>
+                  {option.label}
+                </OptionLabel>
               </OptionItem>
             ))}
           </OptionsList>
+          
+          {hasSelections && (
+            <DropdownFooter colors={colors}>
+              <ClearButton onClick={handleClearAll} colors={colors}>
+                Clear All
+              </ClearButton>
+            </DropdownFooter>
+          )}
         </DropdownMenu>
       )}
     </FilterContainer>
@@ -347,8 +361,7 @@ const DropdownArrow = styled.span<{ colors: any; isOpen: boolean }>`
 const DropdownMenu = styled.div<{ colors: any }>`
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   z-index: 1000;
   background: ${props => props.colors.background.primary};
   border: 1px solid ${props => props.colors.border.primary};
@@ -359,24 +372,18 @@ const DropdownMenu = styled.div<{ colors: any }>`
   max-width: 250px;
 `;
 
-const DropdownHeader = styled.div<{ colors: any }>`
+const DropdownFooter = styled.div<{ colors: any }>`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid ${props => props.colors.border.primary};
-`;
-
-const HeaderTitle = styled.span<{ colors: any }>`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${props => props.colors.text.primary};
+  padding: 4px 8px;
+  border-top: 1px solid ${props => props.colors.border.primary};
 `;
 
 const ClearButton = styled.button<{ colors: any }>`
   background: none;
   border: none;
-  color: ${props => props.colors.interactive.primary};
+  color: ${props => props.colors.text.secondary};
   font-size: 10px;
   cursor: pointer;
   padding: 2px 6px;
@@ -384,6 +391,7 @@ const ClearButton = styled.button<{ colors: any }>`
   
   &:hover {
     background: ${props => props.colors.surface.hover};
+    color: ${props => props.colors.text.primary};
   }
 `;
 
@@ -432,11 +440,25 @@ const Avatar = styled.img`
   flex-shrink: 0;
 `;
 
+const Icon = styled.img`
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+`;
+
 const DropdownAvatar = styled.img`
   width: 16px;
   height: 16px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
+`;
+
+const DropdownIcon = styled.img`
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
   flex-shrink: 0;
 `;
 

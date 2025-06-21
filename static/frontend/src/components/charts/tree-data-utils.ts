@@ -28,14 +28,27 @@ export const extractBlockedIssues = (issuelinks: any[]): BlockedIssue[] => {
 };
 
 // Filter function to check if a node matches the filter criteria
-export const nodeMatchesFilters = (node: TreeData, filters: { assignees: string[]; statuses: string[] }): boolean => {
+export const nodeMatchesFilters = (node: TreeData, filters: { 
+  assignees: string[]; 
+  statuses: string[]; 
+  priorities: string[]; 
+  labels: string[]; 
+  blockingStatus: string[]; 
+}): boolean => {
   // If no filters are applied, show all nodes
-  if (filters.assignees.length === 0 && filters.statuses.length === 0) {
+  if (filters.assignees.length === 0 && 
+      filters.statuses.length === 0 && 
+      filters.priorities.length === 0 && 
+      filters.labels.length === 0 && 
+      filters.blockingStatus.length === 0) {
     return true;
   }
 
   let matchesAssigneeFilter = true;
   let matchesStatusFilter = true;
+  let matchesPriorityFilter = true;
+  let matchesLabelsFilter = true;
+  let matchesBlockingFilter = true;
 
   // Check assignee filter
   if (filters.assignees.length > 0) {
@@ -56,11 +69,49 @@ export const nodeMatchesFilters = (node: TreeData, filters: { assignees: string[
     matchesStatusFilter = node.status && filters.statuses.includes(node.status.name);
   }
 
-  return matchesAssigneeFilter && matchesStatusFilter;
+  // Check priority filter
+  if (filters.priorities.length > 0) {
+    // Only check for specific priorities
+    matchesPriorityFilter = node.priority && filters.priorities.some(priorityId => {
+      return node.priority?.name === priorityId || 
+             (node.priority as any)?.id === priorityId;
+    });
+  }
+
+  // Check labels filter
+  if (filters.labels.length > 0) {
+    // Only check for specific labels
+    matchesLabelsFilter = node.labels && node.labels.some(label => filters.labels.includes(label));
+  }
+
+  // Check blocking status filter
+  if (filters.blockingStatus.length > 0) {
+    const isBlocking = node.blockedIssues && node.blockedIssues.length > 0;
+    const isBlocked = node.blockingIssues && node.blockingIssues.length > 0;
+
+    matchesBlockingFilter = filters.blockingStatus.some(status => {
+      switch (status) {
+        case 'blocking':
+          return isBlocking;
+        case 'blocked':
+          return isBlocked;
+        default:
+          return false;
+      }
+    });
+  }
+
+  return matchesAssigneeFilter && matchesStatusFilter && matchesPriorityFilter && matchesLabelsFilter && matchesBlockingFilter;
 };
 
 // Recursive function to filter tree data with context tracking
-export const filterTreeData = (node: TreeData, filters: { assignees: string[]; statuses: string[] }): TreeData | null => {
+export const filterTreeData = (node: TreeData, filters: { 
+  assignees: string[]; 
+  statuses: string[]; 
+  priorities: string[]; 
+  labels: string[]; 
+  blockingStatus: string[]; 
+}): TreeData | null => {
   // Always include the root epic node, but filter its children
   if (node.isEpic) {
     const filteredChildren = node.children
