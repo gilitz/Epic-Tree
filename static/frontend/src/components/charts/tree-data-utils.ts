@@ -159,6 +159,9 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
       });
     }
 
+    // Track which subtasks have been assigned to prevent duplicates
+    const assignedSubtasks = new Set<string>();
+
     const treeData = {
       name: (epic?.fields?.summary as string) || (epic?.key as string) || 'Epic Tree',
       key: (epic?.key as string),
@@ -218,6 +221,17 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
               ? (subtask as any).key as string 
               : undefined;
             
+            // Skip if this subtask has already been assigned to another parent
+            if (subtaskKey && assignedSubtasks.has(subtaskKey)) {
+              console.warn(`⚠️ Duplicate subtask detected: ${subtaskKey} is assigned to multiple parent tasks!`);
+              return null;
+            }
+            
+            // Mark this subtask as assigned
+            if (subtaskKey) {
+              assignedSubtasks.add(subtaskKey);
+            }
+            
             // Get detailed data for this subtask if available
             const subtaskDetail = subtaskKey ? subtaskDetailMap.get(subtaskKey) : undefined;
             const subtaskFields = subtaskDetail?.fields;
@@ -248,7 +262,7 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
               blockedIssues: extractBlockedIssues((subtaskFields?.issuelinks as any[]) || []),
               isEpic: false
             };
-          }) 
+          }).filter(subtask => subtask !== null) 
         };
         
         return issueNode;

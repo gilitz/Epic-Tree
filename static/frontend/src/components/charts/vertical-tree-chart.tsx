@@ -158,9 +158,15 @@ export function VerticalTreeChart({
       calculatedTreeWidth = maxNodesAtLevel * HORIZONTAL_SPACING;
       calculatedTreeHeight = (maxDepth + 1) * VERTICAL_SPACING;
     } else {
-      const dynamicLevelSpacing = maxNodesAtLevel * (NODE_HEIGHT - 12);
-      calculatedTreeWidth = (maxDepth + 1) * dynamicLevelSpacing;
-      calculatedTreeHeight = maxNodesAtLevel * HORIZONTAL_MODE_NODE_SPACING;
+      // For horizontal orientation: FIXED spacing between nodes regardless of count
+      const LEVEL_SPACING = 120; // MUCH shorter lines - fixed spacing between levels
+      calculatedTreeWidth = (maxDepth + 1) * LEVEL_SPACING;
+      // Calculate height to accommodate FIXED spacing between ALL nodes with proper padding
+      const TOP_PADDING = 50; // Reduced top padding
+      const BOTTOM_PADDING = 10; // Added bottom padding
+      calculatedTreeHeight = maxNodesAtLevel > 1 
+        ? (maxNodesAtLevel - 1) * 60 + NODE_HEIGHT + TOP_PADDING + BOTTOM_PADDING // Use task spacing as base
+        : NODE_HEIGHT + TOP_PADDING + BOTTOM_PADDING;
     }
 
     return {
@@ -359,7 +365,7 @@ export function VerticalTreeChart({
           <Group top={margin.top} left={margin.left}>
             <Tree
               root={data}
-              size={[treeWidth, treeHeight]}
+              size={orientation === 'horizontal' ? [800, treeHeight] : [treeWidth, treeHeight]}
               separation={() => {
                 // Fixed separation based on constants
                 if (orientation === 'vertical') {
@@ -369,57 +375,161 @@ export function VerticalTreeChart({
                 }
               }}
             >
-              {(tree) => (
-                <Group top={origin.y} left={origin.x}>
+              {(tree) => {
+                const descendants = tree.descendants();
+                
+                // ONLY FOR HORIZONTAL MODE: Apply fixed spacing between nodes AND levels
+                if (orientation === 'horizontal') {
+                  const TASK_NODE_SPACING = 60; // 60px between task nodes (level 1)
+                  const SUBTASK_NODE_SPACING = 40; // 40px between subtask nodes (level 2+) - smaller spacing
+                  const FIXED_LEVEL_SPACING = 300; // FIXED 300px between levels (line length)
+                  const MIN_NODE_SPACING = 35; // Minimum spacing to prevent overlaps
+                  const nodesByDepth: { [depth: number]: any[] } = {};
+                  const nodesByParent: { [parentId: string]: any[] } = {};
                   
-                  {(tree.links() || []).map((link, index) => (
-                    <LinkComponent
-                      key={index}
-                      data={link}
-                      percent={stepPercent}
-                      stroke={colors.tree.lines}
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                  ))}
-
-                  {(tree.descendants() || []).map((node, index) => {
-                    let top: number;
-                    let left: number;
-                    if (layout === 'polar') {
-                      const [radialX, radialY] = pointRadial(node.x, node.y);
-                      top = radialY;
-                      left = radialX;
-                    } else if (orientation === 'vertical') {
-                      top = node.y;
-                      left = node.x;
-                    } else {
-                      top = node.x;
-                      left = node.y;
+                  // Group nodes by depth and by parent
+                  descendants.forEach(node => {
+                    if (!nodesByDepth[node.depth]) {
+                      nodesByDepth[node.depth] = [];
                     }
-                    const nodeData = node.data as TreeData;
+                    nodesByDepth[node.depth].push(node);
                     
-                    // Use larger dimensions for epic nodes
-                    const nodeWidth = nodeData.isEpic ? EPIC_NODE_WIDTH : NODE_WIDTH;
-                    const nodeHeight = nodeData.isEpic ? EPIC_NODE_HEIGHT : NODE_HEIGHT;
+                    // Group by parent for centering children around parent
+                    const parentId = node.parent ? node.parent.data.key || 'root' : 'root';
+                    if (!nodesByParent[parentId]) {
+                      nodesByParent[parentId] = [];
+                    }
+                    nodesByParent[parentId].push(node);
+                  });
+                  
+                  // Process nodes by depth order (parents first, then children)
+                  const sortedDepths = Object.keys(nodesByDepth).map(d => parseInt(d)).sort((a, b) => a - b);
+                  
+                  sortedDepths.forEach(depth => {
+                    const nodesAtThisDepth = nodesByDepth[depth];
                     
-                    return (
-                      <TreeNode
+                    // Set FIXED horizontal position based on depth (this controls line length)
+                    const fixedHorizontalPosition = depth * FIXED_LEVEL_SPACING;
+                    
+                    if (depth === 0) {
+                      // Root node (Epic) - center it in the available space
+                      const rootNode = nodesAtThisDepth[0];
+                      rootNode.x = treeHeight / 2;
+                      rootNode.y = fixedHorizontalPosition;
+                    } else {
+                      // For child nodes, center them around their parent with collision detection
+                      const processedNodes = new Set();
+                      const placedNodes: { x: number; node: any }[] = [];
+                      
+                      nodesAtThisDepth.forEach(node => {
+                        if (processedNodes.has(node)) return;
+                        
+                        const parentId = node.parent ? node.parent.data.key || 'root' : 'root';
+                        const siblings = nodesByParent[parentId].filter(n => n.depth === depth);
+                        
+                        if (siblings.length === 1) {
+                          // Single child - try to align with parent, but check for collisions
+                          const singleNode = siblings[0];
+                          let desiredX = singleNode.parent.x;
+                          
+                          // Check for collision with already placed nodes
+                          while (placedNodes.some(placed => Math.abs(placed.x - desiredX) < MIN_NODE_SPACING)) {
+                            desiredX += MIN_NODE_SPACING;
+                          }
+                          
+                          singleNode.x = desiredX;
+                          singleNode.y = fixedHorizontalPosition;
+                          placedNodes.push({ x: desiredX, node: singleNode });
+                          processedNodes.add(singleNode);
+                        } else {
+                          // Multiple siblings - center around parent with collision avoidance
+                          const parentX = node.parent.x;
+                          // Use different spacing based on depth: tasks (level 1) vs subtasks (level 2+)
+                          const nodeSpacing = depth === 1 ? TASK_NODE_SPACING : SUBTASK_NODE_SPACING;
+                          const totalSpaceNeeded = (siblings.length - 1) * nodeSpacing;
+                          let startX = parentX - (totalSpaceNeeded / 2);
+                          
+                          // Check if this group would collide with existing nodes
+                          const groupEndX = startX + totalSpaceNeeded;
+                          const hasCollision = placedNodes.some(placed => 
+                            (placed.x >= startX - MIN_NODE_SPACING && placed.x <= groupEndX + MIN_NODE_SPACING)
+                          );
+                          
+                          // If collision detected, find a safe position
+                          if (hasCollision) {
+                            // Find the rightmost placed node and position after it
+                            const rightmostX = Math.max(...placedNodes.map(p => p.x), 0);
+                            startX = rightmostX + MIN_NODE_SPACING * 2;
+                          }
+                          
+                          // Sort siblings to maintain consistent order
+                          siblings.sort((a, b) => a.x - b.x);
+                          
+                          siblings.forEach((sibling, index) => {
+                            const nodeX = startX + (index * nodeSpacing);
+                            sibling.x = nodeX;
+                            sibling.y = fixedHorizontalPosition;
+                            placedNodes.push({ x: nodeX, node: sibling });
+                            processedNodes.add(sibling);
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+                
+                return (
+                  <Group top={origin.y} left={origin.x}>
+                    
+                    {(tree.links() || []).map((link, index) => (
+                      <LinkComponent
                         key={index}
-                        nodeData={nodeData}
-                        width={nodeWidth}
-                        height={nodeHeight}
-                        left={left}
-                        top={top}
-                        hoveredNodeId={hoveredNodeId}
-                        tooltipOpenNodeId={tooltipOpenNodeId}
-                        setHoveredNodeId={setHoveredNodeId}
-                        setTooltipOpenNodeId={setTooltipOpenNodeId}
+                        data={link}
+                        percent={stepPercent}
+                        stroke={colors.tree.lines}
+                        strokeWidth="1.5"
+                        fill="none"
                       />
-                    );
-                  })}
-                </Group>
-              )}
+                    ))}
+
+                    {descendants.map((node, index) => {
+                      let top: number;
+                      let left: number;
+                      if (layout === 'polar') {
+                        const [radialX, radialY] = pointRadial(node.x, node.y);
+                        top = radialY;
+                        left = radialX;
+                      } else if (orientation === 'vertical') {
+                        top = node.y;
+                        left = node.x;
+                      } else {
+                        top = node.x;
+                        left = node.y;
+                      }
+                      const nodeData = node.data as TreeData;
+                      
+                      // Use larger dimensions for epic nodes
+                      const nodeWidth = nodeData.isEpic ? EPIC_NODE_WIDTH : NODE_WIDTH;
+                      const nodeHeight = nodeData.isEpic ? EPIC_NODE_HEIGHT : NODE_HEIGHT;
+                      
+                      return (
+                        <TreeNode
+                          key={index}
+                          nodeData={nodeData}
+                          width={nodeWidth}
+                          height={nodeHeight}
+                          left={left}
+                          top={top}
+                          hoveredNodeId={hoveredNodeId}
+                          tooltipOpenNodeId={tooltipOpenNodeId}
+                          setHoveredNodeId={setHoveredNodeId}
+                          setTooltipOpenNodeId={setTooltipOpenNodeId}
+                        />
+                      );
+                    })}
+                  </Group>
+                );
+              }}
             </Tree>
           </Group>
         </svg>
