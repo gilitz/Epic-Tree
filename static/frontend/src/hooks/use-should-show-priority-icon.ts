@@ -27,8 +27,7 @@ export const useShouldShowPriorityIcon = ({
   const priorityIconUrl = optimisticPriorityData?.iconUrl || defaultPriority?.iconUrl;
   
   // Show priority icon if:
-  // - Not loading field metadata
-  // - Priority field is editable for this issue type
   // - Icon URL is available
-  return !fieldsLoading && isFieldEditable('priority') && !!priorityIconUrl;
+  // - Loading is NOT complete OR priority field is editable for this issue type
+  return !!priorityIconUrl && (fieldsLoading || isFieldEditable('priority'));
 }; 

@@ -38,10 +38,9 @@ export const NodePriorityDisplay: React.FC<NodePriorityDisplayProps> = ({
   const priorityIconUrl = optimisticPriorityData?.iconUrl || defaultPriority?.iconUrl;
   
   // Don't render if:
-  // - Still loading field metadata
-  // - Priority field is not editable for this issue type
   // - No icon URL available
-  if (fieldsLoading || !isFieldEditable('priority') || !priorityIconUrl) {
+  // - Loading is complete AND priority field is not editable for this issue type
+  if (!priorityIconUrl || (!fieldsLoading && !isFieldEditable('priority'))) {
     return null;
   }
   
