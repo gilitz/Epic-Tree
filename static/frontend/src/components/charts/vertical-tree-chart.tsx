@@ -160,7 +160,7 @@ export function VerticalTreeChart({
     } else {
       // For horizontal orientation: width = depth horizontally, height = max nodes vertically  
       // Dynamic level spacing calculation: max nodes at any level * (node height + top/bottom padding)
-      const dynamicLevelSpacing = maxNodesAtLevel * (NODE_HEIGHT - 12); // 18px top + 18px bottom = 36px total padding
+      const dynamicLevelSpacing = maxNodesAtLevel * (NODE_HEIGHT - 12);
       // Dynamic width calculation based on tree depth using dynamic spacing
       calculatedTreeWidth = (maxDepth + 1) * dynamicLevelSpacing;
       // Dynamic height calculation based on maximum nodes at any level
