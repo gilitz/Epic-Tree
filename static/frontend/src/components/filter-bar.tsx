@@ -56,7 +56,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // Add assignees from current issues
     issuesByEpic.forEach(issue => {
       if (issue.fields?.assignee) {
-        const assignee = issue.fields.assignee as any;
+        const assignee = issue.fields.assignee as { 
+          displayName?: string; 
+          accountId?: string; 
+          key?: string; 
+          name?: string; 
+          avatarUrls?: { '16x16'?: string; '24x24'?: string } 
+        };
         const accountId = assignee.accountId || assignee.key || assignee.name;
         if (accountId && !assigneeMap.has(accountId)) {
           assigneeMap.set(accountId, {
@@ -95,7 +101,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     
     issuesByEpic.forEach(issue => {
       if (issue.fields?.status) {
-        const status = issue.fields.status as any;
+        const status = issue.fields.status as { name?: string };
         const statusName = status.name;
         if (statusName && !statusMap.has(statusName)) {
           statusMap.set(statusName, {
@@ -130,7 +136,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // Add priorities from current issues
     issuesByEpic.forEach(issue => {
       if (issue.fields?.priority) {
-        const priority = issue.fields.priority as any;
+        const priority = issue.fields.priority as { id?: string; name?: string; iconUrl?: string };
         const priorityId = priority.id || priority.name;
         if (priorityId && !priorityMap.has(priorityId)) {
           priorityMap.set(priorityId, {

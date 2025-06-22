@@ -27,8 +27,10 @@ const NODE_WIDTH = 120;
 const NODE_HEIGHT = 28;
 const EPIC_NODE_WIDTH = NODE_WIDTH * 1.5; // 50% longer
 const EPIC_NODE_HEIGHT = NODE_HEIGHT * 2 - 12; // Double height minus 4px
-const HORIZONTAL_SPACING = 180; // Fixed horizontal spacing between nodes
-const VERTICAL_SPACING = 65; // Fixed vertical spacing between levels (increased for better visual separation)
+const HORIZONTAL_SPACING = 180; // Fixed horizontal spacing between nodes (vertical mode)
+const VERTICAL_SPACING = 65; // Fixed vertical spacing between levels (vertical mode)
+// Horizontal mode specific spacing - bigger node spacing
+const HORIZONTAL_MODE_NODE_SPACING = 50; // Much bigger vertical spacing between nodes (no overlap)
 const MIN_CONTAINER_PADDING = 50; // Minimum padding around the tree
 
 export function VerticalTreeChart({
@@ -146,8 +148,12 @@ export function VerticalTreeChart({
       calculatedTreeHeight = (maxDepth + 1) * VERTICAL_SPACING;
     } else {
       // For horizontal orientation: width = depth horizontally, height = max nodes vertically  
-      calculatedTreeWidth = HORIZONTAL_SPACING * 2.1;
-      calculatedTreeHeight = VERTICAL_SPACING * 10;
+      // Dynamic level spacing calculation: max nodes at any level * (node height + top/bottom padding)
+      const dynamicLevelSpacing = maxNodesAtLevel * (NODE_HEIGHT - 12); // 18px top + 18px bottom = 36px total padding
+      // Dynamic width calculation based on tree depth using dynamic spacing
+      calculatedTreeWidth = (maxDepth + 1) * dynamicLevelSpacing;
+      // Dynamic height calculation based on maximum nodes at any level
+      calculatedTreeHeight = maxNodesAtLevel * HORIZONTAL_MODE_NODE_SPACING;
     }
 
     return {
@@ -269,7 +275,7 @@ export function VerticalTreeChart({
                 if (orientation === 'vertical') {
                   return HORIZONTAL_SPACING / treeWidth;
                 } else {
-                  return VERTICAL_SPACING / treeHeight;
+                  return HORIZONTAL_MODE_NODE_SPACING / treeHeight;
                 }
               }}
             >

@@ -350,4 +350,4 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       )}
     </DropdownContainer>
   );
-}; 
+};
