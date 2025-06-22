@@ -123,6 +123,21 @@ const OptionText = styled.span.withConfig({
   color: ${props => props.colors?.text.primary || '#172b4d'};
 `;
 
+const LoadingText = styled.span`
+  font-size: inherit;
+  color: inherit;
+`;
+
+const PlaceholderText = styled.span`
+  font-size: inherit;
+  color: inherit;
+`;
+
+const DisplayText = styled.span`
+  font-size: inherit;
+  color: inherit;
+`;
+
 const LoadingSpinner = styled.div`
   display: inline-block;
   width: 12px;
@@ -257,7 +272,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
     if (loading) {
       return (
         <>
-          <span>Loading...</span>
+          <LoadingText>Loading...</LoadingText>
           <LoadingSpinner />
         </>
       );
@@ -277,7 +292,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
     const isEmpty = !displayName;
 
     if (isEmpty) {
-      return <span>{placeholder}</span>;
+      return <PlaceholderText>{placeholder}</PlaceholderText>;
     }
 
     return (
@@ -287,7 +302,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
             <OptionAvatar src={iconUrl} alt={displayName} /> :
             <OptionIcon src={iconUrl} alt={displayName} />
         )}
-        <span>{displayName}</span>
+        <DisplayText>{displayName}</DisplayText>
         {isUpdating && <LoadingSpinner />}
       </>
     );

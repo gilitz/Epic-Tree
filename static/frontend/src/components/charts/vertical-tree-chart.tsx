@@ -433,7 +433,8 @@ export function VerticalTreeChart({
                           let desiredX = singleNode.parent.x;
                           
                           // Check for collision with already placed nodes
-                          while (placedNodes.some(placed => Math.abs(placed.x - desiredX) < MIN_NODE_SPACING)) {
+                          const checkCollision = (x: number) => placedNodes.some(placed => Math.abs(placed.x - x) < MIN_NODE_SPACING);
+                          while (checkCollision(desiredX)) {
                             desiredX += MIN_NODE_SPACING;
                           }
                           
