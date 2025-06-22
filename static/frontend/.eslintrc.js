@@ -18,7 +18,7 @@ module.exports = {
     'react/no-unescaped-entities': 'warn',
     
     // General rules - less strict for development
-    'no-console': 'off', // Allow console.log for debugging
+    'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow console.warn and console.error, warn on console.log
     'prefer-const': 'error',
     'no-var': 'error',
     'object-shorthand': 'warn',

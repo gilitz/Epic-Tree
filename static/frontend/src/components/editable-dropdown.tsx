@@ -205,13 +205,6 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
   const handleSelectOption = useCallback(async (option: DropdownOption | null) => {
     if (isUpdating) return;
 
-    console.log(`🔄 DROPDOWN: Selecting option for ${fieldName}:`, {
-      option,
-      currentValue,
-      currentDisplayName,
-      isUnassign: option === null
-    });
-
     // Set optimistic values immediately as a structured object
     const optimisticData = option ? {
       value: option.id,
@@ -223,7 +216,6 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       iconUrl: undefined
     };
     
-    console.log(`🔄 DROPDOWN: Setting optimistic data:`, optimisticData);
     setOptimisticValue(issueKey, fieldName, optimisticData);
     setIsOpen(false);
 
@@ -231,7 +223,6 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
     await new Promise(resolve => setTimeout(resolve, 200));
 
     const fieldValueToSend = option?.id || null;
-    console.log(`🔄 DROPDOWN: Sending field value:`, fieldValueToSend);
     
     const success = await updateField(issueKey, fieldName, fieldValueToSend);
     if (!success) {
@@ -239,7 +230,6 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       return;
     }
     
-    console.log(`✅ DROPDOWN: Successfully updated ${fieldName} to:`, fieldValueToSend);
   }, [isUpdating, updateField, issueKey, fieldName, setOptimisticValue, currentValue, currentDisplayName]);
 
   // Initialize optimistic values when component mounts or when props change (but not during optimistic updates)
@@ -283,15 +273,6 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
     const iconUrl = hasOptimisticValue(issueKey, fieldName) 
       ? optimisticData?.iconUrl 
       : currentIconUrl;
-    
-    console.log(`🖼️ DROPDOWN: Display content for ${fieldName}:`, {
-      hasOptimistic: hasOptimisticValue(issueKey, fieldName),
-      optimisticData,
-      displayName,
-      iconUrl,
-      currentDisplayName,
-      currentIconUrl
-    });
     
     const isEmpty = !displayName;
 

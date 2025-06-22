@@ -351,7 +351,9 @@ const TooltipText = styled.span`
   flex: 1;
 `;
 
-const DropdownArrow = styled.span<{ colors: any; isOpen: boolean }>`
+const DropdownArrow = styled.span.withConfig({
+  shouldForwardProp: (prop) => !['colors', 'isOpen'].includes(prop),
+})<{ colors: any; isOpen: boolean }>`
   font-size: 8px;
   color: ${props => props.colors.text.secondary};
   transition: transform 0.2s ease;

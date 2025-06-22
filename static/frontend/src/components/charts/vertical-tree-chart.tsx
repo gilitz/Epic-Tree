@@ -20,7 +20,7 @@ import { LoadingComponent, NetworkErrorComponent } from './loading-error-compone
 import { FilterBar } from '../filter-bar';
 import { useFilters } from '../../contexts/filter-context';
 
-const defaultMargin = { top: 30, left: 40, right: 40, bottom: 30 };
+const defaultMargin = { top: 30, left: 70, right: 40, bottom: 30 };
 
 // Constants for fixed spacing
 const NODE_WIDTH = 120;
