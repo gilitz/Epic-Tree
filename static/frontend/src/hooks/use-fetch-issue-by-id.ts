@@ -37,6 +37,12 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
   };
 
   useEffect(() => {
+    // Don't fetch if issueId is empty
+    if (!issueId) {
+      setIssue(null);
+      return;
+    }
+
     const fetchIssueById = async (): Promise<Issue> => invoke('fetchIssueById', { issueId });
     fetchIssueById().then(handleFetchSuccess).catch(handleFetchError);
 

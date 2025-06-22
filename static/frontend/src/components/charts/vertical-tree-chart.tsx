@@ -9,6 +9,7 @@ import { pointRadial } from 'd3-shape';
 import { useFetchIssuesByEpicId } from '../../hooks/use-fetch-issues-by-epic';
 import { useFetchIssueById } from '../../hooks/use-fetch-issue-by-id';
 import { useFetchSubtasksByKeys } from '../../hooks/use-fetch-subtasks-by-keys';
+import { useFetchCurrentContext } from '../../hooks/use-fetch-current-context';
 import { useTheme } from '../../theme/theme-context';
 import getLinkComponent from './get-link-component';
 
@@ -53,8 +54,16 @@ export function VerticalTreeChart({
   const _innerHeight = totalHeight - margin.top - margin.bottom;
 
   const LinkComponent = getLinkComponent({ layout, linkType, orientation }) as any;
-  const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: 'ET-2' });
-  const { issue: rootEpicIssue } = useFetchIssueById({ issueId: 'ET-2' });
+  
+  // Get the current issue context
+  const { currentIssueKey, loading: contextLoading, error: contextError } = useFetchCurrentContext();
+  
+  // Only proceed if we have a valid epic key
+  const epicId = currentIssueKey;
+  
+  // Only fetch data if we have a valid epic ID
+  const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: epicId || '' });
+  const { issue: rootEpicIssue } = useFetchIssueById({ issueId: epicId || '' });
   
   // Get all subtask keys directly from the issues
   const subtaskKeys = useMemo(() => {
@@ -167,6 +176,26 @@ export function VerticalTreeChart({
   const svgWidth = treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right;
   const svgHeight = treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom;
 
+  // Handle context loading and errors first
+  if (contextLoading) {
+    return <LoadingComponent />;
+  }
+
+  if (contextError || !epicId) {
+    return (
+      <NoEpicContainer colors={colors}>
+        <NoEpicIcon>📊</NoEpicIcon>
+        <NoEpicTitle colors={colors}>Epic Tree View</NoEpicTitle>
+        <NoEpicMessage colors={colors}>
+          This panel displays the tree structure of Epic issues and their child stories/tasks.
+        </NoEpicMessage>
+        <NoEpicSubtitle colors={colors}>
+          Please navigate to an Epic issue to see its tree visualization.
+        </NoEpicSubtitle>
+      </NoEpicContainer>
+    );
+  }
+
   // Handle network error states
   if (rootEpicIssue?.fields?.summary?.includes('Network Error') || 
       rootEpicIssue?.fields?.summary?.includes('Error loading')) {
@@ -230,7 +259,7 @@ export function VerticalTreeChart({
       {issuesByEpic && issuesByEpic.length > 0 && rootEpicIssue && (
         <FilterBar 
           issuesByEpic={issuesByEpic} 
-          epicKey={rootEpicIssue.key || 'ET-2'}
+          epicKey={rootEpicIssue.key || epicId}
           orientation={orientation}
           isDarkTheme={isDarkTheme}
           toggleOrientation={toggleOrientation}
@@ -436,6 +465,54 @@ const LoadingText = styled.div.withConfig({
   font-size: 16px;
   color: ${props => props.colors.text.secondary};
   text-align: center;
+`;
+
+// No Epic styled components
+const NoEpicContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  background: ${props => props.colors.background.primary};
+  padding: 40px 20px;
+  text-align: center;
+`;
+
+const NoEpicIcon = styled.div`
+  font-size: 64px;
+  margin-bottom: 24px;
+  opacity: 0.7;
+`;
+
+const NoEpicTitle = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  font-size: 28px;
+  font-weight: 600;
+  color: ${props => props.colors.text.primary};
+  margin-bottom: 16px;
+`;
+
+const NoEpicMessage = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  font-size: 16px;
+  color: ${props => props.colors.text.secondary};
+  max-width: 500px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+`;
+
+const NoEpicSubtitle = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: any }>`
+  font-size: 14px;
+  color: ${props => props.colors.text.tertiary};
+  font-style: italic;
 `;
 
  

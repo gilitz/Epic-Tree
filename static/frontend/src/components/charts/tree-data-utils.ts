@@ -161,7 +161,7 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
 
     const treeData = {
       name: (epic?.fields?.summary as string) || (epic?.key as string) || 'Epic Tree',
-      key: (epic?.key as string) || 'ET-2',
+      key: (epic?.key as string),
       summary: (epic?.fields?.summary as string) || 'Loading epic...',
       priority: epic?.fields?.priority ? {
         ...(epic.fields.priority as any),

@@ -27,7 +27,7 @@ export const NetworkErrorComponent: React.FC = () => {
         Unable to load epic data. Please check your connection and try refreshing the page.
       </ErrorMessage>
       <ErrorSubtitle colors={colors}>
-        Epic ID: ET-2
+        Please refresh the page to try again.
       </ErrorSubtitle>
       <RetryButton colors={colors} onClick={() => window.location.reload()}>
         Retry

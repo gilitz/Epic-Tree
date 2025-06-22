@@ -56,6 +56,12 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   };
 
   useEffect(() => {
+    // Don't fetch if epicId is empty
+    if (!epicId) {
+      setIssues([]);
+      return;
+    }
+
     const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => {
       try {
         const result = await invoke('fetchIssuesByEpicId', { epicId }) as IssuesResponse;
