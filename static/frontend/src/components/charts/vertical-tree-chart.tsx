@@ -49,6 +49,8 @@ export function VerticalTreeChart({
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState<boolean>(false);
+  const [actualNodeBounds, setActualNodeBounds] = useState<{ minY: number; maxY: number } | null>(null);
+  const svgRef = React.useRef<SVGSVGElement>(null);
 
   const _innerWidth = totalWidth - margin.left - margin.right;
   const _innerHeight = totalHeight - margin.top - margin.bottom;
@@ -172,9 +174,71 @@ export function VerticalTreeChart({
     };
   }, [data, orientation]);
 
-  // Calculate SVG dimensions (tree size + padding)
+  // Calculate SVG dimensions - first calculate standard dimensions
   const svgWidth = treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right;
-  const svgHeight = treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom;
+  
+  // Calculate SVG height based on actual node bounds if available, otherwise use calculated height
+  // This ensures the SVG height is determined by the topmost and bottommost nodes + 40px padding
+  const svgHeight = useMemo(() => {
+    if (actualNodeBounds) {
+      const TREE_PADDING = 60; // 40px padding as requested
+      const actualTreeHeight = (actualNodeBounds.maxY - actualNodeBounds.minY) + (TREE_PADDING * 2);
+      return actualTreeHeight + margin.top + margin.bottom + origin.y;
+    }
+    // Fallback to calculated height until actual bounds are measured
+    return treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom;
+  }, [actualNodeBounds, treeHeight, margin, origin]);
+
+  // Effect to measure actual node bounds after Tree component renders
+  React.useEffect(() => {
+    if (!svgRef.current || !data) return;
+
+    const measureNodeBounds = () => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      // Find all TreeNode elements
+      const nodeElements = svg.querySelectorAll('[data-testid="tree-node"]');
+      
+      if (nodeElements.length === 0) return;
+
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      nodeElements.forEach((element) => {
+        // Get the transform attribute to extract the Y position
+        const transform = element.getAttribute('transform');
+        if (!transform) return;
+
+        const translateMatch = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+        if (!translateMatch) return;
+
+        const nodeY = parseFloat(translateMatch[2]);
+        
+        // Find the rect element within this node to get height
+        const rectElement = element.querySelector('rect:last-of-type'); // Get the main node rect (not the background)
+        if (!rectElement) return;
+
+        const height = parseFloat(rectElement.getAttribute('height') || '0');
+        const y = parseFloat(rectElement.getAttribute('y') || '0');
+        
+        // Calculate actual top and bottom positions
+        const nodeTop = nodeY + y; // y is negative (e.g., -height/2)
+        const nodeBottom = nodeY + y + height;
+        
+        minY = Math.min(minY, nodeTop);
+        maxY = Math.max(maxY, nodeBottom);
+      });
+
+      if (minY !== Infinity && maxY !== -Infinity) {
+        setActualNodeBounds({ minY, maxY });
+      }
+    };
+
+    // Measure after a short delay to ensure Tree component has rendered
+    const timeoutId = setTimeout(measureNodeBounds, 100);
+    return () => clearTimeout(timeoutId);
+  }, [data, orientation, finalTreeData]);
 
   // Handle context loading and errors first
   if (contextLoading) {
@@ -269,6 +333,7 @@ export function VerticalTreeChart({
       )}
       <ScrollableContainer colors={colors} $orientation={orientation}>
         <svg 
+          ref={svgRef}
           width={svgWidth} 
           height={svgHeight}
           style={{ minWidth: totalWidth, minHeight: totalHeight }}

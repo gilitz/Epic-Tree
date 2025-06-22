@@ -108,6 +108,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
       onHide={() => setTooltipOpenNodeId(null)}
     >
       <g 
+        data-testid="tree-node"
         transform={`translate(${left}, ${top})`}
         tabIndex={-1}
         focusable="false"
