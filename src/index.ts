@@ -518,4 +518,11 @@ resolver.define('updateIssueField', async (data: unknown): Promise<{ success: bo
   }
 });
 
+resolver.define('getCurrentContext', async (req: unknown): Promise<{ issueKey: string }> => {
+  const context = (req as { context: RequestContext }).context;
+  const issueKey = context.extension.issue.key;
+  
+  return { issueKey };
+});
+
 export const handler = resolver.getDefinitions() as unknown; 
