@@ -30,7 +30,6 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, delay, interactive, d
       interactive={interactive}
       zIndex={99999}
       content={<UnifiedTooltipContainer colors={colors} className={className}>{content}</UnifiedTooltipContainer>}
-      boundary="viewport"
       placement="auto"
       onShow={onShow}
       onHide={onHide}
@@ -139,7 +138,6 @@ export const SecondaryTooltip: React.FC<TooltipProps> = ({ content, delay, inter
       interactive={interactive}
       zIndex={99999}
       content={<SecondaryTooltipContainer colors={colors} className={className}>{content}</SecondaryTooltipContainer>}
-      boundary="viewport"
       placement="auto"
       onShow={onShow}
       onHide={onHide}

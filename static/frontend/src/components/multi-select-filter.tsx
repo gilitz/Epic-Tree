@@ -194,7 +194,9 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
 };
 
 // Styled Components
-const FilterContainer = styled.div<{ colors: CSSThemeColors }>`
+const FilterContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   position: relative;
   display: inline-block;
 `;
@@ -225,7 +227,9 @@ const FilterButton = styled.button.withConfig({
   `}
 `;
 
-const FilterLabel = styled.span<{ colors: CSSThemeColors }>`
+const FilterLabel = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   font-size: 12px;
   font-weight: 500;
   color: ${props => props.colors.text.tertiary};
@@ -249,7 +253,9 @@ const FilterContent = styled.div`
   height: 100%;
 `;
 
-const FilterTag = styled.div<{ colors: CSSThemeColors }>`
+const FilterTag = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   display: flex;
   align-items: center;
   gap: 3px;
@@ -262,7 +268,9 @@ const FilterTag = styled.div<{ colors: CSSThemeColors }>`
   flex-shrink: 1;
 `;
 
-const FilterValue = styled.span<{ colors: CSSThemeColors }>`
+const FilterValue = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   font-size: 11px;
   font-weight: 500;
   color: ${props => props.colors.text.primary};
@@ -276,7 +284,9 @@ const TooltipContainer = styled.div`
   display: inline-block;
 `;
 
-const CountBadge = styled.span<{ colors: CSSThemeColors }>`
+const CountBadge = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   background: ${props => props.colors.surface.secondary};
   border: 1px solid ${props => props.colors.border.secondary};
   color: ${props => props.colors.text.primary};
@@ -300,7 +310,9 @@ const CountBadge = styled.span<{ colors: CSSThemeColors }>`
   }
 `;
 
-const Tooltip = styled.div<{ colors: CSSThemeColors }>`
+const Tooltip = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   position: absolute;
   top: 100%;
   left: 0;
@@ -362,7 +374,9 @@ const DropdownArrow = styled.span.withConfig({
   margin-left: auto;
 `;
 
-const DropdownMenu = styled.div<{ colors: CSSThemeColors }>`
+const DropdownMenu = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   position: absolute;
   top: 100%;
   left: 0;
@@ -376,7 +390,9 @@ const DropdownMenu = styled.div<{ colors: CSSThemeColors }>`
   max-width: 250px;
 `;
 
-const DropdownFooter = styled.div<{ colors: CSSThemeColors }>`
+const DropdownFooter = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -384,7 +400,9 @@ const DropdownFooter = styled.div<{ colors: CSSThemeColors }>`
   border-top: 1px solid ${props => props.colors.border.primary};
 `;
 
-const ClearButton = styled.button<{ colors: CSSThemeColors }>`
+const ClearButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   background: none;
   border: none;
   color: ${props => props.colors.text.secondary};
@@ -404,7 +422,9 @@ const OptionsList = styled.div`
   overflow-y: auto;
 `;
 
-const OptionItem = styled.div<{ colors: CSSThemeColors; isSelected: boolean }>`
+const OptionItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['colors', 'isSelected'].includes(prop),
+})<{ colors: CSSThemeColors; isSelected: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -421,7 +441,9 @@ const OptionItem = styled.div<{ colors: CSSThemeColors; isSelected: boolean }>`
   `}
 `;
 
-const Checkbox = styled.div<{ colors: CSSThemeColors; isSelected: boolean }>`
+const Checkbox = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['colors', 'isSelected'].includes(prop),
+})<{ colors: CSSThemeColors; isSelected: boolean }>`
   width: 14px;
   height: 14px;
   border: 2px solid ${props => props.isSelected ? props.colors.interactive.primary : props.colors.border.primary};
@@ -466,7 +488,9 @@ const DropdownIcon = styled.img`
   flex-shrink: 0;
 `;
 
-const OptionLabel = styled.span<{ colors: CSSThemeColors }>`
+const OptionLabel = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   font-size: 12px;
   color: ${props => props.colors.text.primary};
   flex: 1;

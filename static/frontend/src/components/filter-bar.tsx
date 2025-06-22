@@ -318,7 +318,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 };
 
 // Styled Components
-const FilterBarContainer = styled.div<{ colors: CSSThemeColors }>`
+const FilterBarContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   display: flex;
   align-items: center;
   padding: 8px 24px;
@@ -339,7 +341,9 @@ const FiltersRow = styled.div`
   align-items: center;
 `;
 
-const ClearAllButton = styled.button<{ colors: CSSThemeColors }>`
+const ClearAllButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   background: none;
   border: 1px solid ${props => props.colors.border.primary};
   color: ${props => props.colors.text.secondary};
@@ -363,7 +367,9 @@ const ToggleButtonsGroup = styled.div`
   align-items: center;
 `;
 
-const ToggleButton = styled.button<{ colors: CSSThemeColors }>`
+const ToggleButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
   background-color: ${props => props.colors.background.secondary};
   color: ${props => props.colors.text.primary};
   border: 1px solid ${props => props.colors.border.secondary};
