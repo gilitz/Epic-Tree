@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
 import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
 import { useTheme, CSSThemeColors } from '../theme/theme-context';
+import { SmallLoadingSpinner } from './loading-spinner';
 
 interface DropdownOption {
   id: string;
@@ -138,21 +139,7 @@ const DisplayText = styled.span`
   color: inherit;
 `;
 
-const LoadingSpinner = styled.div`
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  margin-left: 6px;
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
+
 
 const ErrorMessage = styled.div`
   position: relative;
@@ -273,7 +260,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       return (
         <>
           <LoadingText>Loading...</LoadingText>
-          <LoadingSpinner />
+          <SmallLoadingSpinner />
         </>
       );
     }
@@ -303,7 +290,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
             <OptionIcon src={iconUrl} alt={displayName} />
         )}
         <DisplayText>{displayName}</DisplayText>
-        {isUpdating && <LoadingSpinner />}
+        {isUpdating && <SmallLoadingSpinner />}
       </>
     );
   };

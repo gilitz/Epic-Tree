@@ -24,6 +24,8 @@ interface IssuesResponse {
 
 interface UseFetchIssuesByEpicIdReturn {
   issuesByEpic: Issue[];
+  loading: boolean;
+  error: string | null;
 }
 
 // Helper function to detect network/proxy errors
@@ -41,6 +43,8 @@ const _isNetworkError = (error: unknown): boolean => {
 
 export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps): UseFetchIssuesByEpicIdReturn => {
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   
   const handleFetchSuccess = (data: IssuesResponse): void => {
     if (data && data.issues && Array.isArray(data.issues)) {
@@ -48,19 +52,28 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
     } else {
       setIssues([]);
     }
+    setLoading(false);
+    setError(null);
   };
 
-  const handleFetchError = (_error: Error): void => {
+  const handleFetchError = (error: Error): void => {
     // Set empty array on error to prevent crashes
     setIssues([]);
+    setLoading(false);
+    setError(error.message || 'Failed to fetch issues');
   };
 
   useEffect(() => {
     // Don't fetch if epicId is empty
     if (!epicId) {
       setIssues([]);
+      setLoading(false);
+      setError(null);
       return;
     }
+
+    setLoading(true);
+    setError(null);
 
     const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => {
       try {
@@ -85,5 +98,5 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
     };
   }, [epicId]);
 
-  return { issuesByEpic: issues };
+  return { issuesByEpic: issues, loading, error };
 }; 

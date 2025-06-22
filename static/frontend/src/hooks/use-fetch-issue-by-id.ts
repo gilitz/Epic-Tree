@@ -19,10 +19,14 @@ interface Issue {
 
 interface UseFetchIssueByIdReturn {
   issue: Issue | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetchIssueByIdReturn => {
   const [issue, setIssue] = useState<Issue | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   
   const handleFetchSuccess = (data: Issue): void => {
     if (data && data.id) {
@@ -30,18 +34,27 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
     } else {
       setIssue(null);
     }
+    setLoading(false);
+    setError(null);
   };
 
-  const handleFetchError = (_error: Error): void => {
+  const handleFetchError = (error: Error): void => {
     setIssue(null); // Set null on error to prevent crashes
+    setLoading(false);
+    setError(error.message || 'Failed to fetch issue');
   };
 
   useEffect(() => {
     // Don't fetch if issueId is empty
     if (!issueId) {
       setIssue(null);
+      setLoading(false);
+      setError(null);
       return;
     }
+
+    setLoading(true);
+    setError(null);
 
     const fetchIssueById = async (): Promise<Issue> => invoke('fetchIssueById', { issueId });
     fetchIssueById().then(handleFetchSuccess).catch(handleFetchError);
@@ -57,5 +70,5 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
     };
   }, [issueId]);
 
-  return { issue };
+  return { issue, loading, error };
 }; 

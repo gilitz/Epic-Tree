@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useUpdateIssueField } from '../hooks/use-update-issue-field';
 import { useOptimisticUpdates } from '../contexts/optimistic-updates-context';
 import { useTheme, CSSThemeColors } from '../theme/theme-context';
+import { MediumLoadingSpinner } from './loading-spinner';
 
 interface EditableFieldProps {
   issueKey: string;
@@ -166,22 +167,7 @@ const CancelButton = styled.button`
   }
 `;
 
-const LoadingSpinner = styled.div`
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  margin-left: 8px;
-  flex-shrink: 0;
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
+
 
 const LoadingDots = styled.span`
   display: inline-block;
@@ -408,7 +394,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
       >
         {getDisplayText()}
         {isUpdating && (
-          fieldType === 'number' ? <LoadingSpinner /> : <LoadingDots />
+          fieldType === 'number' ? <MediumLoadingSpinner margin="0 0 0 8px" /> : <LoadingDots />
         )}
       </DisplayValue>
 

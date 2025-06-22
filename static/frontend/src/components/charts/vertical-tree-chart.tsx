@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { Group } from '@visx/group';
 import { hierarchy, Tree } from '@visx/hierarchy';
 import { LinearGradient } from '@visx/gradient';
@@ -20,6 +20,7 @@ import { TreeNode } from './tree-node';
 import { LoadingComponent, NetworkErrorComponent } from './loading-error-components';
 import { FilterBar } from '../filter-bar';
 import { useFilters } from '../../contexts/filter-context';
+import { LargeLoadingSpinner } from '../loading-spinner';
 
 const defaultMargin = { top: 30, left: 70, right: 40, bottom: 30 };
 
@@ -64,8 +65,8 @@ export function VerticalTreeChart({
   const epicId = currentIssueKey;
   
   // Only fetch data if we have a valid epic ID
-  const { issuesByEpic } = useFetchIssuesByEpicId({ epicId: epicId || '' });
-  const { issue: rootEpicIssue } = useFetchIssueById({ issueId: epicId || '' });
+  const { issuesByEpic, loading: issuesLoading, error: _issuesError } = useFetchIssuesByEpicId({ epicId: epicId || '' });
+  const { issue: rootEpicIssue, loading: epicLoading, error: _epicError } = useFetchIssueById({ issueId: epicId || '' });
   
   // Get all subtask keys directly from the issues
   const subtaskKeys = useMemo(() => {
@@ -88,16 +89,34 @@ export function VerticalTreeChart({
     return allSubtaskKeys;
   }, [issuesByEpic]);
   
-  const { subtasks } = useFetchSubtasksByKeys({ subtaskKeys });
+  const { subtasks, loading: subtasksLoading, error: _subtasksError } = useFetchSubtasksByKeys({ subtaskKeys });
 
   const transformedTreeData = transformDataToTree({ epic: rootEpicIssue, issues: issuesByEpic, subtasksData: subtasks });
 
+  // Check if we are still loading any data
+  const isLoading = useMemo(() => {
+    // If we don't have an epic ID, we're not loading
+    if (!epicId) return false;
+    
+    // Check if any of the main data fetches are still loading
+    if (epicLoading || issuesLoading) return true;
+    
+    // If we have subtask keys to fetch, check if subtasks are still loading
+    if (subtaskKeys.length > 0 && subtasksLoading) return true;
+    
+    return false;
+  }, [epicId, epicLoading, issuesLoading, subtaskKeys.length, subtasksLoading]);
+
   // Check if we have fully loaded data (epic + issues + subtasks if any exist)
   const isFullyLoaded = useMemo(() => {
+    // If we're still loading, we're not fully loaded
+    if (isLoading) return false;
+    
+    // Check for data availability
     if (!rootEpicIssue) return false;
     if (!issuesByEpic) return false;
     
-    // If we have issues with subtasks, wait for subtasks to load too
+    // If we have issues with subtasks, make sure subtasks are loaded too
     const hasIssuesWithSubtasks = issuesByEpic.some(issue => 
       issue.fields?.subtasks && Array.isArray(issue.fields.subtasks) && issue.fields.subtasks.length > 0
     );
@@ -107,7 +126,7 @@ export function VerticalTreeChart({
     }
     
     return true;
-  }, [rootEpicIssue, issuesByEpic, subtasks, subtaskKeys]);
+  }, [isLoading, rootEpicIssue, issuesByEpic, subtasks, subtaskKeys]);
 
   // Set initialization state when fully loaded
   React.useEffect(() => {
@@ -268,16 +287,16 @@ export function VerticalTreeChart({
     return <NetworkErrorComponent />;
   }
 
-  // Show initial loading only if we haven't fully loaded yet and haven't initialized
-  if (!isFullyLoaded && !hasInitialized) {
+  // Show loading state if we're still loading OR if we haven't fully loaded yet
+  if (isLoading || !isFullyLoaded) {
     // Show epic key/name if we have it, otherwise show generic loading
-    if (rootEpicIssue) {
+    if (rootEpicIssue && !epicLoading) {
       return (
         <InitialLoadingContainer colors={colors}>
           <EpicKeyDisplay colors={colors}>
             {rootEpicIssue.key}: {rootEpicIssue.fields?.summary || 'Loading...'}
           </EpicKeyDisplay>
-          <CenteredLoadingSpinner colors={colors} />
+          <LargeLoadingSpinner margin="0 0 20px 0" />
           <LoadingText colors={colors}>Loading full Epic tree...</LoadingText>
         </InitialLoadingContainer>
       );
@@ -322,7 +341,7 @@ export function VerticalTreeChart({
 
   return totalWidth < 10 ? null : (
     <ChartContainer colors={colors}>
-      {issuesByEpic && issuesByEpic.length > 0 && rootEpicIssue && (
+      {isFullyLoaded && issuesByEpic && issuesByEpic.length > 0 && rootEpicIssue && (
         <FilterBar 
           issuesByEpic={issuesByEpic} 
           epicKey={rootEpicIssue.key || epicId}
@@ -590,10 +609,6 @@ const ScrollableContainer = styled.div.withConfig({
 `;
 
 // Initial loading styled components
-const spin = keyframes`
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-`;
 
 const InitialLoadingContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
@@ -619,17 +634,7 @@ const EpicKeyDisplay = styled.div.withConfig({
   word-wrap: break-word;
 `;
 
-const CenteredLoadingSpinner = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
-  width: 40px;
-  height: 40px;
-  border: 4px solid ${props => props.colors.border.primary};
-  border-top: 4px solid ${props => props.colors.interactive.primary};
-  border-radius: 50%;
-  animation: ${spin} 1s linear infinite;
-  margin-bottom: 20px;
-`;
+
 
 const LoadingText = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',

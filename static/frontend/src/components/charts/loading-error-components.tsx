@@ -1,13 +1,14 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useTheme, CSSThemeColors } from '../../theme/theme-context';
+import { LargeLoadingSpinner } from '../loading-spinner';
 
 export const LoadingComponent: React.FC = () => {
   const { colors } = useTheme();
   
   return (
     <LoadingContainer colors={colors}>
-      <LoadingSpinner colors={colors} />
+      <LargeLoadingSpinner margin="0 0 16px 0" />
       <LoadingTitle colors={colors}>Loading Epic Tree...</LoadingTitle>
       <LoadingSubtitle colors={colors}>
         Fetching epic and issue data...
@@ -41,7 +42,7 @@ export const LoadingIssuesComponent: React.FC = () => {
   
   return (
     <LoadingContainer colors={colors}>
-      <LoadingSpinner colors={colors} />
+      <LargeLoadingSpinner margin="0 0 16px 0" />
       <LoadingTitle colors={colors}>Loading Epic Tree...</LoadingTitle>
       <LoadingSubtitle colors={colors}>
         Loading issues for epic...
@@ -51,11 +52,6 @@ export const LoadingIssuesComponent: React.FC = () => {
 };
 
 // Animations
-const spin = keyframes`
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-`;
-
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -79,17 +75,7 @@ const LoadingContainer = styled.div.withConfig({
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
-const LoadingSpinner = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: CSSThemeColors }>`
-  width: 32px;
-  height: 32px;
-  border: 3px solid ${props => props.colors.border.primary};
-  border-top: 3px solid ${props => props.colors.interactive.primary};
-  border-radius: 50%;
-  animation: ${spin} 1s linear infinite;
-  margin-bottom: 16px;
-`;
+
 
 const LoadingTitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
