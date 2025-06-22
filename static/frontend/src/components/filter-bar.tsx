@@ -2,12 +2,13 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { MultiSelectFilter, FilterOption } from './multi-select-filter';
 import { useFilters } from '../contexts/filter-context';
-import { useTheme } from '../theme/theme-context';
+import { useTheme, type CSSThemeColors } from '../theme/theme-context';
 import { useFetchAssignableUsers } from '../hooks/use-fetch-assignable-users';
 import { useFetchPriorities } from '../hooks/use-fetch-priorities';
+import { Issue } from './charts/types';
 
 interface FilterBarProps {
-  issuesByEpic: any[];
+  issuesByEpic: Issue[];
   epicKey: string;
   orientation: 'vertical' | 'horizontal';
   isDarkTheme: boolean;
@@ -55,7 +56,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // Add assignees from current issues
     issuesByEpic.forEach(issue => {
       if (issue.fields?.assignee) {
-        const assignee = issue.fields.assignee;
+        const assignee = issue.fields.assignee as any;
         const accountId = assignee.accountId || assignee.key || assignee.name;
         if (accountId && !assigneeMap.has(accountId)) {
           assigneeMap.set(accountId, {
@@ -94,7 +95,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     
     issuesByEpic.forEach(issue => {
       if (issue.fields?.status) {
-        const status = issue.fields.status;
+        const status = issue.fields.status as any;
         const statusName = status.name;
         if (statusName && !statusMap.has(statusName)) {
           statusMap.set(statusName, {
@@ -129,7 +130,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // Add priorities from current issues
     issuesByEpic.forEach(issue => {
       if (issue.fields?.priority) {
-        const priority = issue.fields.priority;
+        const priority = issue.fields.priority as any;
         const priorityId = priority.id || priority.name;
         if (priorityId && !priorityMap.has(priorityId)) {
           priorityMap.set(priorityId, {
@@ -311,7 +312,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 };
 
 // Styled Components
-const FilterBarContainer = styled.div<{ colors: any }>`
+const FilterBarContainer = styled.div<{ colors: CSSThemeColors }>`
   display: flex;
   align-items: center;
   padding: 8px 24px;
@@ -332,7 +333,7 @@ const FiltersRow = styled.div`
   align-items: center;
 `;
 
-const ClearAllButton = styled.button<{ colors: any }>`
+const ClearAllButton = styled.button<{ colors: CSSThemeColors }>`
   background: none;
   border: 1px solid ${props => props.colors.border.primary};
   color: ${props => props.colors.text.secondary};
@@ -356,7 +357,7 @@ const ToggleButtonsGroup = styled.div`
   align-items: center;
 `;
 
-const ToggleButton = styled.button<{ colors: any }>`
+const ToggleButton = styled.button<{ colors: CSSThemeColors }>`
   background-color: ${props => props.colors.background.secondary};
   color: ${props => props.colors.text.primary};
   border: 1px solid ${props => props.colors.border.secondary};

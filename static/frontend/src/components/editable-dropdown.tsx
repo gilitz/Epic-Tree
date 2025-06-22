@@ -230,7 +230,7 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
       return;
     }
     
-  }, [isUpdating, updateField, issueKey, fieldName, setOptimisticValue, currentValue, currentDisplayName]);
+  }, [isUpdating, updateField, issueKey, fieldName, setOptimisticValue]);
 
   // Initialize optimistic values when component mounts or when props change (but not during optimistic updates)
   useEffect(() => {
