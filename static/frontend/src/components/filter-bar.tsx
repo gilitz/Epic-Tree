@@ -15,6 +15,8 @@ interface FilterBarProps {
   toggleOrientation: () => void;
   toggleTheme: () => void;
   toggleFullScreen: () => void;
+  showAIBreakdown?: boolean;
+  toggleAIBreakdown?: () => void;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({ 
@@ -24,7 +26,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   isDarkTheme, 
   toggleOrientation, 
   toggleTheme, 
-  toggleFullScreen 
+  toggleFullScreen,
+  showAIBreakdown,
+  toggleAIBreakdown
 }) => {
   const { colors } = useTheme();
   const { 
@@ -302,6 +306,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </FiltersRow>
         
         <ToggleButtonsGroup>
+          {toggleAIBreakdown && (
+            <ToggleButton 
+              colors={colors} 
+              onClick={toggleAIBreakdown}
+              style={{ 
+                background: showAIBreakdown ? '#3B82F6' : undefined,
+                color: showAIBreakdown ? 'white' : undefined,
+                borderColor: showAIBreakdown ? '#2563EB' : undefined
+              }}
+            >
+              🤖
+            </ToggleButton>
+          )}
           <ToggleButton colors={colors} onClick={toggleOrientation}>
             {orientation === 'vertical' ? '↕️' : '↔️'}
           </ToggleButton>

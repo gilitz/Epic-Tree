@@ -21,6 +21,7 @@ import { LoadingComponent, NetworkErrorComponent } from './loading-error-compone
 import { FilterBar } from '../filter-bar';
 import { useFilters } from '../../contexts/filter-context';
 import { LargeLoadingSpinner } from '../loading-spinner';
+import { AIEpicBreakdown } from '../ai-epic-breakdown';
 
 const defaultMargin = { top: 30, left: 70, right: 40, bottom: 30 };
 
@@ -51,6 +52,7 @@ export function VerticalTreeChart({
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState<boolean>(false);
   const [actualNodeBounds, setActualNodeBounds] = useState<{ minY: number; maxY: number } | null>(null);
+  const [showAIBreakdown, setShowAIBreakdown] = useState<boolean>(false);
   const svgRef = React.useRef<SVGSVGElement>(null);
 
   const _innerWidth = totalWidth - margin.left - margin.right;
@@ -350,9 +352,21 @@ export function VerticalTreeChart({
           toggleOrientation={toggleOrientation}
           toggleTheme={toggleTheme}
           toggleFullScreen={toggleFullScreen}
+          showAIBreakdown={showAIBreakdown}
+          toggleAIBreakdown={() => setShowAIBreakdown(!showAIBreakdown)}
         />
       )}
-      <ScrollableContainer colors={colors} $orientation={orientation}>
+      
+      {/* Conditionally render AI Breakdown or Tree View */}
+      {showAIBreakdown && rootEpicIssue ? (
+        <AIEpicBreakdown
+          epicSummary={String(rootEpicIssue.fields?.summary || '')}
+          epicDescription={String(rootEpicIssue.fields?.description || '')}
+          existingIssues={issuesByEpic}
+          treeData={finalTreeData}
+        />
+      ) : (
+        <ScrollableContainer colors={colors} $orientation={orientation}>
         <svg 
           ref={svgRef}
           width={svgWidth} 
@@ -554,6 +568,7 @@ export function VerticalTreeChart({
           </Group>
         </svg>
       </ScrollableContainer>
+      )}
     </ChartContainer>
   );
 }

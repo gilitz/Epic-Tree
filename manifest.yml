@@ -22,6 +22,10 @@ permissions:
     scripts:
       - "unsafe-inline"
       - "unsafe-hashes"
+  external:
+    fetch:
+      backend:
+        - "https://api.openai.com"
   scopes:
     - read:jira-work
     - write:jira-work

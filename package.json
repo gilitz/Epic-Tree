@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@forge/resolver": "1.6.5-next.0",
-    "@forge/api": "4.2.1-next.0"
+    "@forge/api": "4.2.1-next.0",
+    "openai": "^4.24.0"
   }
 }
