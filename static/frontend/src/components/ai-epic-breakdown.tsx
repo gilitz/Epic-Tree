@@ -83,6 +83,10 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
         blockedIssuesCount: 0,
         blockedIssues: [],
         totalLabelsCount: 0,
+        totalItemsWithStatus: 0,
+        totalItemsWithLabels: 0,
+        totalItemsWithPriority: 0,
+        totalItemsWithAssignee: 0,
         epicOverview: {
           key: '',
           summary: '',
@@ -104,6 +108,10 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
     let totalStoryPoints = 0;
     let totalIssues = 0;
     let totalSubtasks = 0;
+    let totalItemsWithStatus = 0;
+    let totalItemsWithLabels = 0;
+    let totalItemsWithPriority = 0;
+    let totalItemsWithAssignee = 0;
     const statusBreakdown: Record<string, number> = {};
     const assigneeBreakdown: Record<string, number> = {};
     const priorityBreakdown: Record<string, number> = {};
@@ -112,15 +120,36 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
 
     // Get epic info
     const createdDate = treeData.created;
-    // Check epic assignee (only if assigned)
+    
+    // Count epic status if it has one
+    if (treeData.status?.name) {
+      statusBreakdown[treeData.status.name] = (statusBreakdown[treeData.status.name] || 0) + 1;
+      totalItemsWithStatus++;
+    }
+    
+    // Count epic priority if it has one
+    if (treeData.priority?.name) {
+      priorityBreakdown[treeData.priority.name] = (priorityBreakdown[treeData.priority.name] || 0) + 1;
+      totalItemsWithPriority++;
+    }
+    
+    // Count epic assignee if it has one
     if (treeData.assignee?.displayName) {
-      if (!assigneeSet.has(treeData.assignee.displayName)) {
-        assigneeSet.add(treeData.assignee.displayName);
+      const assigneeName = treeData.assignee.displayName;
+      assigneeBreakdown[assigneeName] = (assigneeBreakdown[assigneeName] || 0) + 1;
+      totalItemsWithAssignee++;
+      
+      if (!assigneeSet.has(assigneeName)) {
+        assigneeSet.add(assigneeName);
         uniqueAssignees.push({
-          displayName: treeData.assignee.displayName,
+          displayName: assigneeName,
           avatarUrl: treeData.assignee.avatarUrls?.['16x16']
         });
       }
+    } else {
+      // Count epic as unassigned
+      assigneeBreakdown['Unassigned'] = (assigneeBreakdown['Unassigned'] || 0) + 1;
+      totalItemsWithAssignee++;
     }
 
     // Count epic story points
@@ -152,12 +181,14 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
           // Count status breakdown
           if (child.status?.name) {
             statusBreakdown[child.status.name] = (statusBreakdown[child.status.name] || 0) + 1;
+            totalItemsWithStatus++;
           }
 
-          // Count assignee breakdown (only for assigned users)
+          // Count assignee breakdown
           if (child.assignee?.displayName) {
             const assigneeName = child.assignee.displayName;
             assigneeBreakdown[assigneeName] = (assigneeBreakdown[assigneeName] || 0) + 1;
+            totalItemsWithAssignee++;
 
             // Track unique assignees
             if (!assigneeSet.has(assigneeName)) {
@@ -170,11 +201,13 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
           } else {
             // Count unassigned separately
             assigneeBreakdown['Unassigned'] = (assigneeBreakdown['Unassigned'] || 0) + 1;
+            totalItemsWithAssignee++;
           }
 
           // Count priority breakdown
           if (child.priority?.name) {
             priorityBreakdown[child.priority.name] = (priorityBreakdown[child.priority.name] || 0) + 1;
+            totalItemsWithPriority++;
           }
 
           // Recurse into children
@@ -185,14 +218,14 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
 
     countFromNode(treeData);
 
-    // Smart work distribution based on labels and issue types
-
+    // Collect labels and count items with labels
     const labelDistribution: Record<string, number> = {};
     let totalLabelsCount = 0;
 
-    // Collect all labels and their frequencies
+    // Count items that have each label (not label instances)
     const collectLabelsFromNode = (node: TreeNodeData) => {
-      if (node.labels && Array.isArray(node.labels)) {
+      if (node.labels && Array.isArray(node.labels) && node.labels.length > 0) {
+        totalItemsWithLabels++;
         node.labels.forEach((label: string) => {
           labelDistribution[label] = (labelDistribution[label] || 0) + 1;
           totalLabelsCount++;
@@ -282,6 +315,10 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
       blockedIssuesCount,
       blockedIssues,
       totalLabelsCount,
+      totalItemsWithStatus,
+      totalItemsWithLabels,
+      totalItemsWithPriority,
+      totalItemsWithAssignee,
       epicOverview
     };
   }, [treeData]);
@@ -430,11 +467,11 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
                       <BarLabel>{status}</BarLabel>
                       <BarContainer $isDarkTheme={isDarkTheme}>
                         <BarFill 
-                          $width={((count as number) / Math.max(realEpicData.totalIssues + realEpicData.totalSubtasks, 1)) * 100}
+                          $width={((count as number) / Math.max(realEpicData.totalItemsWithStatus, 1)) * 100}
                           $color="#F59E0B"
                         />
                       </BarContainer>
-                      <BarValue>{count} issues</BarValue>
+                      <BarValue>{count} items</BarValue>
                     </BreakdownBar>
                   )
                 )}
@@ -454,11 +491,61 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
                         <BarLabel>{label}</BarLabel>
                         <BarContainer $isDarkTheme={isDarkTheme}>
                           <BarFill 
-                            $width={((count as number) / Math.max(realEpicData.totalLabelsCount, 1)) * 100}
+                            $width={((count as number) / Math.max(realEpicData.totalItemsWithLabels, 1)) * 100}
                             $color="#6366F1"
                           />
                         </BarContainer>
-                        <BarValue>{count} uses</BarValue>
+                        <BarValue>{count} items</BarValue>
+                      </BreakdownBar>
+                    )
+                  )}
+                </BreakdownBars>
+              </WorkBreakdown>
+            )}
+
+            {/* Priority Distribution */}
+            {Object.keys(realEpicData.priorityBreakdown).length > 0 && (
+              <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #10B981' }}>
+                <SectionSubtitle>⚡ Priority Distribution</SectionSubtitle>
+                <BreakdownBars>
+                  {renderCollapsibleList(
+                    Object.entries(realEpicData.priorityBreakdown),
+                    'priorityDistribution',
+                    ([priority, count]) => (
+                      <BreakdownBar key={priority}>
+                        <BarLabel>{priority}</BarLabel>
+                        <BarContainer $isDarkTheme={isDarkTheme}>
+                          <BarFill 
+                            $width={((count as number) / Math.max(realEpicData.totalItemsWithPriority, 1)) * 100}
+                            $color="#10B981"
+                          />
+                        </BarContainer>
+                        <BarValue>{count} items</BarValue>
+                      </BreakdownBar>
+                    )
+                  )}
+                </BreakdownBars>
+              </WorkBreakdown>
+            )}
+
+            {/* Assignee Distribution */}
+            {Object.keys(realEpicData.assigneeBreakdown).length > 0 && (
+              <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #8B5CF6' }}>
+                <SectionSubtitle>👤 Assignee Distribution</SectionSubtitle>
+                <BreakdownBars>
+                  {renderCollapsibleList(
+                    Object.entries(realEpicData.assigneeBreakdown),
+                    'assigneeDistribution',
+                    ([assignee, count]) => (
+                      <BreakdownBar key={assignee}>
+                        <BarLabel>{assignee}</BarLabel>
+                        <BarContainer $isDarkTheme={isDarkTheme}>
+                          <BarFill 
+                            $width={((count as number) / Math.max(realEpicData.totalItemsWithAssignee, 1)) * 100}
+                            $color="#8B5CF6"
+                          />
+                        </BarContainer>
+                        <BarValue>{count} items</BarValue>
                       </BreakdownBar>
                     )
                   )}
@@ -493,7 +580,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
             {realEpicData.blockedIssuesCount > 0 && (
               <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #EF4444' }}>
                 <SectionSubtitle>🚫 Blocked Issues ({realEpicData.blockedIssuesCount})</SectionSubtitle>
-                <div>
+                <BlockedIssuesContainer>
                   {renderCollapsibleList(
                     realEpicData.blockedIssues,
                     'blockedIssues',
@@ -524,7 +611,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
                               {issue.assignee.avatarUrl && (
                                 <UserAvatar src={issue.assignee.avatarUrl} alt="Assignee" />
                               )}
-                              <span>{issue.assignee.displayName}</span>
+                              <AssigneeDisplayName>{issue.assignee.displayName}</AssigneeDisplayName>
                             </BlockedIssueAssignee>
                           )}
                           
@@ -564,7 +651,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
                       </BlockedIssueItem>
                     )
                   )}
-                </div>
+                </BlockedIssuesContainer>
               </WorkBreakdown>
             )}
           </StatsSection>
@@ -580,7 +667,7 @@ const GilContainer = styled.div`
   width: 100%;
   height: 100vh;
   overflow-y: scroll;
-  padding: 40px 160px;
+  padding: 40px 200px 80px;
 `;
 
 // Styled Components
@@ -718,16 +805,12 @@ const NoUsersMessage = styled.div`
   font-size: 14px;
 `;
 
-
-
 const SectionSubtitle = styled.h4`
   color: var(--color-text-secondary);
   margin: 16px 0 12px 0;
   font-size: 14px;
   font-weight: 500;
 `;
-
-
 
 const CardTitle = styled.div`
   color: var(--color-text-secondary);
@@ -965,6 +1048,12 @@ const BlockedIssueAssignee = styled.div`
   font-size: 12px;
 `;
 
+const AssigneeDisplayName = styled.span`
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: 14px;
+`;
+
 const BlockedIssuePriority = styled.span<{ $priority: string }>`
   padding: 2px 6px;
   border-radius: 4px;
@@ -1008,6 +1097,11 @@ const BlockedByInfo = styled.div`
   flex-wrap: wrap;
 `;
 
+const BlockedIssuesContainer = styled.div`
+  max-height: 300px;
+  overflow-y: auto;
+`;
+
 
 
 const BlockingIssueLink = styled.a`
@@ -1022,7 +1116,3 @@ const BlockingIssueLink = styled.a`
     text-decoration: underline;
   }
 `;
-
-
-
- 
