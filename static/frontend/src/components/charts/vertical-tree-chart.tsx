@@ -22,6 +22,7 @@ import { FilterBar } from '../filter-bar';
 import { useFilters } from '../../contexts/filter-context';
 import { LargeLoadingSpinner } from '../loading-spinner';
 import { AIEpicBreakdown } from '../ai-epic-breakdown';
+import { Minimap } from './minimap';
 
 const defaultMargin = { top: 30, left: 70, right: 40, bottom: 30 };
 
@@ -54,6 +55,7 @@ export function VerticalTreeChart({
   const [actualNodeBounds, setActualNodeBounds] = useState<{ minY: number; maxY: number } | null>(null);
   const [showBreakdown, setShowBreakdown] = useState<boolean>(false);
   const svgRef = React.useRef<SVGSVGElement>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const _innerWidth = totalWidth - margin.left - margin.right;
   const _innerHeight = totalHeight - margin.top - margin.bottom;
@@ -366,7 +368,7 @@ export function VerticalTreeChart({
           treeData={finalTreeData}
         />
       ) : (
-        <ScrollableContainer colors={colors} $orientation={orientation}>
+        <ScrollableContainer ref={scrollContainerRef} colors={colors} $orientation={orientation}>
         <svg 
           ref={svgRef}
           width={svgWidth} 
@@ -568,6 +570,19 @@ export function VerticalTreeChart({
           </Group>
         </svg>
       </ScrollableContainer>
+      )}
+      
+      {/* Minimap */}
+      {!showBreakdown && isFullyLoaded && (
+        <Minimap
+          svgWidth={svgWidth}
+          svgHeight={svgHeight}
+          containerWidth={totalWidth}
+          containerHeight={totalHeight}
+          scrollContainerRef={scrollContainerRef}
+          treeData={finalTreeData}
+          orientation={orientation}
+        />
       )}
     </ChartContainer>
   );
