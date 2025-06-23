@@ -1,16 +1,16 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
-import { useTheme } from '../../theme/theme-context';
+import { useTheme, type CSSThemeColors } from '../../theme/theme-context';
 
 // Helper function to render simplified tree nodes
-const renderSimplifiedTree = (treeData: any, colors: any, scale: number, svgWidth: number, svgHeight: number, orientation: string): JSX.Element[] => {
+const renderSimplifiedTree = (treeData: any, colors: CSSThemeColors, scale: number, svgWidth: number, svgHeight: number, orientation: string): JSX.Element[] => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const nodes: JSX.Element[] = [];
   
   // Calculate available space in scaled coordinates
   const scaledWidth = svgWidth;
   const scaledHeight = svgHeight;
   
-  const traverseTree = (node: any, x: number, y: number, depth: number = 0) => {
+  const traverseTree = (node: any, x: number, y: number, depth: number = 0) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!node) return;
     
     // Simple node representation - small rectangles to mimic actual nodes
@@ -46,7 +46,7 @@ const renderSimplifiedTree = (treeData: any, colors: any, scale: number, svgWidt
     if (node.children && Array.isArray(node.children)) {
       const isHorizontal = orientation === 'horizontal';
       
-      node.children.forEach((child: any, index: number) => {
+      node.children.forEach((child: any, index: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         let childX: number, childY: number;
         
         if (isHorizontal) {
@@ -102,7 +102,7 @@ interface MinimapProps {
   containerWidth: number;
   containerHeight: number;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
-  treeData: any;
+  treeData: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   orientation: 'vertical' | 'horizontal';
 }
 
@@ -190,7 +190,7 @@ export const Minimap: React.FC<MinimapProps> = ({
     // Show minimap only if content is significantly larger than container
     const isScrollable = (svgWidth > clientWidth * 1.1) || (svgHeight > clientHeight * 1.1);
     setIsVisible(isScrollable && treeData);
-  }, [scale, offsetX, offsetY, scaledSvgWidth, scaledSvgHeight, svgWidth, svgHeight, treeData]);
+  }, [scale, offsetX, offsetY, scaledSvgWidth, scaledSvgHeight, svgWidth, svgHeight, treeData, scrollContainerRef]);
 
   // Update viewport on scroll and resize
   useEffect(() => {
@@ -209,7 +209,7 @@ export const Minimap: React.FC<MinimapProps> = ({
       scrollContainer.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, [updateViewport]);
+  }, [updateViewport, scrollContainerRef]);
 
   // Handle minimap click to scroll to position
   const handleMinimapClick = useCallback((event: React.MouseEvent) => {
@@ -228,7 +228,7 @@ export const Minimap: React.FC<MinimapProps> = ({
       top: Math.max(0, Math.min(scrollY, svgHeight - scrollContainerRef.current.clientHeight)),
       behavior: 'smooth'
     });
-  }, [scale, offsetX, offsetY, svgWidth, svgHeight]);
+  }, [scale, offsetX, offsetY, svgWidth, svgHeight, scrollContainerRef]);
 
   if (!isVisible || !treeData) return null;
 
@@ -300,7 +300,7 @@ export const Minimap: React.FC<MinimapProps> = ({
 
 const MinimapContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => !['colors', 'width', 'height', 'orientation'].includes(prop),
-})<{ colors: any; width: number; height: number; orientation: string }>`
+})<{ colors: CSSThemeColors; width: number; height: number; orientation: string }>`
   position: fixed;
   bottom: 16px;
   right: 16px;
