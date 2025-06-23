@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useAIEpicBreakdown } from '../hooks/use-ai-epic-breakdown';
-import { LoadingSpinner } from './loading-spinner';
 import { useTheme } from '../theme/theme-context';
 
 interface StoryBreakdownSuggestion {
@@ -14,8 +13,6 @@ interface StoryBreakdownSuggestion {
   estimationReasoning: string;
 }
 
-
-
 interface AIEpicBreakdownProps {
   epicSummary: string;
   epicDescription: string;
@@ -25,13 +22,13 @@ interface AIEpicBreakdownProps {
 }
 
 export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
-  epicSummary,
-  epicDescription,
-  existingIssues,
+  epicSummary: _epicSummary,
+  epicDescription: _epicDescription,
+  existingIssues: _existingIssues,
   treeData,
   onCreateStories: _onCreateStories
 }) => {
-  const { breakdown: _breakdown, loading, error, generateBreakdown, refreshData } = useAIEpicBreakdown();
+  const { breakdown: _breakdown, loading: _loading, error, generateBreakdown: _generateBreakdown, refreshData: _refreshData } = useAIEpicBreakdown();
   const { colors, isDarkTheme } = useTheme();
   const [_selectedSuggestions, _setSelectedSuggestions] = useState<Set<number>>(new Set());
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -255,17 +252,6 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
     };
   }, [treeData]);
 
-  const handleGenerateBreakdown = async () => {
-    // Refresh data first to ensure we have the latest information
-    refreshData();
-    
-    await generateBreakdown({
-      epicSummary,
-      epicDescription,
-      existingIssues
-    });
-  };
-
 
 
   const toggleSection = (sectionId: string) => {
@@ -297,11 +283,11 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
 
   return (
     <Container $isDarkTheme={isDarkTheme}>
+      <GilContainer>
       <Header>
         <HeaderLeft>
           <Title>
-            <AIIcon>🤖</AIIcon>
-            AI Epic Breakdown
+            Epic Breakdown
           </Title>
           {realEpicData.createdDate && (
             <CreatedDate>
@@ -309,20 +295,6 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
             </CreatedDate>
           )}
         </HeaderLeft>
-        <GenerateButton 
-          onClick={handleGenerateBreakdown} 
-          disabled={loading}
-          colors={colors}
-        >
-          {loading ? (
-            <>
-              <LoadingSpinner size="small" />
-              Generating...
-            </>
-          ) : (
-            'Generate Smart Breakdown'
-          )}
-        </GenerateButton>
       </Header>
 
       {error && (
@@ -427,7 +399,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
                     <BarContainer $isDarkTheme={isDarkTheme}>
                       <BarFill 
                         $width={((count as number) / Math.max(realEpicData.totalIssues + realEpicData.totalSubtasks, 1)) * 100}
-                        $category="status"
+                        $color="#F59E0B"
                       />
                     </BarContainer>
                     <BarValue>{count} issues</BarValue>
@@ -451,7 +423,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
                       <BarContainer $isDarkTheme={isDarkTheme}>
                         <BarFill 
                           $width={((count as number) / Math.max(realEpicData.totalLabelsCount, 1)) * 100}
-                          $category="labels"
+                          $color="#6366F1"
                         />
                       </BarContainer>
                       <BarValue>{count} uses</BarValue>
@@ -567,22 +539,23 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
 
 
       </BreakdownContent>
+      </GilContainer>
     </Container>
   );
 };
 
+const GilContainer = styled.div`
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  padding: 40px 160px;
+`;
+
 // Styled Components
 const Container = styled.div<{ $isDarkTheme?: boolean }>`
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  
-  @media (max-width: 768px) {
-    padding: 12px;
-  }
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
 `;
 
 const Header = styled.div`
@@ -590,13 +563,10 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-    margin-bottom: 20px;
-  }
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+
 `;
 
 const HeaderLeft = styled.div`
@@ -621,56 +591,6 @@ const Title = styled.h2`
   font-weight: 600;
 `;
 
-const AIIcon = styled.span`
-  font-size: 28px;
-`;
-
-const GenerateButton = styled.button.withConfig({
-  shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: any }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: ${props => props.colors.interactive.primary};
-  color: white;
-  border: 1px solid ${props => props.colors.interactive.primary};
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 36px;
-  
-  &:hover:not(:disabled) {
-    background: ${props => props.colors.interactive.primaryHover};
-    border-color: ${props => props.colors.interactive.primaryHover};
-    transform: translateY(-1px);
-    box-shadow: ${props => props.colors.shadow.md};
-  }
-  
-  &:active:not(:disabled) {
-    background: ${props => props.colors.interactive.primaryActive};
-    border-color: ${props => props.colors.interactive.primaryActive};
-    transform: translateY(0);
-    box-shadow: ${props => props.colors.shadow.sm};
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 6px 12px;
-    font-size: 13px;
-    min-height: 32px;
-  }
-`;
-
 const ErrorMessage = styled.div<{ $isDarkTheme: boolean }>`
   display: flex;
   align-items: center;
@@ -691,10 +611,8 @@ const BreakdownContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
-  
-  @media (max-width: 768px) {
-    gap: 16px;
-  }
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const StatsSection = styled.div<{ $isDarkTheme: boolean }>`
@@ -825,27 +743,10 @@ const BarContainer = styled.div<{ $isDarkTheme: boolean }>`
   overflow: hidden;
 `;
 
-const BarFill = styled.div<{ $width: number; $category: string }>`
+const BarFill = styled.div<{ $width: number; $color: string }>`
   height: 100%;
   width: ${props => props.$width}%;
-  background: ${props => {
-    const category = props.$category.toLowerCase();
-    switch (category) {
-      case 'frontend': return '#36B37E';
-      case 'backend': return '#6554C0';
-      case 'testing': return '#FF8B00';
-      case 'devops': return '#FF5630';
-      case 'documentation': return '#8B5CF6';
-      case 'bug fixes': return '#E53E3E';
-      case 'features': return '#38A169';
-      case 'tasks': return '#3182CE';
-      case 'other': return '#718096';
-      case 'uncategorized': return '#A0AEC0';
-      case 'status': return '#4A90E2';
-      case 'labels': return '#8B5CF6';
-      default: return '#8993A4';
-    }
-  }};
+  background: ${props => props.$color};
   transition: width 0.5s ease;
 `;
 
@@ -881,7 +782,7 @@ const BlockedIssueItem = styled.div<{ $isDarkTheme: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 8px 12px;
   background: ${props => props.$isDarkTheme ? '#2A1F1F' : '#FFF8F8'};
   border: 1px solid #FF5630;
   border-radius: 6px;
