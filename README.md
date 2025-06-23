@@ -1,6 +1,6 @@
 # Forge Epic Tree
 
-This project contains a Forge app written in Javascript that displays an intelligent Epic Tree visualization in a Jira issue panel with **AI-Powered Epic Intelligence & Automation**.
+This project contains a Forge app written in Javascript that displays an intelligent Epic Tree visualization in a Jira issue panel.
 
 ## 🚀 Features
 
@@ -12,14 +12,14 @@ This project contains a Forge app written in Javascript that displays an intelli
 - Dark/light theme support
 - Full-screen mode
 
-### 🤖 AI-Powered Epic Intelligence (NEW!)
+### 📊 Epic Management Tools
 
-- **Smart Epic Breakdown**: AI analyzes epic descriptions and automatically suggests optimal story breakdown with estimated story points
-- **Intelligent Estimation**: Uses Fibonacci sequence for story points with detailed reasoning
-- **Work Distribution Analysis**: Visual breakdown of frontend, backend, testing, and design work
-- **Risk Detection**: AI identifies potential blockers and scope issues
-- **Actionable Recommendations**: Get strategic recommendations for epic execution
-- **One-click Story Creation**: Select and create multiple stories directly from AI suggestions
+- **Epic Breakdown Interface**: Analyze epic descriptions and plan story breakdown
+- **Estimation Tools**: Support for Fibonacci sequence story point estimation
+- **Work Distribution Planning**: Categorize work across frontend, backend, testing, and design
+- **Risk Planning**: Interface for identifying potential blockers and scope issues
+- **Recommendations**: Framework for strategic epic execution planning
+- **Story Creation**: Interface for creating multiple stories from planning sessions
 
 See [developer.atlassian.com/platform/forge/](https://developer.atlassian.com/platform/forge) for documentation and tutorials explaining Forge.
 
@@ -38,20 +38,7 @@ npm install
 cd ../..
 ```
 
-### 2. Configure AI Features (Optional)
-
-To enable AI-powered epic breakdown:
-
-1. Get an OpenAI API key from [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-2. Set the environment variable:
-
-```bash
-forge variables set OPENAI_API_KEY your_api_key_here
-```
-
-**Note**: AI features are optional. The extension works perfectly without AI - you'll just see the tree visualization and filtering capabilities.
-
-### 3. Build and Deploy
+### 2. Build and Deploy
 
 ```bash
 # Build the frontend
@@ -72,10 +59,10 @@ forge install
 2. **Open the Epic Tree panel** on the right side
 3. **View the tree visualization** of all child issues and subtasks
 4. **Use filters** to focus on specific assignees, statuses, priorities, or labels
-5. **Toggle the AI button (🤖)** to access Smart Epic Breakdown
-6. **Generate AI suggestions** by clicking "✨ Generate Smart Breakdown"
-7. **Review and select stories** you want to create
-8. **Click "Create X Stories"** to implement the AI suggestions
+5. **Toggle the breakdown button (📊)** to access Epic Breakdown tools
+6. **Plan your breakdown** using the breakdown interface
+7. **Review and plan stories** you want to create
+8. **Use the planning tools** to organize your epic structure
 
 ## 🎨 Features in Detail
 
@@ -86,14 +73,14 @@ forge install
 - **Real-time updates** when issues change in Jira
 - **Responsive design** that adapts to panel size
 
-### AI Epic Breakdown
+### Epic Breakdown Tools
 
-- **Comprehensive analysis** of epic scope and complexity
-- **Story suggestions** with titles, descriptions, and acceptance criteria
-- **Smart estimation** using proven Fibonacci sequence
+- **Comprehensive planning** interface for epic scope and complexity
+- **Story planning** with titles, descriptions, and acceptance criteria
+- **Estimation tools** using proven Fibonacci sequence
 - **Work categorization** across frontend, backend, testing, and design
-- **Risk assessment** with potential blockers identified
-- **Strategic recommendations** for successful delivery
+- **Risk planning** with potential blocker identification
+- **Strategic planning** for successful delivery
 
 ### Filtering & Views
 
@@ -133,40 +120,28 @@ npm run lint:fix:all
 - Use the `forge install` command when you want to install the app on a new site.
 - Once the app is installed on a site, the site picks up the new app changes you deploy without needing to rerun the install command.
 
-## 🤖 AI Configuration
+## 📊 Epic Breakdown Configuration
 
-The AI features use OpenAI's GPT-4 model for intelligent epic analysis. To configure:
+The epic breakdown tools provide a comprehensive planning interface:
 
-1. **Set your API key**:
-
-   ```bash
-   forge variables set OPENAI_API_KEY sk-your-key-here
-   ```
-
-2. **Verify configuration**:
-
-   ```bash
-   forge variables list
-   ```
-
-3. **Test AI features**:
+1. **Access the tools**:
    - Open any epic in Jira
-   - Click the 🤖 button in the Epic Tree panel
-   - Click "✨ Generate Smart Breakdown"
+   - Click the 📊 button in the Epic Tree panel
+   - Use the breakdown planning interface
 
 ## 📊 What Makes This Extension Amazing
 
 ### For Product Managers
 
-- **Instant epic breakdown** with AI-powered story suggestions
-- **Effort estimation** with detailed reasoning
+- **Epic breakdown planning** with story planning tools
+- **Effort estimation** with detailed reasoning support
 - **Risk identification** before development starts
 - **Visual progress tracking** with the tree view
 
 ### For Development Teams
 
-- **Clear acceptance criteria** generated for each story
-- **Technical work distribution** analysis
+- **Clear acceptance criteria** planning for each story
+- **Technical work distribution** planning
 - **Dependency visualization** in the tree structure
 - **Real-time status updates**
 
@@ -174,15 +149,15 @@ The AI features use OpenAI's GPT-4 model for intelligent epic analysis. To confi
 
 - **Executive overview** with total story points and work breakdown
 - **Progress visualization** with the interactive tree
-- **Risk awareness** with AI-identified potential issues
+- **Risk awareness** with planning tools for potential issues
 
-## 🎯 Killer Features That Attract Users
+## 🎯 Key Features That Attract Users
 
-1. **AI-Powered Intelligence**: No other Jira extension offers comprehensive AI epic analysis
-2. **One-Click Story Creation**: Transform AI suggestions into actual Jira stories instantly
+1. **Comprehensive Planning Tools**: Extensive epic breakdown and planning interface
+2. **Story Planning Interface**: Transform planning sessions into actual Jira stories
 3. **Visual Tree Representation**: See the entire epic structure at a glance
-4. **Smart Estimation**: AI provides Fibonacci-based estimates with reasoning
-5. **Risk Detection**: Identify blockers before they become problems
+4. **Smart Estimation Tools**: Fibonacci-based estimation with reasoning support
+5. **Risk Planning**: Identify blockers before they become problems
 
 ## Support
 
@@ -190,4 +165,4 @@ See [Get help](https://developer.atlassian.com/platform/forge/get-help/) for how
 
 ---
 
-**🚀 Ready to revolutionize your epic planning? Install Epic Tree and experience the future of agile project management!**
+**🚀 Ready to enhance your epic planning? Install Epic Tree and experience comprehensive agile project management!**

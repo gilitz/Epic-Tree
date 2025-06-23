@@ -1,11 +1,6 @@
 import Resolver from '@forge/resolver';
 import api, { route } from '@forge/api';
-import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
 
 interface RequestContext {
   extension: {
@@ -552,7 +547,7 @@ resolver.define('getCurrentContext', async (req: unknown): Promise<{ issueKey: s
   return { issueKey };
 });
 
-// AI-Powered Smart Epic Breakdown
+// Epic Breakdown (AI functionality removed)
 resolver.define('generateEpicBreakdown', async (data: unknown): Promise<EpicBreakdownResponse> => {
   const { epicSummary, epicDescription, existingIssues } = (data as { 
     payload: { 
@@ -562,108 +557,20 @@ resolver.define('generateEpicBreakdown', async (data: unknown): Promise<EpicBrea
     } 
   }).payload;
 
-  // Fallback response in case of AI failure
-  const fallbackResponse: EpicBreakdownResponse = {
+  // Return a basic response since external analysis functionality has been removed
+  const response: EpicBreakdownResponse = {
     suggestions: [],
     totalEstimatedPoints: 0,
     breakdown: { frontend: 0, backend: 0, testing: 0, design: 0 },
-    risks: ['AI analysis unavailable - please review manually'],
+    risks: ['Analysis not available - please review manually'],
     recommendations: ['Consider breaking down the epic manually based on functional requirements']
   };
 
-  try {
-    // Check if OpenAI API key is available
-    if (!process.env.OPENAI_API_KEY) {
-      console.warn('OpenAI API key not configured');
-      return fallbackResponse;
-    }
-
-    const existingIssuesContext = existingIssues && existingIssues.length > 0 
-      ? `\n\nExisting issues in this epic:\n${existingIssues.map(issue => `- ${issue.key}: ${issue.fields.summary} (${issue.fields.status.name})`).join('\n')}`
-      : '';
-
-    const prompt = `You are a senior product manager and technical lead analyzing a Jira Epic for optimal story breakdown. 
-
-Epic Summary: ${epicSummary}
-Epic Description: ${epicDescription}${existingIssuesContext}
-
-Please analyze this epic and provide a comprehensive breakdown with the following JSON structure:
-
-{
-  "suggestions": [
-    {
-      "title": "Story title (actionable, user-focused)",
-      "description": "Detailed description with technical considerations",
-      "storyPoints": number (1, 2, 3, 5, 8, 13, 21),
-      "priority": "High" | "Medium" | "Low",
-      "acceptanceCriteria": ["criteria 1", "criteria 2", "criteria 3"],
-      "labels": ["frontend", "backend", "api", "ui", "testing", etc.],
-      "estimationReasoning": "Why this story point estimate"
-    }
-  ],
-  "totalEstimatedPoints": number,
-  "breakdown": {
-    "frontend": number,
-    "backend": number, 
-    "testing": number,
-    "design": number
-  },
-  "risks": ["potential risk 1", "potential risk 2"],
-  "recommendations": ["recommendation 1", "recommendation 2"]
-}
-
-Guidelines:
-- Break down into 3-8 manageable stories
-- Each story should be completable in 1-2 sprints
-- Use Fibonacci sequence for story points (1,2,3,5,8,13,21)
-- Consider technical dependencies and complexity
-- Include both functional and non-functional requirements
-- Identify potential risks and blockers
-- Provide actionable recommendations
-
-Respond with valid JSON only.`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert product manager and technical lead. Respond with valid JSON only."
-        },
-        {
-          role: "user", 
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 2000
-    });
-
-    const aiResponse = completion.choices[0]?.message?.content;
-    if (!aiResponse) {
-      console.warn('No response from OpenAI');
-      return fallbackResponse;
-    }
-
-    try {
-      const parsedResponse = JSON.parse(aiResponse) as EpicBreakdownResponse;
-      
-      // Validate the response structure
-      if (!parsedResponse.suggestions || !Array.isArray(parsedResponse.suggestions)) {
-        console.warn('Invalid AI response structure');
-        return fallbackResponse;
-      }
-
-      return parsedResponse;
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      return fallbackResponse;
-    }
-
-  } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    return fallbackResponse;
-  }
+  console.log('Epic breakdown requested for:', epicSummary);
+  console.log('Epic description:', epicDescription);
+  console.log('Existing issues count:', existingIssues?.length || 0);
+  
+  return response;
 });
 
 export const handler = resolver.getDefinitions() as unknown; 
