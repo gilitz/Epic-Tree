@@ -52,7 +52,7 @@ export function VerticalTreeChart({
   const [tooltipOpenNodeId, setTooltipOpenNodeId] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState<boolean>(false);
   const [actualNodeBounds, setActualNodeBounds] = useState<{ minY: number; maxY: number } | null>(null);
-  const [showAIBreakdown, setShowAIBreakdown] = useState<boolean>(false);
+  const [showBreakdown, setShowBreakdown] = useState<boolean>(false);
   const svgRef = React.useRef<SVGSVGElement>(null);
 
   const _innerWidth = totalWidth - margin.left - margin.right;
@@ -352,13 +352,13 @@ export function VerticalTreeChart({
           toggleOrientation={toggleOrientation}
           toggleTheme={toggleTheme}
           toggleFullScreen={toggleFullScreen}
-          showAIBreakdown={showAIBreakdown}
-          toggleAIBreakdown={() => setShowAIBreakdown(!showAIBreakdown)}
+          showBreakdown={showBreakdown}
+          toggleBreakdown={() => setShowBreakdown(!showBreakdown)}
         />
       )}
       
-      {/* Conditionally render AI Breakdown or Tree View */}
-      {showAIBreakdown && rootEpicIssue ? (
+      {/* Conditionally render Epic Breakdown or Tree View */}
+      {showBreakdown && rootEpicIssue ? (
         <AIEpicBreakdown
           epicSummary={String(rootEpicIssue.fields?.summary || '')}
           epicDescription={String(rootEpicIssue.fields?.description || '')}
