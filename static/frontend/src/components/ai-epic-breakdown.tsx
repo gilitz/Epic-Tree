@@ -13,11 +13,45 @@ interface StoryBreakdownSuggestion {
   estimationReasoning: string;
 }
 
+interface TreeNodeData {
+  key?: string;
+  id?: string;
+  summary?: string;
+  description?: string;
+  status?: { name: string };
+  priority?: { name: string };
+  assignee?: {
+    displayName: string;
+    avatarUrls?: { '16x16'?: string };
+  };
+  reporter?: {
+    displayName: string;
+    avatarUrls?: { '16x16'?: string };
+  };
+  issueType?: { name: string };
+  storyPoints?: number;
+  labels?: string[];
+  children?: TreeNodeData[];
+  blockingIssues?: Array<{
+    key?: string;
+    id?: string;
+    summary?: string;
+    status?: { name: string };
+  }>;
+  created?: string;
+  updated?: string;
+  duedate?: string;
+  resolutiondate?: string;
+  fixVersions?: Array<{ name: string }>;
+  components?: Array<{ name: string }>;
+  isEpic?: boolean;
+}
+
 interface AIEpicBreakdownProps {
   epicSummary: string;
   epicDescription: string;
   existingIssues?: unknown[];
-  treeData?: any;
+  treeData?: TreeNodeData;
   onCreateStories?: (suggestions: StoryBreakdownSuggestion[]) => void;
 }
 
@@ -95,9 +129,9 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
     }
 
     // Recursively count from children
-    const countFromNode = (node: any) => {
+    const countFromNode = (node: TreeNodeData) => {
       if (node.children) {
-        node.children.forEach((child: any) => {
+        node.children.forEach((child: TreeNodeData) => {
           // Count story points
           if (child.storyPoints) {
             totalStoryPoints += child.storyPoints;
@@ -157,7 +191,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
     let totalLabelsCount = 0;
 
     // Collect all labels and their frequencies
-    const collectLabelsFromNode = (node: any) => {
+    const collectLabelsFromNode = (node: TreeNodeData) => {
       if (node.labels && Array.isArray(node.labels)) {
         node.labels.forEach((label: string) => {
           labelDistribution[label] = (labelDistribution[label] || 0) + 1;
@@ -165,7 +199,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
         });
       }
       if (node.children) {
-        node.children.forEach((child: any) => collectLabelsFromNode(child));
+        node.children.forEach((child: TreeNodeData) => collectLabelsFromNode(child));
       }
     };
 
@@ -185,11 +219,11 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
       labels?: string[];
     }> = [];
     
-    const countBlockedFromNode = (node: any) => {
+    const countBlockedFromNode = (node: TreeNodeData) => {
       if (node.blockingIssues && node.blockingIssues.length > 0) {
         blockedIssuesCount++;
         blockedIssues.push({
-          key: node.key || node.id,
+          key: node.key || node.id || '',
           summary: node.summary || 'No summary',
           status: node.status?.name || 'Unknown',
           assignee: node.assignee ? {
@@ -198,8 +232,8 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
           } : undefined,
           priority: node.priority?.name,
           dueDate: node.duedate,
-          blockingIssues: node.blockingIssues.map((blocking: any) => ({
-            key: blocking.key || blocking.id,
+          blockingIssues: node.blockingIssues.map((blocking) => ({
+            key: blocking.key || blocking.id || '',
             summary: blocking.summary || 'No summary',
             status: blocking.status?.name || 'Unknown'
           })),
@@ -207,18 +241,18 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
         });
       }
       if (node.children) {
-        node.children.forEach((child: any) => countBlockedFromNode(child));
+        node.children.forEach((child: TreeNodeData) => countBlockedFromNode(child));
       }
     };
     countBlockedFromNode(treeData);
 
     // Get epic overview data
     const epicOverview = {
-      key: treeData.key || treeData.id,
-      summary: treeData.summary,
-      description: treeData.description,
-      status: treeData.status?.name,
-      priority: treeData.priority?.name,
+      key: treeData.key || treeData.id || '',
+      summary: treeData.summary || '',
+      description: treeData.description || '',
+      status: treeData.status?.name || '',
+      priority: treeData.priority?.name || '',
       dueDate: treeData.duedate,
       fixVersions: treeData.fixVersions || [],
       components: treeData.components || [],
@@ -252,8 +286,6 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
     };
   }, [treeData]);
 
-
-
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
     if (newExpanded.has(sectionId)) {
@@ -264,7 +296,7 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
     setExpandedSections(newExpanded);
   };
 
-  const renderCollapsibleList = (items: any[], sectionId: string, renderItem: (item: any, index: number) => React.ReactNode) => {
+  const renderCollapsibleList = <T,>(items: T[], sectionId: string, renderItem: (item: T, index: number) => React.ReactNode) => {
     const isExpanded = expandedSections.has(sectionId);
     const shouldShowToggle = items.length > 5;
     const displayItems = shouldShowToggle && !isExpanded ? items.slice(0, 5) : items;
@@ -284,261 +316,261 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
   return (
     <Container $isDarkTheme={isDarkTheme}>
       <GilContainer>
-      <Header>
-        <HeaderLeft>
-          <Title>
-            Epic Breakdown
-          </Title>
-          {realEpicData.createdDate && (
-            <CreatedDate>
-              Created: {new Date(realEpicData.createdDate).toLocaleDateString()}
-            </CreatedDate>
-          )}
-        </HeaderLeft>
-      </Header>
+        <Header>
+          <HeaderLeft>
+            <Title>
+              Epic Breakdown
+            </Title>
+            {realEpicData.createdDate && (
+              <CreatedDate>
+                Created: {new Date(realEpicData.createdDate).toLocaleDateString()}
+              </CreatedDate>
+            )}
+          </HeaderLeft>
+        </Header>
 
-      {error && (
-        <ErrorMessage $isDarkTheme={isDarkTheme}>
-          <ErrorIcon>⚠️</ErrorIcon>
-          {error}
-        </ErrorMessage>
-      )}
+        {error && (
+          <ErrorMessage $isDarkTheme={isDarkTheme}>
+            <ErrorIcon>⚠️</ErrorIcon>
+            {error}
+          </ErrorMessage>
+        )}
 
-      <BreakdownContent>
-        {/* Epic Statistics */}
-        <StatsSection $isDarkTheme={isDarkTheme}>
-          <StatsGrid>
-            <StatCard $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #6554C0' }}>
-              <CardTitle>Story Points</CardTitle>
-              <CardValue $color="#6554C0">{realEpicData.totalStoryPoints}</CardValue>
-            </StatCard>
-            <StatCard $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #36B37E' }}>
-              <CardTitle>Issues</CardTitle>
-              <CardValue $color="#36B37E">{realEpicData.totalIssues}</CardValue>
-            </StatCard>
-            <StatCard $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #FF8B00' }}>
-              <CardTitle>Subtasks</CardTitle>
-              <CardValue $color="#FF8B00">{realEpicData.totalSubtasks}</CardValue>
-            </StatCard>
-          </StatsGrid>
+        <BreakdownContent>
+          {/* Epic Statistics */}
+          <StatsSection $isDarkTheme={isDarkTheme}>
+            <StatsGrid>
+              <StatCard $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #6554C0' }}>
+                <CardTitle>Story Points</CardTitle>
+                <CardValue $color="#6554C0">{realEpicData.totalStoryPoints}</CardValue>
+              </StatCard>
+              <StatCard $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #36B37E' }}>
+                <CardTitle>Issues</CardTitle>
+                <CardValue $color="#36B37E">{realEpicData.totalIssues}</CardValue>
+              </StatCard>
+              <StatCard $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #FF8B00' }}>
+                <CardTitle>Subtasks</CardTitle>
+                <CardValue $color="#FF8B00">{realEpicData.totalSubtasks}</CardValue>
+              </StatCard>
+            </StatsGrid>
 
-          {/* Epic Overview */}
-          <EpicOverviewSection $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #8B5CF6', marginBottom: '24px' }}>
-            <SectionSubtitle>📋 Epic Overview</SectionSubtitle>
-            <OverviewGrid>
-              <OverviewItem>
-                <OverviewLabel>Status</OverviewLabel>
-                <OverviewValue $color={colors.text.primary}>
-                  {realEpicData.epicOverview.status || 'No status'}
-                </OverviewValue>
-              </OverviewItem>
-              <OverviewItem>
-                <OverviewLabel>Priority</OverviewLabel>
-                <OverviewValue $color={colors.text.primary}>
-                  {realEpicData.epicOverview.priority || 'No priority'}
-                </OverviewValue>
-              </OverviewItem>
-              {realEpicData.epicOverview.dueDate && (
+            {/* Epic Overview */}
+            <EpicOverviewSection $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #8B5CF6', marginBottom: '24px' }}>
+              <SectionSubtitle>📋 Epic Overview</SectionSubtitle>
+              <OverviewGrid>
                 <OverviewItem>
-                  <OverviewLabel>Due Date</OverviewLabel>
+                  <OverviewLabel>Status</OverviewLabel>
                   <OverviewValue $color={colors.text.primary}>
-                    {new Date(realEpicData.epicOverview.dueDate).toLocaleDateString()}
+                    {realEpicData.epicOverview.status || 'No status'}
                   </OverviewValue>
                 </OverviewItem>
-              )}
-              {realEpicData.epicOverview.fixVersions.length > 0 && (
                 <OverviewItem>
-                  <OverviewLabel>Fix Versions</OverviewLabel>
+                  <OverviewLabel>Priority</OverviewLabel>
                   <OverviewValue $color={colors.text.primary}>
-                    {realEpicData.epicOverview.fixVersions.map((v: any) => v.name).join(', ')}
+                    {realEpicData.epicOverview.priority || 'No priority'}
                   </OverviewValue>
                 </OverviewItem>
-              )}
-              {realEpicData.epicOverview.components.length > 0 && (
-                <OverviewItem>
-                  <OverviewLabel>Components</OverviewLabel>
-                  <OverviewValue $color={colors.text.primary}>
-                    {realEpicData.epicOverview.components.map((c: any) => c.name).join(', ')}
-                  </OverviewValue>
-                </OverviewItem>
-              )}
-              {realEpicData.epicOverview.reporter && (
-                <OverviewItem>
-                  <OverviewLabel>Reporter</OverviewLabel>
-                  <ReporterInfo>
-                    {realEpicData.epicOverview.reporter.avatarUrl && (
-                      <UserAvatar src={realEpicData.epicOverview.reporter.avatarUrl} alt="Reporter" />
-                    )}
+                {realEpicData.epicOverview.dueDate && (
+                  <OverviewItem>
+                    <OverviewLabel>Due Date</OverviewLabel>
                     <OverviewValue $color={colors.text.primary}>
-                      {realEpicData.epicOverview.reporter.displayName}
+                      {new Date(realEpicData.epicOverview.dueDate).toLocaleDateString()}
                     </OverviewValue>
-                  </ReporterInfo>
-                </OverviewItem>
-              )}
-              {realEpicData.epicOverview.updated && (
-                <OverviewItem>
-                  <OverviewLabel>Last Updated</OverviewLabel>
-                  <OverviewValue $color={colors.text.primary}>
-                    {new Date(realEpicData.epicOverview.updated).toLocaleDateString()}
-                  </OverviewValue>
-                </OverviewItem>
-              )}
-            </OverviewGrid>
-          </EpicOverviewSection>
+                  </OverviewItem>
+                )}
+                {realEpicData.epicOverview.fixVersions.length > 0 && (
+                  <OverviewItem>
+                    <OverviewLabel>Fix Versions</OverviewLabel>
+                    <OverviewValue $color={colors.text.primary}>
+                      {realEpicData.epicOverview.fixVersions.map((v) => v.name).join(', ')}
+                    </OverviewValue>
+                  </OverviewItem>
+                )}
+                {realEpicData.epicOverview.components.length > 0 && (
+                  <OverviewItem>
+                    <OverviewLabel>Components</OverviewLabel>
+                    <OverviewValue $color={colors.text.primary}>
+                      {realEpicData.epicOverview.components.map((c) => c.name).join(', ')}
+                    </OverviewValue>
+                  </OverviewItem>
+                )}
+                {realEpicData.epicOverview.reporter && (
+                  <OverviewItem>
+                    <OverviewLabel>Reporter</OverviewLabel>
+                    <ReporterInfo>
+                      {realEpicData.epicOverview.reporter.avatarUrl && (
+                        <UserAvatar src={realEpicData.epicOverview.reporter.avatarUrl} alt="Reporter" />
+                      )}
+                      <OverviewValue $color={colors.text.primary}>
+                        {realEpicData.epicOverview.reporter.displayName}
+                      </OverviewValue>
+                    </ReporterInfo>
+                  </OverviewItem>
+                )}
+                {realEpicData.epicOverview.updated && (
+                  <OverviewItem>
+                    <OverviewLabel>Last Updated</OverviewLabel>
+                    <OverviewValue $color={colors.text.primary}>
+                      {new Date(realEpicData.epicOverview.updated).toLocaleDateString()}
+                    </OverviewValue>
+                  </OverviewItem>
+                )}
+              </OverviewGrid>
+            </EpicOverviewSection>
 
-          {/* Status Distribution */}
-          <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #F59E0B' }}>
-            <SectionSubtitle>📈 Status Distribution</SectionSubtitle>
-            <BreakdownBars>
-              {renderCollapsibleList(
-                Object.entries(realEpicData.statusBreakdown),
-                'statusDistribution',
-                ([status, count]) => (
-                  <BreakdownBar key={status}>
-                    <BarLabel>{status}</BarLabel>
-                    <BarContainer $isDarkTheme={isDarkTheme}>
-                      <BarFill 
-                        $width={((count as number) / Math.max(realEpicData.totalIssues + realEpicData.totalSubtasks, 1)) * 100}
-                        $color="#F59E0B"
-                      />
-                    </BarContainer>
-                    <BarValue>{count} issues</BarValue>
-                  </BreakdownBar>
-                )
-              )}
-            </BreakdownBars>
-          </WorkBreakdown>
-
-          {/* Labels Distribution */}
-          {Object.keys(realEpicData.labelDistribution).length > 0 && (
-            <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #6366F1' }}>
-              <SectionSubtitle>🏷️ Labels Distribution</SectionSubtitle>
+            {/* Status Distribution */}
+            <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #F59E0B' }}>
+              <SectionSubtitle>📈 Status Distribution</SectionSubtitle>
               <BreakdownBars>
                 {renderCollapsibleList(
-                  Object.entries(realEpicData.labelDistribution),
-                  'labelsDistribution',
-                  ([label, count]) => (
-                    <BreakdownBar key={label}>
-                      <BarLabel>{label}</BarLabel>
+                  Object.entries(realEpicData.statusBreakdown),
+                  'statusDistribution',
+                  ([status, count]) => (
+                    <BreakdownBar key={status}>
+                      <BarLabel>{status}</BarLabel>
                       <BarContainer $isDarkTheme={isDarkTheme}>
                         <BarFill 
-                          $width={((count as number) / Math.max(realEpicData.totalLabelsCount, 1)) * 100}
-                          $color="#6366F1"
+                          $width={((count as number) / Math.max(realEpicData.totalIssues + realEpicData.totalSubtasks, 1)) * 100}
+                          $color="#F59E0B"
                         />
                       </BarContainer>
-                      <BarValue>{count} uses</BarValue>
+                      <BarValue>{count} issues</BarValue>
                     </BreakdownBar>
                   )
                 )}
               </BreakdownBars>
             </WorkBreakdown>
-          )}
 
-          {/* Assigned Users */}
-          <AssignedUsersSection $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #8B5CF6' }}>
-            <SectionSubtitle>👥 Assigned Users</SectionSubtitle>
-            <UsersList>
-              {realEpicData.uniqueAssignees.filter(user => user.displayName !== 'Unassigned').length > 0 ? (
-                renderCollapsibleList(
-                  realEpicData.uniqueAssignees.filter(user => user.displayName !== 'Unassigned'),
-                  'assignedUsers',
-                  (user, index) => (
-                    <UserCard key={index} $isDarkTheme={isDarkTheme}>
-                      {user.avatarUrl && (
-                        <UserAvatar src={user.avatarUrl} alt={user.displayName} />
-                      )}
-                      <UserName>{user.displayName}</UserName>
-                    </UserCard>
-                  )
-                )
-              ) : (
-                <NoUsersMessage>No users assigned</NoUsersMessage>
-              )}
-            </UsersList>
-          </AssignedUsersSection>
+            {/* Labels Distribution */}
+            {Object.keys(realEpicData.labelDistribution).length > 0 && (
+              <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #6366F1' }}>
+                <SectionSubtitle>🏷️ Labels Distribution</SectionSubtitle>
+                <BreakdownBars>
+                  {renderCollapsibleList(
+                    Object.entries(realEpicData.labelDistribution),
+                    'labelsDistribution',
+                    ([label, count]) => (
+                      <BreakdownBar key={label}>
+                        <BarLabel>{label}</BarLabel>
+                        <BarContainer $isDarkTheme={isDarkTheme}>
+                          <BarFill 
+                            $width={((count as number) / Math.max(realEpicData.totalLabelsCount, 1)) * 100}
+                            $color="#6366F1"
+                          />
+                        </BarContainer>
+                        <BarValue>{count} uses</BarValue>
+                      </BreakdownBar>
+                    )
+                  )}
+                </BreakdownBars>
+              </WorkBreakdown>
+            )}
 
-          {/* Blocked Issues */}
-          {realEpicData.blockedIssuesCount > 0 && (
-            <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #EF4444' }}>
-              <SectionSubtitle>🚫 Blocked Issues ({realEpicData.blockedIssuesCount})</SectionSubtitle>
-              <div>
-                {renderCollapsibleList(
-                  realEpicData.blockedIssues,
-                  'blockedIssues',
-                  (issue) => (
-                    <BlockedIssueItem key={issue.key} $isDarkTheme={isDarkTheme}>
-                      <BlockedIssueLeft>
-                        <BlockedIssueKey 
-                          href={`/browse/${issue.key}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            window.open(`/browse/${issue.key}`, '_blank');
-                          }}
-                        >
-                          {issue.key}
-                        </BlockedIssueKey>
-                        <BlockedIssueSummary>{issue.summary}</BlockedIssueSummary>
-                      </BlockedIssueLeft>
-                      
-                      <BlockedIssueRight>
-                        <BlockedIssueStatusTag $status={issue.status} $isDarkTheme={isDarkTheme}>
-                          {issue.status}
-                        </BlockedIssueStatusTag>
-                        
-                        {issue.assignee && (
-                          <BlockedIssueAssignee>
-                            {issue.assignee.avatarUrl && (
-                              <UserAvatar src={issue.assignee.avatarUrl} alt="Assignee" />
-                            )}
-                            <span>{issue.assignee.displayName}</span>
-                          </BlockedIssueAssignee>
+            {/* Assigned Users */}
+            <AssignedUsersSection $isDarkTheme={isDarkTheme} style={{ borderLeft: '4px solid #8B5CF6' }}>
+              <SectionSubtitle>👥 Assigned Users</SectionSubtitle>
+              <UsersList>
+                {realEpicData.uniqueAssignees.filter(user => user.displayName !== 'Unassigned').length > 0 ? (
+                  renderCollapsibleList(
+                    realEpicData.uniqueAssignees.filter(user => user.displayName !== 'Unassigned'),
+                    'assignedUsers',
+                    (user, index) => (
+                      <UserCard key={index} $isDarkTheme={isDarkTheme}>
+                        {user.avatarUrl && (
+                          <UserAvatar src={user.avatarUrl} alt={user.displayName} />
                         )}
-                        
-                        {issue.priority && (
-                          <BlockedIssuePriority $priority={issue.priority}>
-                            {issue.priority}
-                          </BlockedIssuePriority>
-                        )}
-                        
-                        {issue.blockingIssues.length > 0 && (
-                          <BlockedByInfo>
-                            Blocked by: {issue.blockingIssues.map((blockingIssue, idx) => (
-                              <React.Fragment key={idx}>
-                                {idx > 0 && ', '}
-                                <BlockingIssueLink
-                                  href={`/browse/${blockingIssue.key}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    window.open(`/browse/${blockingIssue.key}`, '_blank');
-                                  }}
-                                >
-                                  {blockingIssue.key}
-                                </BlockingIssueLink>
-                              </React.Fragment>
-                            ))}
-                          </BlockedByInfo>
-                        )}
-                        
-                        {issue.dueDate && (
-                          <BlockedIssueDueDate>
-                            Due: {new Date(issue.dueDate).toLocaleDateString()}
-                          </BlockedIssueDueDate>
-                        )}
-                      </BlockedIssueRight>
-                    </BlockedIssueItem>
+                        <UserName>{user.displayName}</UserName>
+                      </UserCard>
+                    )
                   )
+                ) : (
+                  <NoUsersMessage>No users assigned</NoUsersMessage>
                 )}
-              </div>
-            </WorkBreakdown>
-          )}
-        </StatsSection>
+              </UsersList>
+            </AssignedUsersSection>
+
+            {/* Blocked Issues */}
+            {realEpicData.blockedIssuesCount > 0 && (
+              <WorkBreakdown $isDarkTheme={isDarkTheme} style={{ marginBottom: '24px', borderLeft: '4px solid #EF4444' }}>
+                <SectionSubtitle>🚫 Blocked Issues ({realEpicData.blockedIssuesCount})</SectionSubtitle>
+                <div>
+                  {renderCollapsibleList(
+                    realEpicData.blockedIssues,
+                    'blockedIssues',
+                    (issue) => (
+                      <BlockedIssueItem key={issue.key} $isDarkTheme={isDarkTheme}>
+                        <BlockedIssueLeft>
+                          <BlockedIssueKey 
+                            href={`/browse/${issue.key}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.open(`/browse/${issue.key}`, '_blank');
+                            }}
+                          >
+                            {issue.key}
+                          </BlockedIssueKey>
+                          <BlockedIssueSummary>{issue.summary}</BlockedIssueSummary>
+                        </BlockedIssueLeft>
+                        
+                        <BlockedIssueRight>
+                          <BlockedIssueStatusTag $status={issue.status} $isDarkTheme={isDarkTheme}>
+                            {issue.status}
+                          </BlockedIssueStatusTag>
+                          
+                          {issue.assignee && (
+                            <BlockedIssueAssignee>
+                              {issue.assignee.avatarUrl && (
+                                <UserAvatar src={issue.assignee.avatarUrl} alt="Assignee" />
+                              )}
+                              <span>{issue.assignee.displayName}</span>
+                            </BlockedIssueAssignee>
+                          )}
+                          
+                          {issue.priority && (
+                            <BlockedIssuePriority $priority={issue.priority}>
+                              {issue.priority}
+                            </BlockedIssuePriority>
+                          )}
+                          
+                          {issue.blockingIssues.length > 0 && (
+                            <BlockedByInfo>
+                              Blocked by: {issue.blockingIssues.map((blockingIssue, idx) => (
+                                <React.Fragment key={idx}>
+                                  {idx > 0 && ', '}
+                                  <BlockingIssueLink
+                                    href={`/browse/${blockingIssue.key}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      window.open(`/browse/${blockingIssue.key}`, '_blank');
+                                    }}
+                                  >
+                                    {blockingIssue.key}
+                                  </BlockingIssueLink>
+                                </React.Fragment>
+                              ))}
+                            </BlockedByInfo>
+                          )}
+                          
+                          {issue.dueDate && (
+                            <BlockedIssueDueDate>
+                              Due: {new Date(issue.dueDate).toLocaleDateString()}
+                            </BlockedIssueDueDate>
+                          )}
+                        </BlockedIssueRight>
+                      </BlockedIssueItem>
+                    )
+                  )}
+                </div>
+              </WorkBreakdown>
+            )}
+          </StatsSection>
 
 
-      </BreakdownContent>
+        </BreakdownContent>
       </GilContainer>
     </Container>
   );
