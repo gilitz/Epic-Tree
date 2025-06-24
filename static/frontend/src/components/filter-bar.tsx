@@ -510,7 +510,7 @@ const ViewControlButton = styled.button.withConfig({
   border: none;
   border-left: 1px solid ${props => props.colors.border.secondary};
   padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
-  font-size: clamp(12px, 2.5vw, 14px);
+  font-size: clamp(16px, 3.5vw, 18px);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
