@@ -656,7 +656,7 @@ const ScrollableContainer = styled.div.withConfig({
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
-  padding: ${props => props.$orientation === 'horizontal' ? '10px 10px 50px 10px' : '10px'}; /* Reduced bottom padding for horizontal */
+  padding: ${props => props.$orientation === 'horizontal' ? '10px 10px 50px 10px' : '80px 10px 10px 10px'}; /* More top padding for vertical, reduced bottom for horizontal */
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {

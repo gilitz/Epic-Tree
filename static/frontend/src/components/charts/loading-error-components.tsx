@@ -67,9 +67,9 @@ const LoadingContainer = styled.div.withConfig({
   justify-content: center;
   padding: 40px 20px;
   text-align: center;
-  min-height: 200px;
+  width: 100%;
+  height: 100vh;
   background-color: ${props => props.colors.background.primary};
-  margin: 20px;
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
