@@ -17,6 +17,8 @@ interface FilterBarProps {
   toggleFullScreen: () => void;
   showBreakdown?: boolean;
   toggleBreakdown?: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({ 
@@ -28,7 +30,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   toggleTheme, 
   toggleFullScreen,
   showBreakdown,
-  toggleBreakdown
+  toggleBreakdown,
+  zoomIn,
+  zoomOut
 }) => {
   const { colors } = useTheme();
   const { 
@@ -247,7 +251,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   }
 
   return (
-    <FilterBarContainer colors={colors}>
+    <FilterBarContainer colors={colors} $orientation={orientation}>
       <FilterSection>
         <FiltersRow>
           {showAssigneeFilter && (
@@ -325,9 +329,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <ToggleButton colors={colors} onClick={toggleTheme}>
             {isDarkTheme ? '☀️' : '🌙'}
           </ToggleButton>
-          <ToggleButton colors={colors} onClick={toggleFullScreen}>
-            ⛶
-          </ToggleButton>
+          <ViewControlsGroup>
+            <SplitZoomButton>
+              <ZoomHalf colors={colors} onClick={zoomOut} $position="left">
+                −
+              </ZoomHalf>
+              <ZoomHalf colors={colors} onClick={zoomIn} $position="right">
+                +
+              </ZoomHalf>
+            </SplitZoomButton>
+            <ViewControlButton colors={colors} onClick={toggleFullScreen}>
+              ⛶
+            </ViewControlButton>
+          </ViewControlsGroup>
         </ToggleButtonsGroup>
       </FilterSection>
     </FilterBarContainer>
@@ -336,13 +350,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
 // Styled Components
 const FilterBarContainer = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'colors',
-})<{ colors: CSSThemeColors }>`
+  shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$orientation',
+})<{ colors: CSSThemeColors; $orientation: 'vertical' | 'horizontal' }>`
   display: flex;
-  align-items: center;
-  padding: 8px 24px;
+  align-items: flex-start;
+  padding: ${props => props.$orientation === 'horizontal' 
+    ? '12px 24px 12px 56px' 
+    : '12px'};
   background: ${props => props.colors.background.primary};
   border-bottom: 1px solid ${props => props.colors.border.primary};
+  gap: 16px;
+  position: relative;
+  
+  @media (max-width: 900px) {
+    padding-right: 300px; /* Make room for absolute positioned buttons */
+  }
 `;
 
 const FilterSection = styled.div`
@@ -356,6 +378,16 @@ const FiltersRow = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
+  max-width: calc(100% - 300px); /* Reserve space for buttons */
+  
+  @media (max-width: 1200px) {
+    max-width: calc(100% - 250px);
+  }
+  
+  @media (max-width: 900px) {
+    max-width: 100%;
+  }
 `;
 
 const ClearAllButton = styled.button.withConfig({
@@ -382,6 +414,13 @@ const ToggleButtonsGroup = styled.div`
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
+  
+  @media (max-width: 900px) {
+    position: absolute;
+    top: 12px;
+    right: 24px;
+  }
 `;
 
 const ToggleButton = styled.button.withConfig({
@@ -412,5 +451,88 @@ const ToggleButton = styled.button.withConfig({
   &:active {
     background-color: ${props => props.colors.surface.active};
     box-shadow: ${props => props.colors.shadow.sm};
+  }
+`;
+
+const ViewControlsGroup = styled.div`
+  display: flex;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--color-shadow-sm);
+`;
+
+const SplitZoomButton = styled.div`
+  display: flex;
+  position: relative;
+  min-width: 64px;
+  min-height: 36px;
+  
+  &::before {
+    content: '🔍';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 1;
+  }
+`;
+
+const ZoomHalf = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$position',
+})<{ colors: CSSThemeColors; $position: 'left' | 'right' }>`
+  background-color: ${props => props.colors.background.secondary};
+  color: ${props => props.colors.text.primary};
+  border: none;
+  border-right: ${props => props.$position === 'left' ? `1px solid ${props.colors.border.secondary}` : 'none'};
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 36px;
+  position: relative;
+  z-index: 2;
+  
+  &:hover {
+    background-color: ${props => props.colors.surface.hover};
+  }
+  
+  &:active {
+    background-color: ${props => props.colors.surface.active};
+  }
+`;
+
+const ViewControlButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'colors',
+})<{ colors: CSSThemeColors }>`
+  background-color: ${props => props.colors.background.secondary};
+  color: ${props => props.colors.text.primary};
+  border: none;
+  border-left: 1px solid ${props => props.colors.border.secondary};
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 36px;
+  
+  &:hover {
+    background-color: ${props => props.colors.surface.hover};
+  }
+  
+  &:active {
+    background-color: ${props => props.colors.surface.active};
   }
 `; 

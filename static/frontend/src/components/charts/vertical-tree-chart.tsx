@@ -54,6 +54,7 @@ export function VerticalTreeChart({
   const [hasInitialized, setHasInitialized] = useState<boolean>(false);
   const [actualNodeBounds, setActualNodeBounds] = useState<{ minY: number; maxY: number } | null>(null);
   const [showBreakdown, setShowBreakdown] = useState<boolean>(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const svgRef = React.useRef<SVGSVGElement>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -195,24 +196,27 @@ export function VerticalTreeChart({
     return {
       treeWidth: calculatedTreeWidth,
       treeHeight: calculatedTreeHeight,
-      origin: { x: MIN_CONTAINER_PADDING, y: MIN_CONTAINER_PADDING }
+      origin: { 
+        x: MIN_CONTAINER_PADDING,
+        y: MIN_CONTAINER_PADDING
+      }
     };
   }, [data, orientation]);
 
-  // Calculate SVG dimensions - first calculate standard dimensions
-  const svgWidth = treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right;
+  // Calculate SVG dimensions - generous static padding since zoom is handled at SVG level
+  const svgWidth = (treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 200 : 0)) * 3; // 3x for max zoom
   
   // Calculate SVG height based on actual node bounds if available, otherwise use calculated height
-  // This ensures the SVG height is determined by the topmost and bottommost nodes + 40px padding
+  // This ensures the SVG height is determined by the topmost and bottommost nodes + generous static padding
   const svgHeight = useMemo(() => {
     if (actualNodeBounds) {
       const TREE_PADDING = 60; // 40px padding as requested
       const actualTreeHeight = (actualNodeBounds.maxY - actualNodeBounds.minY) + (TREE_PADDING * 2);
-      return actualTreeHeight + margin.top + margin.bottom + origin.y;
+      return (actualTreeHeight + margin.top + margin.bottom + origin.y + (orientation === 'vertical' ? 100 : 0)) * 3; // 3x for max zoom
     }
     // Fallback to calculated height until actual bounds are measured
-    return treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom;
-  }, [actualNodeBounds, treeHeight, margin, origin]);
+    return (treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom + (orientation === 'vertical' ? 100 : 0)) * 3; // 3x for max zoom
+  }, [actualNodeBounds, treeHeight, margin, origin, orientation]);
 
   // Effect to measure actual node bounds after Tree component renders
   React.useEffect(() => {
@@ -341,6 +345,15 @@ export function VerticalTreeChart({
     }
   };
 
+  // Zoom functions
+  const zoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3)); // Max zoom 3x
+  };
+
+  const zoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.25)); // Min zoom 0.25x
+  };
+
 
 
   return totalWidth < 10 ? null : (
@@ -356,6 +369,8 @@ export function VerticalTreeChart({
           toggleFullScreen={toggleFullScreen}
           showBreakdown={showBreakdown}
           toggleBreakdown={() => setShowBreakdown(!showBreakdown)}
+          zoomIn={zoomIn}
+          zoomOut={zoomOut}
         />
       )}
       
@@ -373,7 +388,7 @@ export function VerticalTreeChart({
           ref={svgRef}
           width={svgWidth} 
           height={svgHeight}
-          style={{ minWidth: totalWidth, minHeight: totalHeight }}
+          style={{ minWidth: totalWidth, minHeight: totalHeight, transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}
         >
           <defs>
             <LinearGradient id="links-gradient" from={colors.tree.lines} to={colors.tree.linesHover} />
@@ -447,9 +462,11 @@ export function VerticalTreeChart({
                     const fixedHorizontalPosition = depth * FIXED_LEVEL_SPACING;
                     
                     if (depth === 0) {
-                      // Root node (Epic) - center it in the available space
+                      // Root node (Epic) - position it with enough space for its larger width
                       const rootNode = nodesAtThisDepth[0];
-                      rootNode.x = treeHeight / 2;
+                      // Ensure the epic node has enough space on the left
+                      const minPosition = EPIC_NODE_WIDTH / 2 + 80; // Static padding since zoom is handled at SVG level
+                      rootNode.x = Math.max(treeHeight / 2, minPosition);
                       rootNode.y = fixedHorizontalPosition;
                     } else {
                       // For child nodes, center them around their parent with collision detection
@@ -611,7 +628,10 @@ const ScrollableContainer = styled.div.withConfig({
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
-  padding-left: ${props => props.$orientation === 'horizontal' ? '24px' : '0'};
+  padding-left: ${props => props.$orientation === 'horizontal' ? '140px' : '0'};
+  padding-top: ${props => props.$orientation === 'vertical' ? '40px' : '0'};
+  padding-right: ${props => props.$orientation === 'horizontal' ? '200px' : '0'};
+  padding-bottom: ${props => props.$orientation === 'vertical' ? '200px' : '0'};
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {
