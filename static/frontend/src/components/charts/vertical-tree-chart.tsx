@@ -642,6 +642,8 @@ const ChartContainer = styled.div.withConfig({
   position: relative;
   background: ${props => props.colors.background.primary};
   transition: background-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
   
   .clickable-node:active {
     filter: brightness(0.85) !important;
@@ -656,22 +658,27 @@ const ScrollableContainer = styled.div.withConfig({
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
-  padding: ${props => props.$orientation === 'horizontal' ? '10px 10px 50px 10px' : '80px 10px 10px 10px'}; /* More top padding for vertical, reduced bottom for horizontal */
+  flex: 1;
+  
+  /* Responsive padding using clamp */
+  padding: ${props => props.$orientation === 'horizontal' 
+    ? 'clamp(8px, 2vh, 16px) clamp(8px, 2vw, 16px) clamp(30px, 8vh, 60px) clamp(8px, 2vw, 16px)' 
+    : 'clamp(50px, 12vh, 100px) clamp(8px, 2vw, 16px) clamp(8px, 2vh, 16px) clamp(8px, 2vw, 16px)'};
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: clamp(4px, 1vw, 8px);
+    height: clamp(4px, 1vw, 8px);
   }
   
   &::-webkit-scrollbar-track {
     background: ${props => props.colors.surface.secondary};
-    border-radius: 4px;
+    border-radius: clamp(2px, 0.5vw, 4px);
   }
   
   &::-webkit-scrollbar-thumb {
     background: ${props => props.colors.border.secondary};
-    border-radius: 4px;
+    border-radius: clamp(2px, 0.5vw, 4px);
     
     &:hover {
       background: ${props => props.colors.text.tertiary};
@@ -695,26 +702,26 @@ const InitialLoadingContainer = styled.div.withConfig({
   width: 100%;
   height: 100vh;
   background: ${props => props.colors.background.primary};
+  padding: clamp(16px, 4vw, 40px);
 `;
 
 const EpicKeyDisplay = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
-  font-size: 24px;
+  font-size: clamp(16px, 4vw, 24px);
   font-weight: 600;
   color: ${props => props.colors.text.primary};
-  margin-bottom: 40px;
+  margin-bottom: clamp(20px, 5vw, 40px);
   text-align: center;
-  max-width: 80%;
+  max-width: 90%;
   word-wrap: break-word;
+  line-height: 1.4;
 `;
-
-
 
 const LoadingText = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
-  font-size: 16px;
+  font-size: clamp(13px, 3vw, 16px);
   color: ${props => props.colors.text.secondary};
   text-align: center;
 `;
@@ -730,39 +737,40 @@ const NoEpicContainer = styled.div.withConfig({
   width: 100%;
   height: 100vh;
   background: ${props => props.colors.background.primary};
-  padding: 40px 20px;
+  padding: clamp(16px, 4vw, 40px) clamp(12px, 3vw, 20px);
   text-align: center;
 `;
 
 const NoEpicIcon = styled.div`
-  font-size: 64px;
-  margin-bottom: 24px;
+  font-size: clamp(40px, 8vw, 64px);
+  margin-bottom: clamp(16px, 4vw, 24px);
   opacity: 0.7;
 `;
 
 const NoEpicTitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
-  font-size: 28px;
+  font-size: clamp(18px, 4.5vw, 28px);
   font-weight: 600;
   color: ${props => props.colors.text.primary};
-  margin-bottom: 16px;
+  margin-bottom: clamp(10px, 2.5vw, 16px);
+  line-height: 1.3;
 `;
 
 const NoEpicMessage = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
-  font-size: 16px;
+  font-size: clamp(13px, 3vw, 16px);
   color: ${props => props.colors.text.secondary};
-  max-width: 500px;
+  max-width: min(500px, 90vw);
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin-bottom: clamp(8px, 2vw, 12px);
 `;
 
 const NoEpicSubtitle = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors',
 })<{ colors: any }>`
-  font-size: 14px;
+  font-size: clamp(11px, 2.5vw, 14px);
   color: ${props => props.colors.text.tertiary};
   font-style: italic;
 `;

@@ -353,18 +353,16 @@ const FilterBarContainer = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'colors' && prop !== '$orientation',
 })<{ colors: CSSThemeColors; $orientation: 'vertical' | 'horizontal' }>`
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   padding: ${props => props.$orientation === 'horizontal' 
-    ? '12px 24px 12px 56px' 
-    : '12px'};
+    ? 'clamp(8px, 2vw, 12px) clamp(16px, 4vw, 24px) clamp(8px, 2vw, 12px) clamp(40px, 8vw, 56px)' 
+    : 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)'};
   background: ${props => props.colors.background.primary};
   border-bottom: 1px solid ${props => props.colors.border.primary};
-  gap: 16px;
+  gap: clamp(8px, 2vw, 16px);
   position: relative;
-  
-  @media (max-width: 900px) {
-    padding-right: 300px; /* Make room for absolute positioned buttons */
-  }
+  min-height: fit-content;
 `;
 
 const FilterSection = styled.div`
@@ -372,22 +370,18 @@ const FilterSection = styled.div`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
 `;
 
 const FiltersRow = styled.div`
   display: flex;
-  gap: 12px;
+  gap: clamp(6px, 1.5vw, 12px);
   align-items: center;
   flex-wrap: wrap;
-  max-width: calc(100% - 300px); /* Reserve space for buttons */
-  
-  @media (max-width: 1200px) {
-    max-width: calc(100% - 250px);
-  }
-  
-  @media (max-width: 900px) {
-    max-width: 100%;
-  }
+  flex: 1;
+  min-width: 0;
 `;
 
 const ClearAllButton = styled.button.withConfig({
@@ -396,13 +390,14 @@ const ClearAllButton = styled.button.withConfig({
   background: none;
   border: 1px solid ${props => props.colors.border.primary};
   color: ${props => props.colors.text.secondary};
-  padding: 4px 8px;
+  padding: clamp(3px, 0.5vw, 4px) clamp(6px, 1vw, 8px);
   border-radius: 4px;
-  font-size: 11px;
+  font-size: clamp(10px, 2vw, 11px);
   cursor: pointer;
   transition: all 0.2s ease;
-  height: 24px;
-  margin-left: 8px;
+  height: clamp(20px, 4vw, 24px);
+  white-space: nowrap;
+  flex-shrink: 0;
   
   &:hover {
     background: ${props => props.colors.surface.hover};
@@ -412,15 +407,10 @@ const ClearAllButton = styled.button.withConfig({
 
 const ToggleButtonsGroup = styled.div`
   display: flex;
-  gap: 8px;
+  gap: clamp(4px, 1vw, 8px);
   align-items: center;
   flex-shrink: 0;
-  
-  @media (max-width: 900px) {
-    position: absolute;
-    top: 12px;
-    right: 24px;
-  }
+  flex-wrap: wrap;
 `;
 
 const ToggleButton = styled.button.withConfig({
@@ -430,8 +420,8 @@ const ToggleButton = styled.button.withConfig({
   color: ${props => props.colors.text.primary};
   border: 1px solid ${props => props.colors.border.secondary};
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
+  padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+  font-size: clamp(12px, 2.5vw, 14px);
   font-weight: 500;
   cursor: pointer;
   box-shadow: ${props => props.colors.shadow.sm};
@@ -439,8 +429,9 @@ const ToggleButton = styled.button.withConfig({
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  min-height: 36px;
+  min-width: clamp(32px, 6vw, 40px);
+  min-height: clamp(28px, 5vw, 36px);
+  flex-shrink: 0;
   
   &:hover {
     background-color: ${props => props.colors.surface.hover};
@@ -460,13 +451,14 @@ const ViewControlsGroup = styled.div`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: var(--color-shadow-sm);
+  flex-shrink: 0;
 `;
 
 const SplitZoomButton = styled.div`
   display: flex;
   position: relative;
-  min-width: 64px;
-  min-height: 36px;
+  min-width: clamp(48px, 8vw, 64px);
+  min-height: clamp(28px, 5vw, 36px);
   
   &::before {
     content: '🔍';
@@ -474,7 +466,7 @@ const SplitZoomButton = styled.div`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 12px;
+    font-size: clamp(8px, 2vw, 12px);
     opacity: 0.3;
     pointer-events: none;
     z-index: 1;
@@ -488,8 +480,8 @@ const ZoomHalf = styled.button.withConfig({
   color: ${props => props.colors.text.primary};
   border: none;
   border-right: ${props => props.$position === 'left' ? `1px solid ${props.colors.border.secondary}` : 'none'};
-  padding: 8px 4px;
-  font-size: 12px;
+  padding: clamp(4px, 1vw, 8px) clamp(2px, 0.5vw, 4px);
+  font-size: clamp(10px, 2vw, 12px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -497,7 +489,7 @@ const ZoomHalf = styled.button.withConfig({
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 36px;
+  min-height: clamp(28px, 5vw, 36px);
   position: relative;
   z-index: 2;
   
@@ -517,16 +509,17 @@ const ViewControlButton = styled.button.withConfig({
   color: ${props => props.colors.text.primary};
   border: none;
   border-left: 1px solid ${props => props.colors.border.secondary};
-  padding: 8px 12px;
-  font-size: 14px;
+  padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+  font-size: clamp(12px, 2.5vw, 14px);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  min-height: 36px;
+  min-width: clamp(32px, 6vw, 40px);
+  min-height: clamp(28px, 5vw, 36px);
+  flex-shrink: 0;
   
   &:hover {
     background-color: ${props => props.colors.surface.hover};

@@ -114,7 +114,7 @@ const UnifiedTooltipContainer = styled.div.withConfig({
 `;
 
 export const NodeTooltip = styled(Tooltip)`
-  min-width: 400px;
+  min-width: 340px;
 `;
 
 // Secondary tooltip container with grayer background for nested tooltips

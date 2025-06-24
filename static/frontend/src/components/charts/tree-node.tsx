@@ -244,21 +244,20 @@ const BlockedIconContainer = styled.div`
 `;
 
 const NodeTextContainer = styled.div<{ $textColor: string; $isEpic?: boolean }>`
-  font-size: 12px;
+  font-size: ${props => props.$isEpic ? 'clamp(10px, 2.5vw, 11px)' : 'clamp(9px, 2vw, 10px)'};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 500;
   color: ${props => props.$textColor};
   white-space: ${props => props.$isEpic ? 'normal' : 'nowrap'};
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 16px;
+  line-height: ${props => props.$isEpic ? '1.3' : '1.2'};
   transition: color 0.2s ease-in-out;
-  
-  ${props => props.$isEpic && `
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    word-wrap: break-word;
-    height: 28px;
-  `}
+  word-break: break-word;
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: ${props => props.$isEpic ? 3 : 1};
+  -webkit-box-orient: vertical;
+  hyphens: auto;
+  word-wrap: break-word;
 `; 

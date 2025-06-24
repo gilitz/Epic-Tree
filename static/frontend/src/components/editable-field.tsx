@@ -27,6 +27,9 @@ const EditableContainer = styled.div<{ $disabled?: boolean; $isUpdating?: boolea
   display: inline-block;
   cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
   opacity: ${props => props.$disabled ? 0.6 : 1};
+  width: 100%;
+  max-width: fit-content;
+  min-width: 0;
 `;
 
 const DisplayValue = styled.span.withConfig({
@@ -36,14 +39,18 @@ const DisplayValue = styled.span.withConfig({
   align-items: center;
   color: ${props => props.$isEmpty ? '#9ca3af' : 'inherit'};
   font-style: ${props => props.$isEmpty ? 'italic' : 'normal'};
-  padding: 2px 4px;
+  padding: clamp(1px, 0.5vw, 2px) clamp(2px, 1vw, 4px);
   border-radius: 3px;
   border: 1px solid transparent;
-  min-width: 20px;
-  min-height: 16px;
+  min-width: clamp(16px, 4vw, 20px);
+  min-height: clamp(14px, 3vw, 16px);
   position: relative;
   opacity: ${props => props.$isUpdating ? 0.7 : 1};
   transition: opacity 0.2s ease;
+  font-size: clamp(11px, 2.5vw, 13px);
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
   
   &:hover {
     background-color: ${props => props.$disabled ? 'transparent' : (props.colors?.surface.hover || '#f3f4f6')};
@@ -53,10 +60,10 @@ const DisplayValue = styled.span.withConfig({
   &:after {
     content: ${props => props.$disabled ? 'none' : '"✏️"'};
     position: absolute;
-    right: -16px;
+    right: clamp(-12px, -3vw, -16px);
     top: 50%;
     transform: translateY(-50%);
-    font-size: 10px;
+    font-size: clamp(8px, 2vw, 10px);
     opacity: 0;
     transition: opacity 0.2s ease;
   }
@@ -69,7 +76,9 @@ const DisplayValue = styled.span.withConfig({
 const EditInputContainer = styled.div<{ $isEditing?: boolean }>`
   display: ${props => props.$isEditing ? 'inline-flex' : 'none'};
   align-items: center;
-  gap: 4px;
+  gap: clamp(2px, 1vw, 4px);
+  width: 100%;
+  max-width: fit-content;
 `;
 
 const EditInput = styled.input.withConfig({
@@ -78,12 +87,14 @@ const EditInput = styled.input.withConfig({
   background: ${props => props.colors?.surface.primary || 'white'};
   border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;
-  padding: 2px 4px;
-  font-size: inherit;
+  padding: clamp(1px, 0.5vw, 2px) clamp(2px, 1vw, 4px);
+  font-size: clamp(11px, 2.5vw, 13px);
   font-family: inherit;
   color: ${props => props.colors?.text.primary || 'inherit'};
   outline: none;
-  min-width: 60px;
+  min-width: clamp(50px, 12vw, 60px);
+  max-width: 100%;
+  flex: 1;
   
   &:focus {
     border-color: ${props => props.colors?.interactive.primaryHover || '#1d4ed8'};
@@ -94,7 +105,9 @@ const EditInput = styled.input.withConfig({
 const EditTextareaContainer = styled.div<{ $isEditing?: boolean }>`
   display: ${props => props.$isEditing ? 'flex' : 'none'};
   flex-direction: column;
-  gap: 4px;
+  gap: clamp(2px, 1vw, 4px);
+  width: 100%;
+  max-width: fit-content;
 `;
 
 const EditTextarea = styled.textarea.withConfig({
@@ -103,13 +116,14 @@ const EditTextarea = styled.textarea.withConfig({
   background: ${props => props.colors?.surface.primary || 'white'};
   border: 2px solid ${props => props.colors?.border.focus || '#3b82f6'};
   border-radius: 3px;
-  padding: 4px;
-  font-size: inherit;
+  padding: clamp(2px, 1vw, 4px);
+  font-size: clamp(11px, 2.5vw, 13px);
   font-family: inherit;
   color: ${props => props.colors?.text.primary || 'inherit'};
   outline: none;
-  min-width: 200px;
-  min-height: 60px;
+  min-width: clamp(150px, 40vw, 200px);
+  min-height: clamp(50px, 12vh, 60px);
+  max-width: 100%;
   resize: vertical;
   
   &:focus {
@@ -120,8 +134,9 @@ const EditTextarea = styled.textarea.withConfig({
 
 const EditButtonsContainer = styled.div`
   display: flex;
-  gap: 4px;
+  gap: clamp(2px, 1vw, 4px);
   align-items: center;
+  flex-shrink: 0;
 `;
 
 const AcceptButton = styled.button`
@@ -129,14 +144,15 @@ const AcceptButton = styled.button`
   color: white;
   border: none;
   border-radius: 3px;
-  width: 20px;
-  height: 20px;
+  width: clamp(16px, 4vw, 20px);
+  height: clamp(16px, 4vw, 20px);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
+  font-size: clamp(10px, 2.5vw, 12px);
   font-weight: bold;
+  flex-shrink: 0;
   
   &:hover {
     background: #059669;
@@ -153,21 +169,20 @@ const CancelButton = styled.button`
   color: white;
   border: none;
   border-radius: 3px;
-  width: 20px;
-  height: 20px;
+  width: clamp(16px, 4vw, 20px);
+  height: clamp(16px, 4vw, 20px);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
+  font-size: clamp(10px, 2.5vw, 12px);
   font-weight: bold;
+  flex-shrink: 0;
   
   &:hover {
     background: #dc2626;
   }
 `;
-
-
 
 const LoadingDots = styled.span`
   display: inline-block;
