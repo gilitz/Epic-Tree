@@ -1,0 +1,24 @@
+# Jira Configuration Example
+# These environment variables allow you to customize Jira field mappings
+# Set these as environment variables in your deployment environment
+
+# Story Points Field ID (default: customfield_10016)
+JIRA_STORY_POINTS_FIELD=customfield_10016
+
+# Epic Link Field ID (default: customfield_10014)
+JIRA_EPIC_LINK_FIELD=customfield_10014
+
+# Sprint Field ID (default: customfield_10020)
+JIRA_SPRINT_FIELD=customfield_10020
+
+# API Result Limits
+JIRA_MAX_RESULTS_EPIC_ISSUES=100
+JIRA_MAX_RESULTS_SUBTASKS=200
+JIRA_MAX_RESULTS_ASSIGNABLE_USERS=50
+
+# How to find your custom field IDs:
+# 1. Go to your Jira instance
+# 2. Navigate to Settings > Issues > Custom fields
+# 3. Find the field you want and note its ID (e.g., customfield_10016)
+# 4. Or inspect the JSON response from Jira API calls to see field names
+# 5. You can also use the Jira REST API: GET /rest/api/3/field 

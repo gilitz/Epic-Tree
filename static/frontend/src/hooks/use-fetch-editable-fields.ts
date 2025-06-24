@@ -20,30 +20,47 @@ export const useFetchEditableFields = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchEditableFields = async () => {
       if (!issueKey) {
-        setEditableFields([]);
-        setLoading(false);
+        if (isMounted) {
+          setEditableFields([]);
+          setLoading(false);
+        }
         return;
       }
 
       try {
-        setLoading(true);
-        setError(null);
+        if (isMounted) {
+          setLoading(true);
+          setError(null);
+        }
 
         const response = await invoke('fetchEditableFields', { issueKey }) as { editableFields: string[] };
         
-        setEditableFields(response.editableFields || []);
+        if (isMounted) {
+          setEditableFields(response.editableFields || []);
+        }
       } catch (err) {
         console.error('❌ FRONTEND: Error fetching editable fields:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch editable fields');
-        setEditableFields(['summary']); // Fallback to at least summary
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch editable fields');
+          setEditableFields(['summary']); // Fallback to at least summary
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchEditableFields();
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
   }, [issueKey]);
 
   const isFieldEditable = (fieldName: string): boolean => {

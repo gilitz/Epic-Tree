@@ -42,11 +42,10 @@ interface Subtask {
     };
     components?: Array<{ name: string }>;
     fixVersions?: Array<{ name: string }>;
-    customfield_10016?: number;
     parent?: {
       key: string;
     };
-    [key: string]: unknown;
+    [key: string]: unknown; // Allow dynamic custom fields
   };
   [key: string]: unknown;
 }

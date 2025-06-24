@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BlockingIssue, BlockedIssue, TreeData, Issue, Epic } from './types';
+import { getStoryPoints } from '../../config/jira-fields';
 
 // Helper function to extract blocking issues from issuelinks (issues that block this issue)
 export const extractBlockingIssues = (issuelinks: any[]): BlockingIssue[] => {
@@ -173,7 +174,7 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
       assignee: epic?.fields?.assignee as TreeData['assignee'],
       status: epic?.fields?.status as TreeData['status'],
       labels: (epic?.fields?.labels as string[]) || [],
-      storyPoints: (epic?.fields?.customfield_10016 as number) || (epic?.fields?.storyPoints as number),
+      storyPoints: getStoryPoints(epic?.fields),
       issueType: epic?.fields?.issuetype as TreeData['issueType'],
       reporter: epic?.fields?.reporter as TreeData['reporter'],
       created: epic?.fields?.created as string,
@@ -202,7 +203,7 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
           assignee: issueFields?.assignee as TreeData['assignee'],
           status: issueFields?.status as TreeData['status'],
           labels: (issueFields?.labels as string[]) || [],
-          storyPoints: (issueFields?.customfield_10016 as number) || (issueFields?.storyPoints as number),
+          storyPoints: getStoryPoints(issueFields),
           issueType: issueFields?.issuetype as TreeData['issueType'],
           reporter: issueFields?.reporter as TreeData['reporter'],
           created: issueFields?.created as string,
@@ -247,7 +248,7 @@ export const transformDataToTree = ({ epic, issues, subtasksData }: { epic: Epic
               assignee: (subtaskFields?.assignee as TreeData['assignee']) || { displayName: 'Unassigned', avatarUrls: { '16x16': '' } },
               status: (subtaskFields?.status as TreeData['status']) || { name: 'Unknown', statusCategory: { colorName: 'medium-gray' } },
               labels: (subtaskFields?.labels as string[]) || [],
-              storyPoints: (subtaskFields?.customfield_10016 as number) || 0,
+              storyPoints: getStoryPoints(subtaskFields),
               issueType: (subtaskFields?.issuetype as TreeData['issueType']) || { name: 'Sub-task', iconUrl: '' },
               reporter: (subtaskFields?.reporter as TreeData['reporter']) || { displayName: 'Unknown', avatarUrls: { '16x16': '' } },
               created: (subtaskFields?.created as string) || new Date().toISOString(),

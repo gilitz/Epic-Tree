@@ -1,5 +1,6 @@
 import Resolver from '@forge/resolver';
 import api, { route } from '@forge/api';
+import { JIRA_FIELDS, JIRA_API_CONFIG, FIELD_MAPPING, REVERSE_FIELD_MAPPING, getAllJiraFields } from './config';
 
 
 interface RequestContext {
@@ -91,7 +92,7 @@ interface JiraIssue {
     } | null;
     components: Array<{ name: string }>;
     fixVersions: Array<{ name: string }>;
-    customfield_10016: number | null; // Story Points
+    [key: string]: unknown; // Allow dynamic custom fields
     subtasks?: Array<{ key: string }>;
     parent?: {
       key: string;
@@ -165,11 +166,7 @@ resolver.define('fetchIssueById', async (data: unknown): Promise<JiraIssue> => {
   const issueId = (data as { payload: { issueId: string } }).payload.issueId;
   
   // Request all fields that might be needed for the tooltip
-  const fields = [
-    'summary', 'status', 'priority', 'assignee', 'reporter', 'labels',
-    'issuelinks', 'issuetype', 'created', 'updated', 'duedate', 'resolution',
-    'components', 'fixVersions', 'customfield_10016' // Story Points
-  ].join(',');
+  const fields = getAllJiraFields();
   
   const fallbackData: JiraIssue = {
     key: issueId || 'UNKNOWN',
@@ -188,7 +185,7 @@ resolver.define('fetchIssueById', async (data: unknown): Promise<JiraIssue> => {
       resolution: null,
       components: [],
       fixVersions: [],
-      customfield_10016: null
+      [JIRA_FIELDS.storyPointsField]: null
     }
   };
   
@@ -203,11 +200,7 @@ resolver.define('fetchIssuesByEpicId', async (data: unknown): Promise<JiraSearch
   const epicId = (data as { payload: { epicId: string } }).payload.epicId;
   
   // Request all fields that might be needed for the tooltip
-  const fields = [
-    'summary', 'status', 'priority', 'assignee', 'reporter', 'labels',
-    'issuelinks', 'issuetype', 'created', 'updated', 'duedate', 'resolution',
-    'components', 'fixVersions', 'customfield_10016', 'subtasks' // Story Points and subtasks
-  ].join(',');
+  const fields = getAllJiraFields(true); // Include subtasks
   
   const fallbackData: JiraSearchResponse = {
     issues: [],
@@ -217,7 +210,7 @@ resolver.define('fetchIssuesByEpicId', async (data: unknown): Promise<JiraSearch
   };
   
   const jql = `parent=${epicId}`;
-  const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${jql}&fields=${fields}&maxResults=100`);
+  const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${jql}&fields=${fields}&maxResults=${JIRA_API_CONFIG.maxResultsEpicIssues}`);
   
   const result = await safeApiRequest(requestFn, fallbackData, `issues for epic ${epicId}`);
   
@@ -232,11 +225,7 @@ resolver.define('fetchSubtasksByParentKeys', async (data: unknown): Promise<Jira
   }
   
   // Request all fields that might be needed for the tooltip
-  const fields = [
-    'summary', 'status', 'priority', 'assignee', 'reporter', 'labels',
-    'issuelinks', 'issuetype', 'created', 'updated', 'duedate', 'resolution',
-    'components', 'fixVersions', 'customfield_10016', 'parent' // Story Points and parent
-  ].join(',');
+  const fields = getAllJiraFields(false, true); // Include parent
   
   const fallbackData: JiraSearchResponse = {
     issues: [],
@@ -250,7 +239,7 @@ resolver.define('fetchSubtasksByParentKeys', async (data: unknown): Promise<Jira
   const jql = `(${parentKeysJql})`;
   
   
-  const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${encodeURIComponent(jql)}&fields=${fields}&maxResults=200`);
+  const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${encodeURIComponent(jql)}&fields=${fields}&maxResults=${JIRA_API_CONFIG.maxResultsSubtasks}`);
   
   const result = await safeApiRequest(requestFn, fallbackData, `subtasks for parents ${parentKeys.join(', ')}`);
   
@@ -265,11 +254,7 @@ resolver.define('fetchSubtasksByKeys', async (data: unknown): Promise<JiraSearch
   }
   
   // Request all fields that might be needed for the tooltip
-  const fields = [
-    'summary', 'status', 'priority', 'assignee', 'reporter', 'labels',
-    'issuelinks', 'issuetype', 'created', 'updated', 'duedate', 'resolution',
-    'components', 'fixVersions', 'customfield_10016', 'parent' // Story Points and parent
-  ].join(',');
+  const fields = getAllJiraFields(false, true); // Include parent
   
   const fallbackData: JiraSearchResponse = {
     issues: [],
@@ -282,7 +267,7 @@ resolver.define('fetchSubtasksByKeys', async (data: unknown): Promise<JiraSearch
   const keysJql = subtaskKeys.map((key: string) => `key="${key}"`).join(' OR ');
   const jql = `${keysJql}`;
   
-  const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${jql}&fields=${fields}&maxResults=200`);
+  const requestFn = () => api.asUser().requestJira(route`/rest/api/3/search?jql=${jql}&fields=${fields}&maxResults=${JIRA_API_CONFIG.maxResultsSubtasks}`);
   
   const result = await safeApiRequest(requestFn, fallbackData, `subtasks by keys ${subtaskKeys.join(', ')}`);
   
@@ -322,7 +307,7 @@ resolver.define('fetchAssignableUsers', async (data: unknown): Promise<Array<{ a
   
   try {
     // Try the issue-specific assignable users endpoint first
-    let response = await api.asUser().requestJira(route`/rest/api/3/user/assignable/search?issueKey=${issueKey}&maxResults=50`);
+    let response = await api.asUser().requestJira(route`/rest/api/3/user/assignable/search?issueKey=${issueKey}&maxResults=${JIRA_API_CONFIG.maxResultsAssignableUsers}`);
     
     if (!response.ok) {
       
@@ -333,7 +318,7 @@ resolver.define('fetchAssignableUsers', async (data: unknown): Promise<Array<{ a
           const issueData = await issueResponse.json() as { fields: { project: { key: string } } };
           const projectKey = issueData.fields.project.key;
           
-          response = await api.asUser().requestJira(route`/rest/api/3/user/assignable/search?project=${projectKey}&maxResults=50`);
+          response = await api.asUser().requestJira(route`/rest/api/3/user/assignable/search?project=${projectKey}&maxResults=${JIRA_API_CONFIG.maxResultsAssignableUsers}`);
         }
       } catch (projectError) {
         console.error('👥 BACKEND: Failed to get project info:', projectError);
@@ -387,13 +372,7 @@ resolver.define('fetchEditableFields', async (data: unknown): Promise<{ editable
     };
     
     // Map JIRA field names back to our frontend field names
-    const fieldMapping: Record<string, string> = {
-      'customfield_10016': 'storyPoints',
-      'summary': 'summary',
-      'assignee': 'assignee',
-      'priority': 'priority',
-      'labels': 'labels'
-    };
+    const fieldMapping = REVERSE_FIELD_MAPPING;
     
     const editableFields: string[] = [];
     
@@ -432,13 +411,7 @@ resolver.define('updateIssueField', async (data: unknown): Promise<{ success: bo
   
   try {
     // Map frontend field names to Jira field names
-    const fieldMapping: Record<string, string> = {
-      'storyPoints': 'customfield_10016',
-      'summary': 'summary',
-      'assignee': 'assignee',
-      'priority': 'priority',
-      'labels': 'labels'
-    };
+    const fieldMapping = FIELD_MAPPING;
     
     const jiraFieldName = fieldMapping[fieldName] || fieldName;
     

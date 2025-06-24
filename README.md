@@ -27,6 +27,41 @@ See [developer.atlassian.com/platform/forge/](https://developer.atlassian.com/pl
 
 See [Set up Forge](https://developer.atlassian.com/platform/forge/set-up-forge/) for instructions to get set up.
 
+## ⚙️ Configuration
+
+### Jira Custom Fields
+
+This application uses configurable Jira field mappings to work with different Jira instances. The default configuration assumes standard Atlassian field IDs, but you can customize them using environment variables:
+
+| Environment Variable                | Default Value       | Description                                |
+| ----------------------------------- | ------------------- | ------------------------------------------ |
+| `JIRA_STORY_POINTS_FIELD`           | `customfield_10016` | Story Points custom field ID               |
+| `JIRA_EPIC_LINK_FIELD`              | `customfield_10014` | Epic Link custom field ID                  |
+| `JIRA_SPRINT_FIELD`                 | `customfield_10020` | Sprint custom field ID                     |
+| `JIRA_MAX_RESULTS_EPIC_ISSUES`      | `100`               | Max results for epic issues API calls      |
+| `JIRA_MAX_RESULTS_SUBTASKS`         | `200`               | Max results for subtasks API calls         |
+| `JIRA_MAX_RESULTS_ASSIGNABLE_USERS` | `50`                | Max results for assignable users API calls |
+
+#### Finding Your Custom Field IDs
+
+1. **Via Jira Admin Interface:**
+
+   - Go to Settings > Issues > Custom fields
+   - Find your field and note its ID (e.g., `customfield_10016`)
+
+2. **Via Jira REST API:**
+
+   ```bash
+   curl -u email@example.com:token "https://your-domain.atlassian.net/rest/api/3/field"
+   ```
+
+3. **Via Browser Developer Tools:**
+   - Open any Jira issue
+   - Open Developer Tools > Network tab
+   - Look at the JSON response for issue API calls
+
+See `jira-config.example` for a complete configuration template.
+
 ## 🔧 Setup
 
 ### 1. Install Dependencies
