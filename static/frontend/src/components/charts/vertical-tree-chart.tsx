@@ -24,7 +24,7 @@ import { LargeLoadingSpinner } from '../loading-spinner';
 import { AIEpicBreakdown } from '../ai-epic-breakdown';
 import { Minimap } from './minimap';
 
-const defaultMargin = { top: 30, left: 70, right: 40, bottom: 30 };
+const defaultMargin = { top: 20, left: 40, right: 20, bottom: 20 };
 
 // Constants for fixed spacing
 const NODE_WIDTH = 120;
@@ -35,7 +35,7 @@ const HORIZONTAL_SPACING = 180; // Fixed horizontal spacing between nodes (verti
 const VERTICAL_SPACING = 65; // Fixed vertical spacing between levels (vertical mode)
 // Horizontal mode specific spacing - bigger node spacing
 const HORIZONTAL_MODE_NODE_SPACING = 50; // Much bigger vertical spacing between nodes (no overlap)
-const MIN_CONTAINER_PADDING = 50; // Minimum padding around the tree
+
 
 export function VerticalTreeChart({
   width: totalWidth,
@@ -186,8 +186,8 @@ export function VerticalTreeChart({
       const LEVEL_SPACING = 120; // MUCH shorter lines - fixed spacing between levels
       calculatedTreeWidth = (maxDepth + 1) * LEVEL_SPACING;
       // Calculate height to accommodate FIXED spacing between ALL nodes with proper padding
-      const TOP_PADDING = 50; // Reduced top padding
-      const BOTTOM_PADDING = 10; // Added bottom padding
+      const TOP_PADDING = 80; // Increased top padding for better spacing
+      const BOTTOM_PADDING = 80; // Increased bottom padding to prevent cutting
       calculatedTreeHeight = maxNodesAtLevel > 1 
         ? (maxNodesAtLevel - 1) * 60 + NODE_HEIGHT + TOP_PADDING + BOTTOM_PADDING // Use task spacing as base
         : NODE_HEIGHT + TOP_PADDING + BOTTOM_PADDING;
@@ -197,25 +197,27 @@ export function VerticalTreeChart({
       treeWidth: calculatedTreeWidth,
       treeHeight: calculatedTreeHeight,
       origin: { 
-        x: MIN_CONTAINER_PADDING,
-        y: MIN_CONTAINER_PADDING
+        x: orientation === 'horizontal' ? 100 : 10, // Add more left padding for horizontal mode
+        y: 10
       }
     };
   }, [data, orientation]);
 
-  // Calculate SVG dimensions - generous static padding since zoom is handled at SVG level
-  const svgWidth = (treeWidth + (MIN_CONTAINER_PADDING * 2) + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 200 : 0)) * 3; // 3x for max zoom
+  // Calculate SVG dimensions - tight fit with minimal padding
+  const svgWidth = treeWidth + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 150 : 50); // More left space for horizontal
   
   // Calculate SVG height based on actual node bounds if available, otherwise use calculated height
-  // This ensures the SVG height is determined by the topmost and bottommost nodes + generous static padding
+  // This ensures the SVG height fits tightly around the actual content
   const svgHeight = useMemo(() => {
-    if (actualNodeBounds) {
-      const TREE_PADDING = 60; // 40px padding as requested
+    if (actualNodeBounds && orientation === 'vertical') {
+      // Only use tight bounds for vertical mode
+      const TREE_PADDING = 10; // Very minimal padding
       const actualTreeHeight = (actualNodeBounds.maxY - actualNodeBounds.minY) + (TREE_PADDING * 2);
-      return (actualTreeHeight + margin.top + margin.bottom + origin.y + (orientation === 'vertical' ? 100 : 0)) * 3; // 3x for max zoom
+      return actualTreeHeight + margin.top + margin.bottom + 40; // Just enough space for content
     }
-    // Fallback to calculated height until actual bounds are measured
-    return (treeHeight + (MIN_CONTAINER_PADDING * 2) + margin.top + margin.bottom + (orientation === 'vertical' ? 100 : 0)) * 3; // 3x for max zoom
+    // For horizontal mode or when bounds not available, use calculated height with more padding
+    const extraPadding = orientation === 'horizontal' ? 100 : 40; // More padding for horizontal to prevent cutting
+    return treeHeight + margin.top + margin.bottom + extraPadding;
   }, [actualNodeBounds, treeHeight, margin, origin, orientation]);
 
   // Effect to measure actual node bounds after Tree component renders
@@ -347,11 +349,11 @@ export function VerticalTreeChart({
 
   // Zoom functions
   const zoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.25, 3)); // Max zoom 3x
+    setZoomLevel(prev => Math.min(prev + 0.2, 1.2)); // Max zoom 1.2x
   };
 
   const zoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 0.25, 0.25)); // Min zoom 0.25x
+    setZoomLevel(prev => Math.max(prev - 0.2, 0.6)); // Min zoom 0.6x
   };
 
 
@@ -388,7 +390,7 @@ export function VerticalTreeChart({
           ref={svgRef}
           width={svgWidth} 
           height={svgHeight}
-          style={{ minWidth: totalWidth, minHeight: totalHeight, transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}
+          style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}
         >
           <defs>
             <LinearGradient id="links-gradient" from={colors.tree.lines} to={colors.tree.linesHover} />
@@ -464,8 +466,8 @@ export function VerticalTreeChart({
                     if (depth === 0) {
                       // Root node (Epic) - position it with enough space for its larger width
                       const rootNode = nodesAtThisDepth[0];
-                      // Ensure the epic node has enough space on the left
-                      const minPosition = EPIC_NODE_WIDTH / 2 + 80; // Static padding since zoom is handled at SVG level
+                      // Ensure the epic node has enough space on the left with more padding
+                      const minPosition = EPIC_NODE_WIDTH / 2 + 120; // More static padding for better spacing
                       rootNode.x = Math.max(treeHeight / 2, minPosition);
                       rootNode.y = fixedHorizontalPosition;
                     } else {
@@ -628,10 +630,7 @@ const ScrollableContainer = styled.div.withConfig({
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
-  padding-left: ${props => props.$orientation === 'horizontal' ? '140px' : '0'};
-  padding-top: ${props => props.$orientation === 'vertical' ? '40px' : '0'};
-  padding-right: ${props => props.$orientation === 'horizontal' ? '200px' : '0'};
-  padding-bottom: ${props => props.$orientation === 'vertical' ? '200px' : '0'};
+  padding: 10px;
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {
