@@ -183,28 +183,54 @@ export function VerticalTreeChart({
       calculatedTreeHeight = (maxDepth + 1) * VERTICAL_SPACING;
     } else {
       // For horizontal orientation: FIXED spacing between nodes regardless of count
-      const LEVEL_SPACING = 120; // MUCH shorter lines - fixed spacing between levels
-      calculatedTreeWidth = (maxDepth + 1) * LEVEL_SPACING;
-      // Calculate height to accommodate FIXED spacing between ALL nodes with proper padding
-      const TOP_PADDING = 80; // Increased top padding for better spacing
-      const BOTTOM_PADDING = 80; // Increased bottom padding to prevent cutting
-      calculatedTreeHeight = maxNodesAtLevel > 1 
-        ? (maxNodesAtLevel - 1) * 60 + NODE_HEIGHT + TOP_PADDING + BOTTOM_PADDING // Use task spacing as base
-        : NODE_HEIGHT + TOP_PADDING + BOTTOM_PADDING;
+      const LEVEL_SPACING = 300; // Increased spacing between levels to match layout logic
+      calculatedTreeWidth = (maxDepth + 1) * LEVEL_SPACING + 400; // Add extra width for node positioning
+      
+      // Calculate height more accurately by considering ALL nodes, not just max at one level
+      let totalNodesHeight = 0;
+      const TASK_NODE_SPACING = 60; // Same as in layout logic
+      const SUBTASK_NODE_SPACING = 40; // Same as in layout logic
+      
+      // Count nodes by depth to calculate actual space needed
+      const nodesByDepth: { [key: number]: number } = {};
+      descendants.forEach(node => {
+        nodesByDepth[node.depth] = (nodesByDepth[node.depth] || 0) + 1;
+      });
+      
+      // Calculate space needed for each depth level
+      Object.keys(nodesByDepth).forEach(depthStr => {
+        const depth = parseInt(depthStr);
+        const nodeCount = nodesByDepth[depth];
+        
+        if (depth === 0) {
+          // Epic node
+          totalNodesHeight += EPIC_NODE_HEIGHT;
+        } else if (nodeCount > 0) {
+          // Use appropriate spacing based on depth
+          const spacing = depth === 1 ? TASK_NODE_SPACING : SUBTASK_NODE_SPACING;
+          const levelHeight = (nodeCount - 1) * spacing + NODE_HEIGHT;
+          totalNodesHeight = Math.max(totalNodesHeight, levelHeight);
+        }
+      });
+      
+      // Add generous padding to prevent any cutting
+      const TOP_PADDING = 150; // Much more top padding
+      const BOTTOM_PADDING = 300; // Much more bottom padding to prevent cutting
+      calculatedTreeHeight = totalNodesHeight + TOP_PADDING + BOTTOM_PADDING;
     }
 
     return {
       treeWidth: calculatedTreeWidth,
       treeHeight: calculatedTreeHeight,
       origin: { 
-        x: orientation === 'horizontal' ? 100 : 10, // Add more left padding for horizontal mode
+        x: orientation === 'horizontal' ? 200 : 10, // Much more left padding for horizontal mode
         y: 10
       }
     };
   }, [data, orientation]);
 
-  // Calculate SVG dimensions - tight fit with minimal padding
-  const svgWidth = treeWidth + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 150 : 50); // More left space for horizontal
+  // Calculate SVG dimensions - generous width for horizontal mode
+  const svgWidth = treeWidth + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 500 : 50); // Much more space for horizontal
   
   // Calculate SVG height based on actual node bounds if available, otherwise use calculated height
   // This ensures the SVG height fits tightly around the actual content
@@ -216,7 +242,7 @@ export function VerticalTreeChart({
       return actualTreeHeight + margin.top + margin.bottom + 40; // Just enough space for content
     }
     // For horizontal mode or when bounds not available, use calculated height with more padding
-    const extraPadding = orientation === 'horizontal' ? 100 : 40; // More padding for horizontal to prevent cutting
+    const extraPadding = orientation === 'horizontal' ? 400 : 40; // Even more padding for horizontal to prevent cutting
     return treeHeight + margin.top + margin.bottom + extraPadding;
   }, [actualNodeBounds, treeHeight, margin, origin, orientation]);
 
@@ -417,7 +443,7 @@ export function VerticalTreeChart({
           <Group top={margin.top} left={margin.left}>
             <Tree
               root={data}
-              size={orientation === 'horizontal' ? [800, treeHeight] : [treeWidth, treeHeight]}
+              size={orientation === 'horizontal' ? [treeWidth * 1.2, treeHeight * 1.5] : [treeWidth, treeHeight]}
               separation={() => {
                 // Fixed separation based on constants
                 if (orientation === 'vertical') {
@@ -466,8 +492,8 @@ export function VerticalTreeChart({
                     if (depth === 0) {
                       // Root node (Epic) - position it with enough space for its larger width
                       const rootNode = nodesAtThisDepth[0];
-                      // Ensure the epic node has enough space on the left with more padding
-                      const minPosition = EPIC_NODE_WIDTH / 2 + 120; // More static padding for better spacing
+                      // Ensure the epic node has enough space on the left with much more padding
+                      const minPosition = EPIC_NODE_WIDTH / 2 + 200; // Much more static padding for better spacing
                       rootNode.x = Math.max(treeHeight / 2, minPosition);
                       rootNode.y = fixedHorizontalPosition;
                     } else {
@@ -630,7 +656,7 @@ const ScrollableContainer = styled.div.withConfig({
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
-  padding: 10px;
+  padding: ${props => props.$orientation === 'horizontal' ? '10px 10px 100px 10px' : '10px'}; /* Extra bottom padding for horizontal */
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {
