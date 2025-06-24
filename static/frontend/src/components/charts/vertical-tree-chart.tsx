@@ -179,12 +179,12 @@ export function VerticalTreeChart({
 
     if (orientation === 'vertical') {
       // For vertical orientation: width = max nodes horizontally, height = depth vertically
-      calculatedTreeWidth = maxNodesAtLevel * HORIZONTAL_SPACING;
+      calculatedTreeWidth = maxNodesAtLevel * HORIZONTAL_SPACING + 50; // Much tighter fit for vertical
       calculatedTreeHeight = (maxDepth + 1) * VERTICAL_SPACING;
     } else {
       // For horizontal orientation: FIXED spacing between nodes regardless of count
       const LEVEL_SPACING = 300; // Increased spacing between levels to match layout logic
-      calculatedTreeWidth = (maxDepth + 1) * LEVEL_SPACING + 400; // Add extra width for node positioning
+      calculatedTreeWidth = (maxDepth + 1) * LEVEL_SPACING + 150; // Reduced extra width to minimize right padding
       
       // Calculate height more accurately by considering ALL nodes, not just max at one level
       let totalNodesHeight = 0;
@@ -213,10 +213,10 @@ export function VerticalTreeChart({
         }
       });
       
-      // Add generous padding to prevent any cutting
-      const TOP_PADDING = 150; // Much more top padding
-      const BOTTOM_PADDING = 300; // Much more bottom padding to prevent cutting
-      calculatedTreeHeight = totalNodesHeight + TOP_PADDING + BOTTOM_PADDING;
+             // Add generous padding to prevent any cutting
+       const TOP_PADDING = 150; // Much more top padding
+       const BOTTOM_PADDING = 150; // Reduced bottom padding to cut dead space
+       calculatedTreeHeight = totalNodesHeight + TOP_PADDING + BOTTOM_PADDING;
     }
 
     return {
@@ -229,8 +229,8 @@ export function VerticalTreeChart({
     };
   }, [data, orientation]);
 
-  // Calculate SVG dimensions - generous width for horizontal mode
-  const svgWidth = treeWidth + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 500 : 50); // Much more space for horizontal
+  // Calculate SVG dimensions - much tighter for vertical, optimized for horizontal
+  const svgWidth = treeWidth + margin.left + margin.right + (orientation === 'horizontal' ? EPIC_NODE_WIDTH + 200 : 10); // Much less right padding for vertical
   
   // Calculate SVG height based on actual node bounds if available, otherwise use calculated height
   // This ensures the SVG height fits tightly around the actual content
@@ -242,7 +242,7 @@ export function VerticalTreeChart({
       return actualTreeHeight + margin.top + margin.bottom + 40; // Just enough space for content
     }
     // For horizontal mode or when bounds not available, use calculated height with more padding
-    const extraPadding = orientation === 'horizontal' ? 400 : 40; // Even more padding for horizontal to prevent cutting
+    const extraPadding = orientation === 'horizontal' ? 200 : 40; // Reduced bottom padding for horizontal to cut dead space
     return treeHeight + margin.top + margin.bottom + extraPadding;
   }, [actualNodeBounds, treeHeight, margin, origin, orientation]);
 
@@ -443,7 +443,7 @@ export function VerticalTreeChart({
           <Group top={margin.top} left={margin.left}>
             <Tree
               root={data}
-              size={orientation === 'horizontal' ? [treeWidth * 1.2, treeHeight * 1.5] : [treeWidth, treeHeight]}
+              size={orientation === 'horizontal' ? [treeWidth * 1.1, treeHeight * 1.5] : [treeWidth * 0.9, treeHeight]}
               separation={() => {
                 // Fixed separation based on constants
                 if (orientation === 'vertical') {
@@ -656,7 +656,7 @@ const ScrollableContainer = styled.div.withConfig({
   overflow: auto;
   position: relative;
   transition: border-color 0.3s ease;
-  padding: ${props => props.$orientation === 'horizontal' ? '10px 10px 100px 10px' : '10px'}; /* Extra bottom padding for horizontal */
+  padding: ${props => props.$orientation === 'horizontal' ? '10px 10px 50px 10px' : '10px'}; /* Reduced bottom padding for horizontal */
   
   /* Custom scrollbar styling */
   &::-webkit-scrollbar {
