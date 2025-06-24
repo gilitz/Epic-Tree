@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { events, invoke } from '@forge/bridge';
 
 interface UseFetchIssueByIdProps {
@@ -27,8 +27,12 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
   const [issue, setIssue] = useState<Issue | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
   
   const handleFetchSuccess = (data: Issue): void => {
+    // Only update state if component is still mounted
+    if (!isMountedRef.current) return;
+    
     if (data && data.id) {
       setIssue(data);
     } else {
@@ -39,6 +43,9 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
   };
 
   const handleFetchError = (error: Error): void => {
+    // Only update state if component is still mounted
+    if (!isMountedRef.current) return;
+    
     setIssue(null); // Set null on error to prevent crashes
     setLoading(false);
     setError(error.message || 'Failed to fetch issue');
@@ -47,28 +54,41 @@ export const useFetchIssueById = ({ issueId }: UseFetchIssueByIdProps): UseFetch
   useEffect(() => {
     // Don't fetch if issueId is empty
     if (!issueId) {
-      setIssue(null);
-      setLoading(false);
-      setError(null);
+      if (isMountedRef.current) {
+        setIssue(null);
+        setLoading(false);
+        setError(null);
+      }
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError(null);
+    }
 
     const fetchIssueById = async (): Promise<Issue> => invoke('fetchIssueById', { issueId });
     fetchIssueById().then(handleFetchSuccess).catch(handleFetchError);
 
     const subscribeForIssueChangedEvent = () =>
       events.on('JIRA_ISSUE_CHANGED', () => {
-        fetchIssueById().then(handleFetchSuccess).catch(handleFetchError);
+        // Only fetch if component is still mounted
+        if (isMountedRef.current) {
+          fetchIssueById().then(handleFetchSuccess).catch(handleFetchError);
+        }
       });
     const subscription = subscribeForIssueChangedEvent();
     
     return () => {
+      isMountedRef.current = false;
       subscription.then((subscription) => subscription.unsubscribe());
     };
   }, [issueId]);
+
+  // Reset the mounted ref when the hook is reused
+  useEffect(() => {
+    isMountedRef.current = true;
+  });
 
   return { issue, loading, error };
 }; 

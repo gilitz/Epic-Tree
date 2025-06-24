@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@forge/bridge';
 
 interface AssignableUser {
@@ -21,32 +21,57 @@ export const useFetchAssignableUsers = ({ issueKey }: UseFetchAssignableUsersPro
   const [users, setUsers] = useState<AssignableUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     if (!issueKey || issueKey.trim() === '') {
-      setUsers([]);
+      if (isMountedRef.current) {
+        setUsers([]);
+      }
       return;
     }
 
     const fetchUsers = async () => {
+      if (!isMountedRef.current) return;
+      
       setLoading(true);
       setError(null);
       
       try {
         const result: AssignableUser[] = await invoke('fetchAssignableUsers', { issueKey });
-        setUsers(result);
+        
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setUsers(result);
+        }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignable users';
-        console.error('❌ FRONTEND: Error fetching assignable users:', err);
-        setError(errorMessage);
-        setUsers([]);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignable users';
+          console.error('❌ FRONTEND: Error fetching assignable users:', err);
+          setError(errorMessage);
+          setUsers([]);
+        }
       } finally {
-        setLoading(false);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchUsers();
+
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [issueKey]);
+
+  // Reset the mounted ref when the hook is reused
+  useEffect(() => {
+    isMountedRef.current = true;
+  });
 
   return { users, loading, error };
 }; 

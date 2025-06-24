@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { events, invoke } from '@forge/bridge';
 
 interface UseFetchIssuesByEpicIdProps {
@@ -45,8 +45,12 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
   
   const handleFetchSuccess = (data: IssuesResponse): void => {
+    // Only update state if component is still mounted
+    if (!isMountedRef.current) return;
+    
     if (data && data.issues && Array.isArray(data.issues)) {
       setIssues(data.issues);
     } else {
@@ -57,6 +61,9 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   };
 
   const handleFetchError = (error: Error): void => {
+    // Only update state if component is still mounted
+    if (!isMountedRef.current) return;
+    
     // Set empty array on error to prevent crashes
     setIssues([]);
     setLoading(false);
@@ -66,14 +73,18 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
   useEffect(() => {
     // Don't fetch if epicId is empty
     if (!epicId) {
-      setIssues([]);
-      setLoading(false);
-      setError(null);
+      if (isMountedRef.current) {
+        setIssues([]);
+        setLoading(false);
+        setError(null);
+      }
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError(null);
+    }
 
     const fetchIssuesByEpicId = async (): Promise<IssuesResponse> => {
       try {
@@ -89,14 +100,23 @@ export const useFetchIssuesByEpicId = ({ epicId }: UseFetchIssuesByEpicIdProps):
 
     const subscribeForIssueChangedEvent = () =>
       events.on('JIRA_ISSUE_CHANGED', () => {
-        fetchIssuesByEpicId().then(handleFetchSuccess).catch(handleFetchError);
+        // Only fetch if component is still mounted
+        if (isMountedRef.current) {
+          fetchIssuesByEpicId().then(handleFetchSuccess).catch(handleFetchError);
+        }
       });
     const subscription = subscribeForIssueChangedEvent();
     
     return () => {
+      isMountedRef.current = false;
       subscription.then((subscription) => subscription.unsubscribe());
     };
   }, [epicId]);
+
+  // Reset the mounted ref when the hook is reused
+  useEffect(() => {
+    isMountedRef.current = true;
+  });
 
   return { issuesByEpic: issues, loading, error };
 }; 

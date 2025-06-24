@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { invoke } from '@forge/bridge';
 
 interface Subtask {
@@ -71,41 +71,64 @@ export const useFetchSubtasksByKeys = ({ subtaskKeys }: UseFetchSubtasksByKeysPr
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
   // Serialize the keys for dependency checking
   const subtaskKeysString = subtaskKeys.join(',');
 
   useEffect(() => {
     if (!subtaskKeys || subtaskKeys.length === 0) {
-      setSubtasks([]);
-      setLoading(false);
-      setError(null);
+      if (isMountedRef.current) {
+        setSubtasks([]);
+        setLoading(false);
+        setError(null);
+      }
       return;
     }
 
     const fetchSubtasks = async () => {
+      if (!isMountedRef.current) return;
+      
       setLoading(true);
       setError(null);
       
       try {
         const response: SubtasksResponse = await invoke('fetchSubtasksByKeys', { subtaskKeys });
         
-        
-        if (response && response.issues) {
-          setSubtasks(response.issues);
-        } else {
-          setSubtasks([]);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          if (response && response.issues) {
+            setSubtasks(response.issues);
+          } else {
+            setSubtasks([]);
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch subtasks');
-        setSubtasks([]);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch subtasks');
+          setSubtasks([]);
+        }
       } finally {
-        setLoading(false);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchSubtasks();
+
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [subtaskKeys, subtaskKeysString]); // Include both dependencies
+
+  // Reset the mounted ref when the hook is reused
+  useEffect(() => {
+    isMountedRef.current = true;
+  });
   
   return { subtasks, loading, error };
 }; 
