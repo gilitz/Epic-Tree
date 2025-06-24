@@ -244,7 +244,7 @@ export function VerticalTreeChart({
     // For horizontal mode or when bounds not available, use calculated height with more padding
     const extraPadding = orientation === 'horizontal' ? 200 : 40; // Reduced bottom padding for horizontal to cut dead space
     return treeHeight + margin.top + margin.bottom + extraPadding;
-  }, [actualNodeBounds, treeHeight, margin, origin, orientation]);
+  }, [actualNodeBounds, treeHeight, margin, orientation]);
 
   // Effect to measure actual node bounds after Tree component renders
   React.useEffect(() => {
