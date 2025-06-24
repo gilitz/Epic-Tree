@@ -520,7 +520,6 @@ resolver.define('getCurrentContext', async (req: unknown): Promise<{ issueKey: s
   return { issueKey };
 });
 
-// Epic Breakdown (AI functionality removed)
 resolver.define('generateEpicBreakdown', async (data: unknown): Promise<EpicBreakdownResponse> => {
   const { epicSummary, epicDescription, existingIssues } = (data as { 
     payload: { 
