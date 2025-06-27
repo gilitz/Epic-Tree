@@ -209,11 +209,10 @@ forge tunnel
 
 ### Epic Breakdown Tools
 
-1. **Click the breakdown button** (📊) to access AI-powered tools
+1. **Click the breakdown button** (📊) to access overview breakdown
 2. **Review the epic analysis** including current progress and team distribution
-3. **Generate AI suggestions** for breaking down the epic into stories
-4. **Review and select** the stories you want to create
-5. **Use the planning tools** to organize your epic structure
+3. **Review and select** the stories you want to create
+4. **Use the planning tools** to organize your epic structure
 
 ### Editing Issues
 

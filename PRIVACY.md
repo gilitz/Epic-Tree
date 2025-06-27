@@ -23,7 +23,6 @@ Epic Tree accesses the following data from your Jira instance:
 - **Visualization**: Display epic trees and issue hierarchies
 - **Filtering**: Enable filtering by various issue attributes
 - **Editing**: Allow inline editing of issue fields
-- **AI Features**: Process issue descriptions for AI-powered epic breakdown suggestions
 
 ### Data Storage and Security
 
@@ -54,15 +53,6 @@ Epic Tree requires the following Jira permissions:
 - `read:jira-work` - To read issue data and project information
 - `write:jira-work` - To update issue fields and relationships
 - `read:jira-user` - To access user information for assignee functionality
-
-## AI Features
-
-When using AI-powered epic breakdown:
-
-- Issue descriptions and related data are processed to generate suggestions
-- Processing occurs within the Atlassian Forge environment
-- No data is sent to external AI services
-- Suggestions are generated and displayed without permanent storage
 
 ## Data Retention
 
