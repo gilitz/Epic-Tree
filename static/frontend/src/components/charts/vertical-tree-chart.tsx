@@ -21,7 +21,7 @@ import { LoadingComponent, NetworkErrorComponent } from './loading-error-compone
 import { FilterBar } from '../filter-bar';
 import { useFilters } from '../../contexts/filter-context';
 import { LargeLoadingSpinner } from '../loading-spinner';
-import { AIEpicBreakdown } from '../ai-epic-breakdown';
+import { AIEpicBreakdown } from '../epic-breakdown';
 import { Minimap } from './minimap';
 
 const defaultMargin = { top: 20, left: 40, right: 20, bottom: 20 };
