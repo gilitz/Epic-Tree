@@ -1,5 +1,9 @@
 # Epic Tree - Jira Extension
 
+<div align="center">
+  <img src="./static/frontend/public/epictree.svg" alt="Epic Tree Logo" width="200"/>
+</div>
+
 A powerful Atlassian Forge app that provides an intelligent, interactive Epic Tree visualization directly in your Jira issue panels. Transform how you visualize, manage, and plan your epics with advanced tree structures, real-time filtering, and breakdown tools.
 
 ![Epic Tree Demo](https://img.shields.io/badge/Jira-Extension-0052CC?style=flat&logo=jira&logoColor=white)

@@ -6,7 +6,7 @@ modules:
         function: resolver
       viewportSize: medium
       title: Epic Tree
-      icon: /epictree.png
+      icon: /epictree.svg
   function:
     - key: resolver
       handler: index.handler

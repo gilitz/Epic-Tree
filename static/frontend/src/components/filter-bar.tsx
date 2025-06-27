@@ -356,7 +356,7 @@ const FilterBarContainer = styled.div.withConfig({
   flex-wrap: wrap;
   align-items: flex-start;
   padding: ${props => props.$orientation === 'horizontal' 
-    ? 'clamp(8px, 2vw, 12px) clamp(16px, 4vw, 24px) clamp(8px, 2vw, 12px) clamp(40px, 8vw, 56px)' 
+    ? 'clamp(8px, 2vw, 12px) clamp(16px, 4vw, 24px) clamp(8px, 2vw, 12px) clamp(16px, 4vw, 24px)' 
     : 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)'};
   background: ${props => props.colors.background.primary};
   border-bottom: 1px solid ${props => props.colors.border.primary};
