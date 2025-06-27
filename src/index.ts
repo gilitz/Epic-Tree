@@ -11,28 +11,7 @@ interface RequestContext {
   };
 }
 
-interface StoryBreakdownSuggestion {
-  title: string;
-  description: string;
-  storyPoints: number;
-  priority: 'High' | 'Medium' | 'Low';
-  acceptanceCriteria: string[];
-  labels: string[];
-  estimationReasoning: string;
-}
 
-interface EpicBreakdownResponse {
-  suggestions: StoryBreakdownSuggestion[];
-  totalEstimatedPoints: number;
-  breakdown: {
-    frontend: number;
-    backend: number;
-    testing: number;
-    design: number;
-  };
-  risks: string[];
-  recommendations: string[];
-}
 
 interface Label {
   id: string;
@@ -520,29 +499,6 @@ resolver.define('getCurrentContext', async (req: unknown): Promise<{ issueKey: s
   return { issueKey };
 });
 
-resolver.define('generateEpicBreakdown', async (data: unknown): Promise<EpicBreakdownResponse> => {
-  const { epicSummary, epicDescription, existingIssues } = (data as { 
-    payload: { 
-      epicSummary: string; 
-      epicDescription: string; 
-      existingIssues?: JiraIssue[];
-    } 
-  }).payload;
 
-  // Return a basic response since external analysis functionality has been removed
-  const response: EpicBreakdownResponse = {
-    suggestions: [],
-    totalEstimatedPoints: 0,
-    breakdown: { frontend: 0, backend: 0, testing: 0, design: 0 },
-    risks: ['Analysis not available - please review manually'],
-    recommendations: ['Consider breaking down the epic manually based on functional requirements']
-  };
-
-  console.log('Epic breakdown requested for:', epicSummary);
-  console.log('Epic description:', epicDescription);
-  console.log('Existing issues count:', existingIssues?.length || 0);
-  
-  return response;
-});
 
 export const handler = resolver.getDefinitions() as unknown; 

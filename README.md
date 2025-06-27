@@ -4,7 +4,7 @@
   <img src="./static/frontend/public/epictree.svg" alt="Epic Tree Logo" width="200"/>
 </div>
 
-A powerful Atlassian Forge app that provides an intelligent, interactive Epic Tree visualization directly in your Jira issue panels. Transform how you visualize, manage, and plan your epics with advanced tree structures, real-time filtering, and breakdown tools.
+A powerful Atlassian Forge app that provides an interactive Epic Tree visualization directly in your Jira issue panels. Transform how you visualize, manage, and plan your epics with advanced tree structures, real-time filtering, and breakdown tools.
 
 ![Epic Tree Demo](https://img.shields.io/badge/Jira-Extension-0052CC?style=flat&logo=jira&logoColor=white)
 ![Forge](https://img.shields.io/badge/Atlassian-Forge-0052CC?style=flat&logo=atlassian&logoColor=white)
@@ -211,8 +211,7 @@ forge tunnel
 
 1. **Click the breakdown button** (📊) to access overview breakdown
 2. **Review the epic analysis** including current progress and team distribution
-3. **Review and select** the stories you want to create
-4. **Use the planning tools** to organize your epic structure
+3. **Use the planning tools** to organize your epic structure
 
 ### Editing Issues
 
@@ -285,7 +284,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙏 Acknowledgments
 
 - Built on the powerful **Atlassian Forge** platform
-- Visualization powered by **D3.js** and **Visx**
+- Visualization built with **D3.js** and **Visx**
 - UI components using **React** and **Styled Components**
 - Icons and design inspired by **Atlassian Design System**
 

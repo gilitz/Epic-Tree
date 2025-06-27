@@ -21,8 +21,8 @@ import { LoadingComponent, NetworkErrorComponent } from './loading-error-compone
 import { FilterBar } from '../filter-bar';
 import { useFilters } from '../../contexts/filter-context';
 import { LargeLoadingSpinner } from '../loading-spinner';
-import { AIEpicBreakdown } from '../epic-breakdown';
 import { Minimap } from './minimap';
+import { EpicBreakdown } from '../epic-breakdown';
 
 const defaultMargin = { top: 20, left: 40, right: 20, bottom: 20 };
 
@@ -404,7 +404,7 @@ export function VerticalTreeChart({
       
       {/* Conditionally render Epic Breakdown or Tree View */}
       {showBreakdown && rootEpicIssue ? (
-        <AIEpicBreakdown
+        <EpicBreakdown
           epicSummary={String(rootEpicIssue.fields?.summary || '')}
           epicDescription={String(rootEpicIssue.fields?.description || '')}
           existingIssues={issuesByEpic}

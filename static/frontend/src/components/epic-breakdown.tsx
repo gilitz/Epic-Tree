@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useAIEpicBreakdown } from '../hooks/use-ai-epic-breakdown';
 import { useTheme } from '../theme/theme-context';
 
 interface StoryBreakdownSuggestion {
@@ -47,7 +46,7 @@ interface TreeNodeData {
   isEpic?: boolean;
 }
 
-interface AIEpicBreakdownProps {
+interface EpicBreakdownProps {
   epicSummary: string;
   epicDescription: string;
   existingIssues?: unknown[];
@@ -55,14 +54,13 @@ interface AIEpicBreakdownProps {
   onCreateStories?: (suggestions: StoryBreakdownSuggestion[]) => void;
 }
 
-export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
+export const EpicBreakdown: React.FC<EpicBreakdownProps> = ({
   epicSummary: _epicSummary,
   epicDescription: _epicDescription,
   existingIssues: _existingIssues,
   treeData,
   onCreateStories: _onCreateStories
 }) => {
-  const { breakdown: _breakdown, loading: _loading, error, generateBreakdown: _generateBreakdown, refreshData: _refreshData } = useAIEpicBreakdown();
   const { colors, isDarkTheme } = useTheme();
   const [_selectedSuggestions, _setSelectedSuggestions] = useState<Set<number>>(new Set());
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -365,13 +363,6 @@ export const AIEpicBreakdown: React.FC<AIEpicBreakdownProps> = ({
             )}
           </HeaderLeft>
         </Header>
-
-        {error && (
-          <ErrorMessage $isDarkTheme={isDarkTheme}>
-            <ErrorIcon>⚠️</ErrorIcon>
-            {error}
-          </ErrorMessage>
-        )}
 
         <BreakdownContent>
           {/* Epic Statistics */}
@@ -710,21 +701,7 @@ const Title = styled.h2`
   font-weight: 600;
 `;
 
-const ErrorMessage = styled.div<{ $isDarkTheme: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px;
-  background: ${props => props.$isDarkTheme ? '#2D1B1B' : '#FFF2F2'};
-  border: 1px solid #FF5630;
-  border-radius: 8px;
-  color: #FF5630;
-  margin-bottom: 20px;
-`;
 
-const ErrorIcon = styled.span`
-  font-size: 16px;
-`;
 
 const BreakdownContent = styled.div`
   display: flex;
