@@ -5,8 +5,8 @@ modules:
       resolver:
         function: resolver
       viewportSize: medium
-      title: epictree
-      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+      title: Epic Tree
+      icon: /epictree.png
   function:
     - key: resolver
       handler: index.handler

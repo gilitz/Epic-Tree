@@ -1,6 +1,6 @@
 # Epic Tree - Jira Extension
 
-A powerful Atlassian Forge app that provides an intelligent, interactive Epic Tree visualization directly in your Jira issue panels. Transform how you visualize, manage, and plan your epics with advanced tree structures, real-time filtering, and AI-powered breakdown tools.
+A powerful Atlassian Forge app that provides an intelligent, interactive Epic Tree visualization directly in your Jira issue panels. Transform how you visualize, manage, and plan your epics with advanced tree structures, real-time filtering, and breakdown tools.
 
 ![Epic Tree Demo](https://img.shields.io/badge/Jira-Extension-0052CC?style=flat&logo=jira&logoColor=white)
 ![Forge](https://img.shields.io/badge/Atlassian-Forge-0052CC?style=flat&logo=atlassian&logoColor=white)
@@ -40,19 +40,9 @@ Epic Tree transforms your Jira epics into beautiful, interactive tree visualizat
 ### 🔧 Interactive Issue Management
 
 - **Inline editing**: Edit issue fields directly from the tree view
-- **Drag & drop**: Change parent-child relationships by dragging nodes
 - **Story point management**: Visual story point indicators and editing
 - **Assignee management**: Quick assignee changes with avatar displays
 - **Label management**: Add/remove labels with visual tag interface
-
-### 🤖 AI-Powered Epic Breakdown
-
-- **Intelligent analysis**: AI analyzes epic descriptions and existing work
-- **Story suggestions**: Get AI-generated story breakdown recommendations
-- **Work distribution planning**: Categorize work across frontend, backend, testing, and design
-- **Risk identification**: Identify potential blockers and scope issues
-- **Estimation assistance**: Fibonacci sequence story point recommendations
-- **Batch story creation**: Create multiple stories from AI suggestions
 
 ### 📊 Comprehensive Analytics
 
@@ -60,7 +50,6 @@ Epic Tree transforms your Jira epics into beautiful, interactive tree visualizat
 - **Work distribution**: See how work is distributed across team members
 - **Status breakdown**: Understand current state across all issues
 - **Blocking analysis**: Identify and track blocked work items
-- **Timeline visualization**: Track creation and update dates
 
 ### 🚀 Performance & Usability
 
@@ -233,7 +222,6 @@ forge tunnel
 
 ### Themes
 
-- **Automatic theme detection** based on Jira's theme
 - **Manual theme toggle** using the theme button (☀️/🌙)
 - **Smooth transitions** between light and dark modes
 

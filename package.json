@@ -1,9 +1,30 @@
 {
-  "name": "jira-issue-panel-custom-ui",
-  "version": "1.2.2-next.0",
+  "name": "epic-tree-jira-extension",
+  "version": "1.2.2",
+  "description": "A powerful Jira Forge app that provides intelligent, interactive Epic Tree visualization with AI-powered breakdown tools",
   "main": "src/index.ts",
   "license": "MIT",
-  "private": true,
+  "author": "Epic Tree Team",
+  "keywords": [
+    "jira",
+    "atlassian",
+    "forge",
+    "epic",
+    "tree",
+    "visualization",
+    "project-management",
+    "agile",
+    "scrum"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gilitz/Epic-Tree.git"
+  },
+  "homepage": "https://github.com/gilitz/Epic-Tree#readme",
+  "bugs": {
+    "url": "https://github.com/gilitz/Epic-Tree/issues"
+  },
+  "private": false,
   "scripts": {
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
