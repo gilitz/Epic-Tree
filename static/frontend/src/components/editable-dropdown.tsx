@@ -307,7 +307,6 @@ export const EditableDropdown: React.FC<EditableDropdownProps> = ({
         $disabled={disabled}
         $isUpdating={isUpdating}
         onClick={handleToggleDropdown}
-        title={disabled ? 'Editing disabled' : (isUpdating ? 'Updating...' : 'Click to select')}
         colors={colors}
       >
         {getDisplayContent()}

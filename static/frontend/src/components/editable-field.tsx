@@ -404,7 +404,6 @@ export const EditableField: React.FC<EditableFieldProps> = ({
         $disabled={disabled}
         $isUpdating={isUpdating}
         onClick={handleStartEdit}
-        title={disabled ? 'Editing disabled' : (isUpdating ? 'Updating...' : 'Click to edit')}
         colors={colors}
       >
         {getDisplayText()}
@@ -428,13 +427,11 @@ export const EditableField: React.FC<EditableFieldProps> = ({
             <AcceptButton
               onClick={handleSaveEdit}
               disabled={isUpdating}
-              title="Save changes (Ctrl+Enter)"
             >
               ✓
             </AcceptButton>
             <CancelButton
               onClick={handleCancelEdit}
-              title="Cancel changes (Escape)"
             >
               ✕
             </CancelButton>
@@ -458,13 +455,11 @@ export const EditableField: React.FC<EditableFieldProps> = ({
           <AcceptButton
             onClick={handleSaveEdit}
             disabled={isUpdating}
-            title="Save changes"
           >
             ✓
           </AcceptButton>
           <CancelButton
             onClick={handleCancelEdit}
-            title="Cancel changes (Escape)"
           >
             ✕
           </CancelButton>
