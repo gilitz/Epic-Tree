@@ -100,7 +100,7 @@ The App integrates with Atlassian services. Your use of Atlassian services is go
 
 ## 15. Governing Law
 
-These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.
+These Terms shall be governed by and construed in accordance with the laws of Israel, without regard to its conflict of law provisions.
 
 ## 16. Severability
 

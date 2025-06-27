@@ -32,6 +32,21 @@ Epic Tree accesses the following data from your Jira instance:
 - **No Third-Party Sharing**: We do not share your data with third parties
 - **Temporary Processing**: Data is only held in memory during active sessions
 
+### Data Flow
+
+**Data Path:**
+
+1. Your Jira Instance → Atlassian Forge Platform → Epic Tree App
+2. Processing occurs entirely within Atlassian's infrastructure
+3. No data leaves Atlassian's secure environment
+4. No external subprocessors or third-party services are used
+
+**Geographic Data Residency:**
+
+- Data is processed in the same geographic region as your Atlassian instance
+- Follows Atlassian's data residency policies
+- No cross-border data transfers outside of Atlassian's infrastructure
+
 ## Permissions
 
 Epic Tree requires the following Jira permissions:
@@ -59,9 +74,24 @@ When using AI-powered epic breakdown:
 
 As a user, you have the right to:
 
-- Control which data Epic Tree can access through Jira permissions
-- Uninstall the app at any time to revoke access
-- Contact us with privacy-related questions or concerns
+- **Access**: Request information about what personal data we process
+- **Rectification**: Request correction of inaccurate personal data
+- **Erasure**: Request deletion of your personal data
+- **Data Portability**: Request a copy of your data in a structured format
+- **Object**: Object to processing of your personal data
+- **Control**: Control which data Epic Tree can access through Jira permissions
+- **Revoke Access**: Uninstall the app at any time to revoke access
+
+### Data Subject Requests
+
+To exercise your rights or make a data subject request:
+
+1. **Email us** at gil.itzhaky@gmail.com with your request
+2. **Include** your Jira instance URL and specific request details
+3. **We will respond** within 30 days of receiving your request
+4. **Verification** may be required to confirm your identity
+
+Since Epic Tree doesn't store data outside Atlassian's infrastructure, most data requests will be handled through your Jira administrator or Atlassian directly.
 
 ## Contact
 
